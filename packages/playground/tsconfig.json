@@ -1,0 +1,43 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "target": "ES2022",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "#/*": [
+        "./*"
+      ],
+      "@pdanpdan/headless-combobox": [
+        "../headless-combobox/src/index.ts"
+      ]
+    },
+    "types": [
+      "vite/client",
+      "vue"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.vue",
+    "env.d.ts",
+    "../headless-combobox/src/**/*.ts",
+    "../headless-combobox/src/**/*.vue",
+    "../headless-combobox/examples/**/*.vue"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

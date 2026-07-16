@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
+}
+
+@source "../pages/**/*.{vue,ts}";
+@source "../components/**/*.vue";
+@source "../../headless-combobox/examples/**/*.vue";
