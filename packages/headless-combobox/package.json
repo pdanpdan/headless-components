@@ -1,0 +1,77 @@
+{
+  "name": "@pdanpdan/headless-combobox",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Accessible, renderless (headless) combobox for Vue 3 with filtering and keyboard navigation",
+  "author": "",
+  "license": "MIT",
+  "homepage": "https://pdanpdan.github.io/headless-components",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pdanpdan/headless-components.git",
+    "directory": "packages/headless-combobox"
+  },
+  "bugs": {
+    "url": "https://github.com/pdanpdan/headless-components/issues"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "combobox",
+    "headless",
+    "renderless",
+    "select",
+    "autocomplete",
+    "accessibility",
+    "typescript"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./source": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./HeadlessCombobox.vue": "./src/HeadlessCombobox.vue",
+    "./examples/*": "./examples/*"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "examples",
+    "src"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "prepublishOnly": "pnpm build",
+    "lint": "pnpm --dir ../.. lint",
+    "lint:fix": "pnpm --dir ../.. lint:fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:types": "vue-tsc -p tsconfig.app.json --noEmit && vue-tsc -p tsconfig.vitest.json --noEmit"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:",
+    "@vue/test-utils": "catalog:",
+    "jsdom": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-dts": "catalog:",
+    "vitest": "catalog:",
+    "vue": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}
