@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { mdiGithub } from '@mdi/js';
 import NiceSelect from '@pdanpdan/headless-combobox/examples/NiceSelect.vue';
 import niceSource from '@pdanpdan/headless-combobox/examples/NiceSelect.vue?highlight';
 import ObjectMultipleValidated from '@pdanpdan/headless-combobox/examples/ObjectMultipleValidated.vue';
@@ -7,13 +8,20 @@ import ObjectSingle from '@pdanpdan/headless-combobox/examples/ObjectSingle.vue'
 import objectSingleSource from '@pdanpdan/headless-combobox/examples/ObjectSingle.vue?highlight';
 import TextMultiple from '@pdanpdan/headless-combobox/examples/TextMultiple.vue';
 import textMultipleSource from '@pdanpdan/headless-combobox/examples/TextMultiple.vue?highlight';
+import TextMultipleChips from '@pdanpdan/headless-combobox/examples/TextMultipleChips.vue';
+import textMultipleChipsSource from '@pdanpdan/headless-combobox/examples/TextMultipleChips.vue?highlight';
+import TextMultipleCustom from '@pdanpdan/headless-combobox/examples/TextMultipleCustom.vue';
+import textMultipleCustomSource from '@pdanpdan/headless-combobox/examples/TextMultipleCustom.vue?highlight';
 import TextSingle from '@pdanpdan/headless-combobox/examples/TextSingle.vue';
 import textSingleSource from '@pdanpdan/headless-combobox/examples/TextSingle.vue?highlight';
 import TextTypeahead from '@pdanpdan/headless-combobox/examples/TextTypeahead.vue';
 import textTypeaheadSource from '@pdanpdan/headless-combobox/examples/TextTypeahead.vue?highlight';
+import TextTypeaheadChips from '@pdanpdan/headless-combobox/examples/TextTypeaheadChips.vue';
+import textTypeaheadChipsSource from '@pdanpdan/headless-combobox/examples/TextTypeaheadChips.vue?highlight';
 
 import CopyButton from '#/components/CopyButton.vue';
 import ExampleShowcase from '#/components/ExampleShowcase.vue';
+import MdiIcon from '#/components/MdiIcon.vue';
 import PropTable from '#/components/PropTable.vue';
 
 const props = [
@@ -66,11 +74,11 @@ const slotGroups = [
     title: 'ARIA prop bags',
     description: 'Spread onto elements with v-bind for accessibility.',
     rows: [
-      { name: 'triggerProps', type: 'HeadlessComboboxTriggerProps', description: 'Attributes for the trigger button (role=combobox, aria-expanded, aria-activedescendant, …).' },
-      { name: 'inputProps', type: 'HeadlessComboboxInputProps', description: 'Attributes for an in-popup search/filter input (role=searchbox, aria-activedescendant, …).' },
-      { name: 'comboboxInputProps', type: 'HeadlessComboboxComboboxInputProps', description: 'Attributes for a typeahead input that is itself the combobox (role=combobox, aria-expanded, aria-autocomplete, …).' },
+      { name: 'triggerProps', type: 'HeadlessComboboxTriggerProps', description: 'Attributes + toggle/keydown handlers for the trigger (role=combobox, aria-expanded, aria-activedescendant, …).' },
+      { name: 'inputProps', type: 'HeadlessComboboxInputProps', description: 'Attributes + input/keydown handlers for an in-popup search/filter input (role=searchbox, aria-activedescendant, …).' },
+      { name: 'comboboxInputProps', type: 'HeadlessComboboxComboboxInputProps', description: 'Attributes + open/focus/input handlers for a typeahead input that is itself the combobox (role=combobox, aria-expanded, aria-autocomplete, …).' },
       { name: 'listboxProps', type: 'HeadlessComboboxListboxProps', description: 'Attributes for the listbox (role, aria-multiselectable).' },
-      { name: 'getOptionProps', type: '(option, index) => HeadlessComboboxOptionProps', description: 'Attributes for an option (role, aria-selected, aria-disabled, …).' },
+      { name: 'getOptionProps', type: '(option, index) => HeadlessComboboxOptionProps', description: 'Attributes + select/mouse/focus handlers for an option (role, aria-selected, aria-disabled, …).' },
     ],
   },
   {
@@ -116,10 +124,19 @@ const install = 'pnpm add @pdanpdan/headless-combobox';
 <template>
   <div class="flex flex-col gap-8">
     <header class="flex flex-col gap-3">
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <h1 class="text-3xl font-bold">HeadlessCombobox</h1>
         <span class="badge badge-soft badge-primary">headless</span>
       </div>
+      <a
+        href="https://github.com/pdanpdan/headless-components/tree/main/packages/headless-combobox"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="link link-primary inline-flex items-center gap-1.5 text-sm"
+      >
+        <MdiIcon :path="mdiGithub" class="size-5" />
+        github.com/pdanpdan/headless-components/packages/headless-combobox
+      </a>
       <p class="max-w-2xl text-base-content/70">
         An accessible, renderless combobox. It renders nothing on its own &mdash; the default scoped
         slot exposes state, ARIA prop bags, and actions so you own 100% of the markup and styling.
@@ -129,7 +146,7 @@ const install = 'pnpm add @pdanpdan/headless-combobox';
 
     <section class="flex flex-col gap-2">
       <h2 class="text-xl font-semibold">Installation</h2>
-      <div class="mockup-code relative border border-base-content/10 bg-base-content/2 text-base-content w-full">
+      <div class="mockup-code relative border border-base-content/10 bg-base-content/2 text-base-content w-full overflow-x-auto">
         <CopyButton :text="install" class="btn-ghost absolute top-2 right-4 z-10" />
         <pre data-prefix="$"><code>{{ install }}</code></pre>
       </div>
@@ -168,6 +185,22 @@ const install = 'pnpm add @pdanpdan/headless-combobox';
       </ExampleShowcase>
 
       <ExampleShowcase
+        title="Text options · multiple · removable chips"
+        description="Selected items as removable chips. The remove buttons live outside the combobox trigger, so the trigger stays a single focusable control."
+        :source="textMultipleChipsSource"
+      >
+        <TextMultipleChips />
+      </ExampleShowcase>
+
+      <ExampleShowcase
+        title="Text options · multiple · custom options"
+        description="Options are fully customizable: the focused option gets a thick left border, and each option shows a checkbox (checked / unchecked) for its selection state."
+        :source="textMultipleCustomSource"
+      >
+        <TextMultipleCustom />
+      </ExampleShowcase>
+
+      <ExampleShowcase
         title="Object options · multiple · validated"
         description="Multiple selection with required + min/max validation and a rendered message."
         :source="objectMultipleSource"
@@ -190,26 +223,34 @@ const install = 'pnpm add @pdanpdan/headless-combobox';
       >
         <TextTypeahead />
       </ExampleShowcase>
+
+      <ExampleShowcase
+        title="Typeahead · chips inside the field"
+        description="GitHub-style topic input: chips and the text input share one bordered field. The field is a plain container, so each chip can carry a remove button without nesting controls."
+        :source="textTypeaheadChipsSource"
+      >
+        <TextTypeaheadChips />
+      </ExampleShowcase>
     </section>
 
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">API</h2>
 
-      <div v-if="props.length" class="card border border-base-content/10 bg-base-content/2">
+      <div v-if="props.length" class="card border border-base-content/10 bg-base-content/2 overflow-x-auto">
         <div class="card-body gap-3">
           <h3 class="card-title text-base">Props</h3>
           <PropTable :rows="props" show-default />
         </div>
       </div>
 
-      <div v-if="emits.length" class="card border border-base-content/10 bg-base-content/2">
+      <div v-if="emits.length" class="card border border-base-content/10 bg-base-content/2 overflow-x-auto">
         <div class="card-body gap-3">
           <h3 class="card-title text-base">Emits</h3>
           <PropTable :rows="emits" />
         </div>
       </div>
 
-      <div v-if="methods.length" class="card border border-base-content/10 bg-base-content/2">
+      <div v-if="methods.length" class="card border border-base-content/10 bg-base-content/2 overflow-x-auto">
         <div class="card-body gap-3">
           <h3 class="card-title text-base">Methods</h3>
           <PropTable :rows="methods" />
@@ -219,7 +260,7 @@ const install = 'pnpm add @pdanpdan/headless-combobox';
       <div
         v-for="slot in slots"
         :key="slot.name"
-        class="card border border-base-content/10 bg-base-content/2"
+        class="card border border-base-content/10 bg-base-content/2 overflow-x-auto"
       >
         <div class="card-body gap-4">
           <div class="flex flex-col gap-1">
