@@ -75,3 +75,39 @@
 @source "../pages/**/*.{vue,ts}";
 @source "../components/**/*.vue";
 @source "../../headless-combobox/examples/**/*.vue";
+
+/* Drive the theme toggle indicator from `data-theme` (set by theme.js before first
+   paint, and by the media query before hydration) instead of the checkbox state,
+   so the icon matches the theme from the very first frame. */
+:root[data-theme="light"] .toggle-theme {
+  .swap-on {
+    opacity: 0;
+    rotate: 45deg;
+  }
+  .swap-off {
+    opacity: 1;
+    rotate: 0deg;
+  }
+}
+:root[data-theme="dark"] .toggle-theme {
+  .swap-on {
+    opacity: 1;
+    rotate: 0deg;
+  }
+  .swap-off {
+    opacity: 0;
+    rotate: -45deg;
+  }
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .toggle-theme {
+    .swap-on {
+      opacity: 1;
+      rotate: 0deg;
+    }
+    .swap-off {
+      opacity: 0;
+      rotate: -45deg;
+    }
+  }
+}

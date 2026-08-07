@@ -14,23 +14,22 @@ const components = [
   { href: '/combobox', label: 'HeadlessCombobox' },
 ];
 
-const theme = ref<'light' | 'dark' | null>(null);
+const themeToggleInput = ref<HTMLInputElement>();
 
-function toggleTheme() {
-  if (theme.value == null) {
-    theme.value = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark';
-  } else {
-    theme.value = theme.value === 'light' ? 'dark' : 'light';
-  }
-  document.documentElement.setAttribute('data-theme', theme.value);
-  window.localStorage.setItem('theme', theme.value);
+function toggleTheme(event: Event) {
+  const isDark = (event.target as HTMLInputElement).checked;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  window.localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
 onMounted(() => {
   const savedTheme = window.localStorage.getItem('theme');
-  theme.value = savedTheme === 'light' || savedTheme === 'dark'
-    ? savedTheme
-    : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  const isDark = savedTheme === 'dark'
+    || (savedTheme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  if (themeToggleInput.value) {
+    themeToggleInput.value.checked = isDark;
+  }
 });
 </script>
 
@@ -42,12 +41,12 @@ onMounted(() => {
           <span class="text-lg font-bold">Headless Components</span>
         </a>
 
-        <label class="swap swap-rotate" title="Toggle light/dark theme">
+        <label class="swap swap-rotate toggle-theme" title="Toggle light/dark theme">
           <input
+            ref="themeToggleInput"
             type="checkbox"
             value="dark"
             class="theme-controller"
-            :checked="theme === 'dark'"
             aria-label="Toggle light/dark theme"
             @change="toggleTheme"
           />
