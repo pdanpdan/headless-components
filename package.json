@@ -22,7 +22,8 @@
     "test:watch": "vitest",
     "test:all": "pnpm -r run test:all",
     "typecheck": "pnpm -r run typecheck",
-    "release": "release-it"
+    "release": "release-it",
+    "release:npm": "pnpm -r run release:npm"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",

@@ -24,9 +24,6 @@
     "after:bump": [
       "npm version ${version} --no-git-tag-version --prefix packages/headless-combobox",
       "git add package.json packages/headless-combobox/package.json"
-    ],
-    "after:release": [
-      "pnpm --filter @pdanpdan/headless-combobox publish"
     ]
   }
 }

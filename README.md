@@ -18,7 +18,8 @@ pnpm lint         # lint all
 pnpm typecheck    # type-check all packages
 pnpm test         # run tests
 pnpm test:all     # lint + typecheck + test
-pnpm release      # test:all + version bump + CHANGELOG + git tag + GitHub release + npm publish
+pnpm release      # test:all + version bump + CHANGELOG + git tag + GitHub release (release-it)
+pnpm release:npm  # publish packages to npm (run by hand after release — interactive OTP)
 ```
 
 ## License
