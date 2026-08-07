@@ -24,7 +24,7 @@ const MAX = 3;
   <div class="w-full max-w-sm">
     <HeadlessCombobox
       v-slot="{
-        filteredOptions, highlightedIndex, searchQuery,
+        filteredOptions, highlightedIndex, searchQuery, select,
         clear, isSelected, canSelectMore, selectedCount,
         cssAnchorName, popupStyle, triggerProps, inputProps, listboxProps, getOptionProps, setContainerRef,
         setTriggerRef, setDropdownRef, setInputRef, setListRef, setOptionRef,
@@ -39,6 +39,36 @@ const MAX = 3;
         class="fieldset w-full"
       >
         <legend :id="labelId" class="fieldset-legend font-semibold">Frameworks (multiple, max {{ MAX }})</legend>
+        <div v-if="selected.length" class="mb-1.5 flex flex-wrap gap-1">
+          <span
+            v-for="item in selected"
+            :key="item"
+            class="badge badge-soft badge-primary gap-1 pr-1"
+          >
+            {{ item }}
+            <button
+              type="button"
+              class="btn btn-circle btn-ghost btn-xs"
+              :aria-label="`Remove ${ item }`"
+              @click="select(item)"
+            >
+              <svg
+                class="h-3 w-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </span>
+        </div>
         <button
           :ref="setTriggerRef"
           v-bind="triggerProps"
@@ -47,13 +77,7 @@ const MAX = 3;
           class="input flex h-auto min-h-10 w-full cursor-pointer items-center justify-between gap-2 py-1.5 shadow-sm"
           :style="{ anchorName: cssAnchorName }"
         >
-          <span v-if="selected.length" class="flex flex-wrap gap-1">
-            <span
-              v-for="item in selected"
-              :key="item"
-              class="badge badge-soft badge-primary badge-sm"
-            >{{ item }}</span>
-          </span>
+          <span v-if="selected.length" class="text-base-content/70">{{ selected.length }} selected</span>
           <span v-else class="text-base-content/50">Select frameworks…</span>
           <span class="text-xs opacity-60">{{ selectedCount }}/{{ MAX }}</span>
         </button>

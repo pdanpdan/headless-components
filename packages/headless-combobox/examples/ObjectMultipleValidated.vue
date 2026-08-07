@@ -27,9 +27,9 @@ const labelId = useId();
   <div class="w-full max-w-sm">
     <HeadlessCombobox
       v-slot="{
-        filteredOptions, highlightedIndex, searchQuery, setSearchQuery, toggle, select,
-        isSelected, canSelectMore, selectedCount, valid, validationMessage, setHighlightedIndex,
-        handleKeydown, cssAnchorName, popupStyle, triggerProps, inputProps, listboxProps, getOptionProps,
+        filteredOptions, highlightedIndex, searchQuery,
+        isSelected, canSelectMore, selectedCount, valid, validationMessage,
+        cssAnchorName, popupStyle, triggerProps, inputProps, listboxProps, getOptionProps,
         setContainerRef, setTriggerRef, setDropdownRef, setInputRef, setListRef, setOptionRef,
       }"
       v-model="selected"
@@ -53,8 +53,6 @@ const labelId = useId();
           class="input flex w-full cursor-pointer items-center justify-between shadow-sm"
           :class="valid ? '' : 'input-error'"
           :style="{ anchorName: cssAnchorName }"
-          @click="toggle"
-          @keydown="handleKeydown"
         >
           <span :class="{ 'text-base-content/50': selectedCount === 0 }">
             {{ selectedCount ? `${ selectedCount } selected` : 'Select reviewers…' }}
@@ -100,15 +98,13 @@ const labelId = useId();
             class="input input-sm w-full"
             placeholder="Search reviewers…"
             aria-label="Search reviewers"
-            @input="(e) => setSearchQuery((e.target as HTMLInputElement).value)"
-            @keydown="handleKeydown"
           />
         </div>
 
         <ul
           :ref="setListRef"
           v-bind="listboxProps"
-          class="menu max-h-60 w-full flex-nowrap overflow-y-auto"
+          class="menu max-h-60 w-full flex-nowrap gap-0.5 overflow-y-auto"
         >
           <li
             v-for="(user, index) in filteredOptions"
@@ -118,14 +114,19 @@ const labelId = useId();
               :ref="(el) => setOptionRef(user, el)"
               type="button"
               v-bind="getOptionProps(user, index)"
-              class="justify-between"
+              class="justify-between shadow-none hover:bg-primary/20 hover:text-primary"
               :class="{
                 'menu-active': isSelected(user),
-                'menu-focus': index === highlightedIndex,
+                'hover:brightness-95': isSelected(user),
+                'menu-focus': index === highlightedIndex && (canSelectMore || isSelected(user)),
+
+                'bg-primary/20': index === highlightedIndex && (canSelectMore || isSelected(user)),
+
+                'text-primary': index === highlightedIndex && (canSelectMore || isSelected(user)),
+                'cursor-pointer': canSelectMore || isSelected(user),
+                'pointer-events-none': !canSelectMore && !isSelected(user),
                 'opacity-40': !canSelectMore && !isSelected(user),
               }"
-              @click="select(user)"
-              @mousemove="setHighlightedIndex(index)"
             >
               <span class="flex flex-col items-start gap-0.5">
                 <span>{{ user.name }}</span>

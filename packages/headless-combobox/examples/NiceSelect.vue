@@ -27,8 +27,8 @@ const labelId = useId();
   <div class="w-full max-w-sm">
     <HeadlessCombobox
       v-slot="{
-        filteredOptions, highlightedIndex, toggle, select, isSelected,
-        setHighlightedIndex, handleKeydown, cssAnchorName, popupStyle, triggerProps, listboxProps,
+        filteredOptions, highlightedIndex, isSelected, canSelectMore,
+        cssAnchorName, popupStyle, triggerProps, listboxProps,
         getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setListRef, setOptionRef,
       }"
       v-model="selected"
@@ -48,8 +48,6 @@ const labelId = useId();
           type="button"
           class="input flex w-full cursor-pointer items-center justify-between shadow-sm"
           :style="{ anchorName: cssAnchorName }"
-          @click="toggle"
-          @keydown="handleKeydown"
         >
           <span v-if="selected">{{ selected.name }}</span>
           <span v-else class="text-base-content/50">Select a user…</span>
@@ -73,7 +71,7 @@ const labelId = useId();
         :ref="(el) => { setDropdownRef(el); setListRef(el); }"
         v-bind="listboxProps"
         popover="manual"
-        class="cbx-popup menu max-h-60 flex-nowrap rounded-box bg-base-200 shadow-xl"
+        class="cbx-popup menu max-h-60 flex-nowrap gap-0.5 rounded-box bg-base-200 shadow-xl"
         :style="[popupStyle, {
           left: 'calc(anchor(left) - 0.25rem)',
           width: 'calc(anchor-size(width) + 0.5rem)',
@@ -87,13 +85,17 @@ const labelId = useId();
             :ref="(el) => setOptionRef(user, el)"
             type="button"
             v-bind="getOptionProps(user, index)"
-            class="justify-between"
+            class="justify-between shadow-none hover:bg-primary/20 hover:text-primary"
             :class="{
               'menu-active': isSelected(user),
+              'hover:brightness-95': isSelected(user),
               'menu-focus': index === highlightedIndex,
+
+              'bg-primary/20': index === highlightedIndex,
+
+              'text-primary': index === highlightedIndex,
+              'cursor-pointer': canSelectMore || isSelected(user),
             }"
-            @click="select(user)"
-            @mousemove="setHighlightedIndex(index)"
           >
             <span>{{ user.name }}</span>
             <svg

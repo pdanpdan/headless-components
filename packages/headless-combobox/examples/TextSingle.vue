@@ -23,8 +23,8 @@ const labelId = useId();
   <div class="w-full max-w-sm">
     <HeadlessCombobox
       v-slot="{
-        filteredOptions, highlightedIndex, toggle, select, isSelected,
-        setHighlightedIndex, handleKeydown, cssAnchorName, popupStyle, triggerProps, listboxProps,
+        filteredOptions, highlightedIndex, isSelected, canSelectMore,
+        cssAnchorName, popupStyle, triggerProps, listboxProps,
         getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setListRef, setOptionRef,
       }"
       v-model="selected"
@@ -42,8 +42,6 @@ const labelId = useId();
           type="button"
           class="input flex w-full cursor-pointer items-center justify-between shadow-sm"
           :style="{ anchorName: cssAnchorName }"
-          @click="toggle"
-          @keydown="handleKeydown"
         >
           <span :class="{ 'text-base-content/50': selected == null }">{{ selected ?? 'Select a framework…' }}</span>
           <svg
@@ -66,7 +64,7 @@ const labelId = useId();
         :ref="(el) => { setDropdownRef(el); setListRef(el); }"
         v-bind="listboxProps"
         popover="manual"
-        class="cbx-popup menu max-h-60 flex-nowrap rounded-box bg-base-200 shadow-xl"
+        class="cbx-popup menu max-h-60 flex-nowrap gap-0.5 rounded-box bg-base-200 shadow-xl"
         :style="[popupStyle, {
           top: 'calc(anchor(bottom) + 0.375rem)',
           left: 'calc(anchor(left) - 0.25rem)',
@@ -81,13 +79,17 @@ const labelId = useId();
             :ref="(el) => setOptionRef(framework, el)"
             type="button"
             v-bind="getOptionProps(framework, index)"
-            class="justify-between"
+            class="justify-between shadow-none hover:bg-primary/20 hover:text-primary"
             :class="{
               'menu-active': isSelected(framework),
+              'hover:brightness-95': isSelected(framework),
               'menu-focus': index === highlightedIndex,
+
+              'bg-primary/20': index === highlightedIndex,
+
+              'text-primary': index === highlightedIndex,
+              'cursor-pointer': canSelectMore || isSelected(framework),
             }"
-            @click="select(framework)"
-            @mousemove="setHighlightedIndex(index)"
           >
             <span>{{ framework }}</span>
             <svg

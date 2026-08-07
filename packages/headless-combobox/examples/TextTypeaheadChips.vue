@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { HeadlessCombobox } from '@pdanpdan/headless-combobox';
-import { ref, useId } from 'vue';
+import { nextTick, ref, useId, watch } from 'vue';
 
 const languages = [
   'JavaScript',
@@ -21,62 +21,95 @@ const languages = [
   'Scala',
 ];
 
-const selected = ref<string | null>(null);
+const selected = ref<string[]>([ 'TypeScript' ]);
 const labelId = useId();
+const chipsRef = ref<HTMLElement | null>(null);
+
+// Keep the newest chip in view when the chip row overflows.
+watch(selected, () => {
+  nextTick(() => {
+    const el = chipsRef.value;
+    if (el) {
+      el.scrollTo({ left: el.scrollWidth });
+    }
+  });
+});
 </script>
 
 <template>
   <div class="w-full max-w-sm">
     <HeadlessCombobox
       v-slot="{
-        isOpen, filteredOptions, highlightedIndex, searchQuery, toggle,
-        isSelected, canSelectMore, handleKeydown, cssAnchorName, popupStyle,
+        isOpen, filteredOptions, highlightedIndex, searchQuery,
+        select, isSelected, canSelectMore, handleKeydown, cssAnchorName, popupStyle,
         comboboxInputProps, listboxProps, getOptionProps, setContainerRef, setTriggerRef,
         setInputRef, setDropdownRef, setListRef, setOptionRef,
       }"
       v-model="selected"
       :options="languages"
+      multiple
     >
       <fieldset
         :ref="setContainerRef"
-        class="fieldset w-full"
+        class="fieldset w-full min-w-0"
       >
-        <legend :id="labelId" class="fieldset-legend font-semibold">Language (typeahead, editable)</legend>
+        <legend :id="labelId" class="fieldset-legend font-semibold">Topics (typeahead, removable chips in the field)</legend>
         <div
-          class="input flex w-full items-center gap-2"
+          class="input flex min-w-0 w-full items-center gap-1"
           :style="{ anchorName: cssAnchorName }"
         >
+          <div
+            ref="chipsRef"
+            class="flex min-w-0 items-center gap-1 overflow-x-auto"
+          >
+            <span
+              v-for="item in selected"
+              :key="item"
+              class="badge badge-soft badge-primary gap-1 pr-1"
+            >
+              {{ item }}
+              <button
+                type="button"
+                class="btn btn-circle btn-ghost btn-xs"
+                :aria-label="`Remove ${ item }`"
+                @mousedown.prevent
+                @click.stop="select(item)"
+              >
+                <svg
+                  class="h-3 w-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </span>
+          </div>
           <input
             :ref="(el) => { setTriggerRef(el); setInputRef(el); }"
             v-bind="comboboxInputProps"
             :aria-labelledby="labelId"
-            :value="isOpen ? searchQuery : (selected ?? '')"
+            :value="isOpen ? searchQuery : ''"
             type="text"
-            class="grow"
-            placeholder="Search a language…"
-            @keydown="(e) => { if (e.key !== ' ') { handleKeydown(e); } }"
+            class="min-w-24 flex-1"
+            placeholder="Add a topic…"
+            @keydown="(e) => {
+              if (e.key === 'Backspace' && !searchQuery && selected.length > 0) {
+                const last = selected[selected.length - 1];
+                if (last) { select(last); }
+              }
+              else if (e.key !== ' ') {
+                handleKeydown(e);
+              }
+            }"
           />
-          <button
-            type="button"
-            tabindex="-1"
-            class="cursor-pointer text-base-content/50"
-            aria-label="Toggle suggestions"
-            @click="toggle"
-          >
-            <svg
-              class="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
         </div>
       </fieldset>
 

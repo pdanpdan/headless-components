@@ -38,7 +38,7 @@ const MAX = 3;
         :ref="setContainerRef"
         class="fieldset w-full"
       >
-        <legend :id="labelId" class="fieldset-legend font-semibold">Frameworks (multiple, max {{ MAX }})</legend>
+        <legend :id="labelId" class="fieldset-legend font-semibold">Frameworks (multiple, custom options)</legend>
         <button
           :ref="setTriggerRef"
           v-bind="triggerProps"
@@ -101,35 +101,37 @@ const MAX = 3;
               :ref="(el) => setOptionRef(framework, el)"
               type="button"
               v-bind="getOptionProps(framework, index)"
-              class="justify-between shadow-none hover:bg-primary/20 hover:text-primary"
+              class="justify-between shadow-none gap-2 border-l-2 rounded-xs"
               :class="{
                 'menu-active': isSelected(framework),
-                'hover:brightness-95': isSelected(framework),
-                'menu-focus': index === highlightedIndex && (canSelectMore || isSelected(framework)),
-
-                'bg-primary/20': index === highlightedIndex && (canSelectMore || isSelected(framework)),
-
-                'text-primary': index === highlightedIndex && (canSelectMore || isSelected(framework)),
+                'border-l-primary': index === highlightedIndex && (canSelectMore || isSelected(framework)),
+                'border-l-transparent': index !== highlightedIndex || !(canSelectMore || isSelected(framework)),
                 'cursor-pointer': canSelectMore || isSelected(framework),
                 'pointer-events-none': !canSelectMore && !isSelected(framework),
                 'opacity-40': !canSelectMore && !isSelected(framework),
               }"
             >
               <span>{{ framework }}</span>
-              <svg
-                v-if="isSelected(framework)"
-                class="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              <span
+                class="checkbox checkbox-xs checkbox-primary rounded-xs"
+                :aria-checked="isSelected(framework)"
+                aria-hidden="true"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M4.5 12.75l6 6 9-13.5"
-                />
-              </svg>
+                <!-- <svg
+                  v-if="isSelected(framework)"
+                  class="h-3 w-3 text-primary-content"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="3"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg> -->
+              </span>
             </button>
           </li>
         </ul>

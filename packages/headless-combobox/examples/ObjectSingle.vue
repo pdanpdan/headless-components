@@ -27,8 +27,8 @@ const labelId = useId();
   <div class="w-full max-w-sm">
     <HeadlessCombobox
       v-slot="{
-        filteredOptions, highlightedIndex, searchQuery, setSearchQuery, toggle, select,
-        isSelected, setHighlightedIndex, handleKeydown, cssAnchorName, popupStyle, triggerProps, inputProps,
+        filteredOptions, highlightedIndex, searchQuery,
+        isSelected, canSelectMore, cssAnchorName, popupStyle, triggerProps, inputProps,
         listboxProps, getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setInputRef,
         setListRef, setOptionRef,
       }"
@@ -48,8 +48,6 @@ const labelId = useId();
           type="button"
           class="input flex w-full cursor-pointer items-center justify-between shadow-sm"
           :style="{ anchorName: cssAnchorName }"
-          @click="toggle"
-          @keydown="handleKeydown"
         >
           <span v-if="selected">{{ selected.name }}</span>
           <span v-else class="text-base-content/50">Select a user…</span>
@@ -88,15 +86,13 @@ const labelId = useId();
             class="input input-sm w-full"
             placeholder="Search users…"
             aria-label="Search users"
-            @input="(e) => setSearchQuery((e.target as HTMLInputElement).value)"
-            @keydown="handleKeydown"
           />
         </div>
 
         <ul
           :ref="setListRef"
           v-bind="listboxProps"
-          class="menu max-h-60 w-full flex-nowrap overflow-y-auto"
+          class="menu max-h-60 w-full flex-nowrap gap-0.5 overflow-y-auto"
         >
           <li
             v-for="(user, index) in filteredOptions"
@@ -106,13 +102,17 @@ const labelId = useId();
               :ref="(el) => setOptionRef(user, el)"
               type="button"
               v-bind="getOptionProps(user, index)"
-              class="justify-between"
+              class="justify-between shadow-none hover:bg-primary/20 hover:text-primary"
               :class="{
                 'menu-active': isSelected(user),
+                'hover:brightness-95': isSelected(user),
                 'menu-focus': index === highlightedIndex,
+
+                'bg-primary/20': index === highlightedIndex,
+
+                'text-primary': index === highlightedIndex,
+                'cursor-pointer': canSelectMore || isSelected(user),
               }"
-              @click="select(user)"
-              @mousemove="setHighlightedIndex(index)"
             >
               <span class="flex flex-col items-start gap-0.5">
                 <span>{{ user.name }}</span>
