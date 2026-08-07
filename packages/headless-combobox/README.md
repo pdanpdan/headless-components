@@ -91,12 +91,13 @@ See the [`examples/`](./examples) folder for full daisyUI-styled demos
 
 State: `isOpen`, `multiple`, `disabled`, `readonly`, `searchQuery` (`Q | undefined`, defaults to `string`), `filteredOptions`, `highlightedIndex`, `alignmentOffset`, `cssAnchorName`, `popupStyle` (`HeadlessComboboxPopupStyle`), `selectedCount`, `canSelectMore`, `isSelected(option)`, `valid`, `errors`, `validationMessage`.
 
-ARIA prop bags (spread with `v-bind`):
-- `triggerProps` — `HeadlessComboboxTriggerProps` (select-only trigger as `role="combobox"`)
-- `inputProps` — `HeadlessComboboxInputProps` (in-popup filter input as `role="searchbox"`)
-- `comboboxInputProps` — `HeadlessComboboxComboboxInputProps` (typeahead input as `role="combobox"`)
+ARIA prop bags (spread with `v-bind`) — each bag also carries its interaction handlers, so
+options, triggers, and inputs need no hand-written event wiring:
+- `triggerProps` — `HeadlessComboboxTriggerProps` (trigger as `role="combobox"`, plus `onClick` → toggle and `onKeydown` → `handleKeydown`)
+- `inputProps` — `HeadlessComboboxInputProps` (in-popup filter input as `role="searchbox"`, plus `onInput` → `setSearchQuery` and `onKeydown` → `handleKeydown`)
+- `comboboxInputProps` — `HeadlessComboboxComboboxInputProps` (typeahead input as `role="combobox"`, plus `onClick`/`onFocus` → open and `onInput` → `setSearchQuery`)
 - `listboxProps` — `HeadlessComboboxListboxProps`
-- `getOptionProps(option, index)` → `HeadlessComboboxOptionProps`
+- `getOptionProps(option, index)` → `HeadlessComboboxOptionProps` (option semantics, plus `onClick` → select, `onMousedown` → `preventDefault` to keep the filter focused, and `onMousemove`/`onFocus` → `setHighlightedIndex` — blocked options are skipped)
 
 Each ARIA interface is exported for precise typing. The `disabled`/`readonly` flags and all `aria-*` attributes are included.
 
@@ -104,8 +105,8 @@ Actions: `toggle`, `open`, `close(returnFocus?)`, `select(option)`, `clear()`, `
 
 Ref setters (assign with `:ref`): `setContainerRef`, `setTriggerRef`, `setDropdownRef`, `setInputRef`, `setListRef`, `setOptionRef(option, el)`.
 
-> Tip: wire `setHighlightedIndex(index)` to each option's `@mousemove` so the mouse-hovered option
-> uses the same highlight style as the keyboard-active one.
+> The example components render options, triggers, and search inputs with nothing more than
+> `v-bind` on the bags — see `examples/` for the recommended usage.
 
 ## Popup positioning & the Popover API
 
