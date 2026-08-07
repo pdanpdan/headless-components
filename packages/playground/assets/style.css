@@ -4,6 +4,72 @@
   themes: light --default, dark --prefersdark;
 }
 
+@plugin "daisyui/theme" {
+  name: "light";
+  color-scheme: light;
+  --color-base-100: oklch(99.2% 0.005 117.9);
+  --color-base-200: oklch(96.6% 0.009 128.6);
+  --color-base-300: oklch(92.5% 0.013 130.8);
+  --color-base-content: oklch(25% 0.017 148.5);
+  --color-neutral: oklch(29.7% 0.019 161.2);
+  --color-neutral-content: oklch(96.1% 0.01 145.5);
+  --color-primary: oklch(43% 0.099 153.4);
+  --color-primary-content: oklch(100% 0 0);
+  --color-secondary: oklch(47.3% 0.125 46.2);
+  --color-secondary-content: oklch(100% 0 0);
+  --color-accent: oklch(43.2% 0.211 292.8);
+  --color-accent-content: oklch(100% 0 0);
+  --color-info: oklch(44.3% 0.1 240.8);
+  --color-info-content: oklch(100% 0 0);
+  --color-success: oklch(43.2% 0.086 166.9);
+  --color-success-content: oklch(100% 0 0);
+  --color-warning: oklch(76.9% 0.165 70.1);
+  --color-warning-content: oklch(21.6% 0.006 56);
+  --color-error: oklch(44.4% 0.161 26.9);
+  --color-error-content: oklch(100% 0 0);
+  --radius-selector: 1rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/theme" {
+  name: "dark";
+  color-scheme: dark;
+  --color-base-100: oklch(19% 0.01 145.2);
+  --color-base-200: oklch(22.3% 0.013 150);
+  --color-base-300: oklch(26.4% 0.014 154.3);
+  --color-base-content: oklch(94.5% 0.011 149.9);
+  --color-neutral: oklch(28.2% 0.017 156);
+  --color-neutral-content: oklch(93.3% 0.015 151.8);
+  --color-primary: oklch(80% 0.182 151.7);
+  --color-primary-content: oklch(26.6% 0.067 149.6);
+  --color-secondary: oklch(83.7% 0.164 84.4);
+  --color-secondary-content: oklch(27.9% 0.074 45.6);
+  --color-accent: oklch(81.1% 0.101 293.6);
+  --color-accent-content: oklch(20.5% 0.095 286.5);
+  --color-info: oklch(75.4% 0.139 232.7);
+  --color-info-content: oklch(23.4% 0.049 243.1);
+  --color-success: oklch(77.3% 0.153 163.2);
+  --color-success-content: oklch(26.2% 0.049 172.6);
+  --color-warning: oklch(83.7% 0.164 84.4);
+  --color-warning-content: oklch(27.9% 0.074 45.6);
+  --color-error: oklch(80.8% 0.103 19.6);
+  --color-error-content: oklch(19.9% 0.061 24.7);
+  --radius-selector: 1rem;
+  --radius-field: 0.5rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
+
 @source "../pages/**/*.{vue,ts}";
 @source "../components/**/*.vue";
 @source "../../headless-combobox/examples/**/*.vue";
