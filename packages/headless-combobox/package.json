@@ -43,18 +43,20 @@
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
+    "CHANGELOG.md",
     "dist",
     "examples",
     "src"
   ],
   "scripts": {
     "build": "vite build",
-    "prepublishOnly": "pnpm build",
+    "prepublishOnly": "pnpm test:all && pnpm build",
     "lint": "pnpm --dir ../.. lint",
     "lint:fix": "pnpm --dir ../.. lint:fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:types": "vue-tsc -p tsconfig.app.json --noEmit && vue-tsc -p tsconfig.vitest.json --noEmit"
+    "typecheck": "vue-tsc -p tsconfig.app.json --noEmit && vue-tsc -p tsconfig.vitest.json --noEmit",
+    "test:all": "pnpm lint && pnpm typecheck && pnpm test"
   },
   "peerDependencies": {
     "vue": "^3.0.0"

@@ -1,0 +1,32 @@
+{
+  "git": {
+    "commitMessage": "chore: release v${version}",
+    "tagName": "v${version}",
+    "requireCleanWorkingDir": false,
+    "requireUpstream": false
+  },
+  "github": {
+    "release": true
+  },
+  "npm": {
+    "publish": false
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": "angular",
+      "infile": "packages/headless-combobox/CHANGELOG.md"
+    }
+  },
+  "hooks": {
+    "before:init": [
+      "pnpm test:all"
+    ],
+    "after:bump": [
+      "npm version ${version} --no-git-tag-version --prefix packages/headless-combobox",
+      "git add package.json packages/headless-combobox/package.json"
+    ],
+    "after:release": [
+      "pnpm --filter @pdanpdan/headless-combobox publish"
+    ]
+  }
+}

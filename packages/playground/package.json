@@ -6,9 +6,10 @@
     "dev": "vike dev --host",
     "build": "vike build",
     "preview": "vike preview",
-    "test:types": "vue-tsc --noEmit",
     "lint": "pnpm --dir ../.. lint",
-    "lint:fix": "pnpm --dir ../.. lint:fix"
+    "lint:fix": "pnpm --dir ../.. lint:fix",
+    "typecheck": "vue-tsc --noEmit",
+    "test:all": "pnpm lint && pnpm typecheck"
   },
   "dependencies": {
     "@pdanpdan/headless-combobox": "workspace:*",

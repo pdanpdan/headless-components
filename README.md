@@ -17,6 +17,8 @@ pnpm dev          # start playground
 pnpm lint         # lint all
 pnpm typecheck    # type-check all packages
 pnpm test         # run tests
+pnpm test:all     # lint + typecheck + test
+pnpm release      # test:all + version bump + CHANGELOG + git tag + GitHub release + npm publish
 ```
 
 ## License

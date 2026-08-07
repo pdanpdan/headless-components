@@ -20,10 +20,13 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "pnpm -r test:types"
+    "test:all": "pnpm -r run test:all",
+    "typecheck": "pnpm -r run typecheck",
+    "release": "release-it"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",
+    "@release-it/conventional-changelog": "catalog:",
     "@types/node": "catalog:",
     "@vitejs/plugin-vue": "catalog:",
     "@vitest/coverage-v8": "catalog:",
@@ -31,6 +34,7 @@
     "eslint": "catalog:",
     "eslint-plugin-vuejs-accessibility": "catalog:",
     "jsdom": "catalog:",
+    "release-it": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "vue-tsc": "catalog:"
