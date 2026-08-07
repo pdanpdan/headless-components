@@ -1,7 +1,7 @@
 {
   "name": "@pdanpdan/headless-combobox",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Accessible, renderless (headless) combobox for Vue 3 with filtering and keyboard navigation",
   "author": "",
   "license": "MIT",
