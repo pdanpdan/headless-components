@@ -402,6 +402,29 @@ describe('headless combobox (prop bag handlers)', () => {
     expect(cb.scope.isOpen).toBe(true);
   });
 
+  it('reopens and filters via comboboxInputProps().onInput after Escape closed it', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    // ESC closes the popup (query reset).
+    cb.scope.open();
+    await nextTick();
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'Escape' }));
+    await nextTick();
+    expect(cb.scope.isOpen).toBe(false);
+
+    // Typing again must reopen the popup and filter.
+    const target = { value: 'Wade' } as HTMLInputElement;
+    const event = new Event('input');
+    Object.defineProperty(event, 'target', { value: target });
+    cb.scope.comboboxInputProps.onInput(event);
+    await nextTick();
+
+    expect(cb.scope.isOpen).toBe(true);
+    expect(cb.scope.searchQuery).toBe('Wade');
+    expect(cb.scope.filteredOptions).toEqual([ users[ 0 ] ]);
+  });
+
   it('prevents the mousedown default on options', () => {
     const users = createUsers();
     const cb = mountComboBox(users);

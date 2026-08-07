@@ -347,6 +347,13 @@ function setQueryFromEvent(event: Event) {
   setSearchQuery((event.target as HTMLInputElement).value as Q);
 }
 
+// Typing in the typeahead input reopens the popup (open() resets the query
+// first, so the order matters) and filters the options.
+function openAndSetQueryFromEvent(event: Event) {
+  open();
+  setSearchQuery((event.target as HTMLInputElement).value as Q);
+}
+
 const inputProps = computed<HeadlessComboboxInputProps>(() => ({
   id: inputId,
   role: 'searchbox',
@@ -372,7 +379,7 @@ const comboboxInputProps = computed<HeadlessComboboxComboboxInputProps>(() => ({
   readonly: props.readonly ? true : undefined,
   onClick: open,
   onFocus: open,
-  onInput: setQueryFromEvent,
+  onInput: openAndSetQueryFromEvent,
 }));
 
 const listboxProps = computed<HeadlessComboboxListboxProps>(() => ({
