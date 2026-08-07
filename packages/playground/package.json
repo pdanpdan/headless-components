@@ -12,6 +12,7 @@
     "test:all": "pnpm lint && pnpm typecheck"
   },
   "dependencies": {
+    "@mdi/js": "catalog:",
     "@pdanpdan/headless-combobox": "workspace:*",
     "shiki": "catalog:",
     "vike": "catalog:",
