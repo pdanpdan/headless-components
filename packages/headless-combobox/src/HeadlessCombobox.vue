@@ -13,6 +13,8 @@ export interface HeadlessComboboxTriggerProps {
   disabled: true | undefined;
   'aria-disabled': true | undefined;
   'aria-readonly': true | undefined;
+  onClick: () => void;
+  onKeydown: (event: KeyboardEvent) => void;
 }
 
 export interface HeadlessComboboxInputProps {
@@ -21,6 +23,8 @@ export interface HeadlessComboboxInputProps {
   'aria-autocomplete': 'list';
   'aria-controls': string;
   'aria-activedescendant': string | undefined;
+  onInput: (event: Event) => void;
+  onKeydown: (event: KeyboardEvent) => void;
 }
 
 export interface HeadlessComboboxComboboxInputProps {
@@ -35,6 +39,9 @@ export interface HeadlessComboboxComboboxInputProps {
   'aria-readonly': true | undefined;
   disabled: true | undefined;
   readonly: true | undefined;
+  onClick: () => void;
+  onFocus: () => void;
+  onInput: (event: Event) => void;
 }
 
 export interface HeadlessComboboxListboxProps {
@@ -49,6 +56,10 @@ export interface HeadlessComboboxOptionProps {
   'aria-selected': boolean;
   'aria-disabled': true | undefined;
   'data-highlighted': true | undefined;
+  onClick: () => void;
+  onMousedown: (event: MouseEvent) => void;
+  onMousemove: () => void;
+  onFocus: () => void;
 }
 
 export interface HeadlessComboboxPopupStyle {
@@ -206,6 +217,11 @@ function isSelected(option: T): boolean {
   return selectedList.value.some((o) => toRaw(o) === raw);
 }
 
+// Options that cannot be selected: only when at `maxLength` (multiple).
+function isOptionDisabled(option: T): boolean {
+  return !isSelected(option) && !canSelectMore.value;
+}
+
 // Disabled and read-only both block opening and changing the selection.
 const isLocked = computed(() => props.disabled === true || props.readonly === true);
 
@@ -234,7 +250,7 @@ const filteredOptions = computed<T[]>(() => {
 });
 
 watch(searchQuery, () => {
-  highlightedIndex.value = filteredOptions.value.length > 0 ? 0 : -1;
+  highlightedIndex.value = firstActionableIndex();
 });
 
 // --- Validation ---
@@ -306,6 +322,8 @@ const triggerProps = computed<HeadlessComboboxTriggerProps>(() => ({
   disabled: props.disabled ? true : undefined,
   'aria-disabled': props.disabled ? true : undefined,
   'aria-readonly': props.readonly ? true : undefined,
+  onClick: toggle,
+  onKeydown: handleKeydown,
 }));
 
 // Default popup positioning — spread (or merge) onto the dropdown element's style.
@@ -325,12 +343,18 @@ const popupStyle = computed<HeadlessComboboxPopupStyle>(() => {
   return style;
 });
 
+function setQueryFromEvent(event: Event) {
+  setSearchQuery((event.target as HTMLInputElement).value as Q);
+}
+
 const inputProps = computed<HeadlessComboboxInputProps>(() => ({
   id: inputId,
   role: 'searchbox',
   'aria-autocomplete': 'list',
   'aria-controls': listboxId,
   'aria-activedescendant': activeDescendant.value,
+  onInput: setQueryFromEvent,
+  onKeydown: handleKeydown,
 }));
 
 // For the canonical editable (typeahead) pattern where the text input *is* the combobox.
@@ -346,6 +370,9 @@ const comboboxInputProps = computed<HeadlessComboboxComboboxInputProps>(() => ({
   'aria-readonly': props.readonly ? true : undefined,
   disabled: props.disabled ? true : undefined,
   readonly: props.readonly ? true : undefined,
+  onClick: open,
+  onFocus: open,
+  onInput: setQueryFromEvent,
 }));
 
 const listboxProps = computed<HeadlessComboboxListboxProps>(() => ({
@@ -355,12 +382,27 @@ const listboxProps = computed<HeadlessComboboxListboxProps>(() => ({
 }));
 
 function getOptionProps(option: T, index: number): HeadlessComboboxOptionProps {
+  const actionable = () => !isOptionDisabled(option);
   return {
     id: getOptionId(index),
     role: 'option',
     'aria-selected': isSelected(option),
-    'aria-disabled': !isSelected(option) && !canSelectMore.value ? true : undefined,
+    'aria-disabled': isOptionDisabled(option) ? true : undefined,
     'data-highlighted': index === highlightedIndex.value ? true : undefined,
+    onClick: () => select(option),
+    // Keep the filter input focused when the option is clicked.
+    onMousedown: (event: MouseEvent) => event.preventDefault(),
+    // Hover and focus drive the highlight; blocked options never get it.
+    onMousemove: () => {
+      if (actionable()) {
+        setHighlightedIndex(index);
+      }
+    },
+    onFocus: () => {
+      if (actionable()) {
+        setHighlightedIndex(index);
+      }
+    },
   };
 }
 
@@ -397,7 +439,8 @@ async function open() {
 
   const firstSelected = selectedList.value[ 0 ];
   const selectedIndex = firstSelected == null ? -1 : filteredOptions.value.findIndex((o) => o === firstSelected);
-  highlightedIndex.value = selectedIndex >= 0 ? selectedIndex : (filteredOptions.value.length ? 0 : -1);
+  // A selected option is always actionable; otherwise start on the first one that can be selected.
+  highlightedIndex.value = selectedIndex >= 0 ? selectedIndex : firstActionableIndex();
 
   await nextTick();
   showPopoverIfAny();
@@ -588,6 +631,35 @@ async function scrollToHighlight() {
 }
 
 // --- Keyboard Navigation ---
+function firstActionableIndex(): number {
+  return filteredOptions.value.findIndex((o) => !isOptionDisabled(o));
+}
+
+// Move the highlight by `direction`, skipping options that cannot be selected
+// (at `maxLength`). Wraps around; clears the highlight when nothing is actionable.
+function stepHighlight(direction: 1 | -1) {
+  const len = filteredOptions.value.length;
+  if (len === 0) {
+    highlightedIndex.value = -1;
+    return;
+  }
+  let next = highlightedIndex.value + direction;
+  for (let i = 0; i < len; i++) {
+    if (next < 0) {
+      next = len - 1;
+    } else if (next >= len) {
+      next = 0;
+    }
+    const option = filteredOptions.value[ next ];
+    if (option != null && !isOptionDisabled(option)) {
+      highlightedIndex.value = next;
+      return;
+    }
+    next += direction;
+  }
+  highlightedIndex.value = -1;
+}
+
 function handleKeydown(e: KeyboardEvent) {
   if (isLocked.value) {
     return;
@@ -603,22 +675,14 @@ function handleKeydown(e: KeyboardEvent) {
   switch (e.key) {
     case 'ArrowDown': {
       e.preventDefault();
-      const len = filteredOptions.value.length;
-      if (len > 0) {
-        // Wrap from the last option back to the first.
-        highlightedIndex.value = highlightedIndex.value >= len - 1 ? 0 : highlightedIndex.value + 1;
-        scrollToHighlight();
-      }
+      stepHighlight(1);
+      scrollToHighlight();
       break;
     }
     case 'ArrowUp': {
       e.preventDefault();
-      const len = filteredOptions.value.length;
-      if (len > 0) {
-        // Wrap from the first option to the last.
-        highlightedIndex.value = highlightedIndex.value <= 0 ? len - 1 : highlightedIndex.value - 1;
-        scrollToHighlight();
-      }
+      stepHighlight(-1);
+      scrollToHighlight();
       break;
     }
     case 'Enter': {
@@ -643,8 +707,23 @@ function handleClickOutside(e: MouseEvent) {
   }
 }
 
-onMounted(() => document.addEventListener('mousedown', handleClickOutside));
-onUnmounted(() => document.removeEventListener('mousedown', handleClickOutside));
+// ESC closes the popup no matter which control inside the widget has focus
+// (clear button, option buttons, …) — WAI-ARIA combobox pattern.
+function handleDocumentKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && isOpen.value) {
+    e.preventDefault();
+    close(true);
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('mousedown', handleClickOutside);
+  document.addEventListener('keydown', handleDocumentKeydown);
+});
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside);
+  document.removeEventListener('keydown', handleDocumentKeydown);
+});
 </script>
 
 <template>

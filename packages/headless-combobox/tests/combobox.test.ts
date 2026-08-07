@@ -328,6 +328,134 @@ describe('headless combobox (keyboard wrap-around)', () => {
   });
 });
 
+describe('headless combobox (keyboard + disabled options)', () => {
+  it('stays on the selected option when all others are blocked by maxLength', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 0 ] as User ] });
+
+    cb.scope.open();
+    await nextTick();
+    // Only the selected option is actionable; the others are blocked by maxLength.
+    expect(cb.scope.highlightedIndex).toBe(0);
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(0);
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(0);
+  });
+
+  it('jumps over blocked options to the next actionable one', async () => {
+    const users = createUsers();
+    // users[0] and users[2] are selected; users[1] is blocked by maxLength.
+    const cb = mountComboBox(users, { multiple: true, maxLength: 2, modelValue: [ users[ 0 ] as User, users[ 2 ] as User ] });
+
+    cb.scope.open();
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(0);
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(2);
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(0);
+  });
+
+  it('clears the highlight when no option is actionable', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, { multiple: true, maxLength: 0, modelValue: [] });
+
+    cb.scope.open();
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(-1);
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(-1);
+  });
+});
+
+describe('headless combobox (prop bag handlers)', () => {
+  it('selects an option via getOptionProps().onClick', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    const optionProps = cb.scope.getOptionProps(users[ 0 ] as User, 0);
+    expect(typeof optionProps.onClick).toBe('function');
+    optionProps.onClick();
+    await nextTick();
+
+    expect(cb.wrapper.emitted('update:modelValue')?.[ 0 ]?.[ 0 ]).toBe(users[ 0 ]);
+  });
+
+  it('opens the popup via triggerProps().onClick', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    cb.scope.triggerProps.onClick();
+    await nextTick();
+
+    expect(cb.scope.isOpen).toBe(true);
+  });
+
+  it('prevents the mousedown default on options', () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    const event = new MouseEvent('mousedown', { cancelable: true });
+    cb.scope.getOptionProps(users[ 0 ] as User, 0).onMousedown(event);
+
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('never highlights maxLength-blocked options via focus or mousemove', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 0 ] as User ] });
+    cb.scope.open();
+    await nextTick();
+
+    const blocked = cb.scope.getOptionProps(users[ 1 ] as User, 1);
+    blocked.onFocus();
+    await nextTick();
+    expect(cb.scope.highlightedIndex).not.toBe(1);
+
+    blocked.onMousemove();
+    await nextTick();
+    expect(cb.scope.highlightedIndex).not.toBe(1);
+  });
+});
+
+describe('headless combobox (escape)', () => {
+  it('closes the popup on Escape from any focus position', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    cb.scope.open();
+    await nextTick();
+    expect(cb.scope.isOpen).toBe(true);
+
+    // Focus could be on the clear button, an option, or any widget control.
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await nextTick();
+
+    expect(cb.scope.isOpen).toBe(false);
+  });
+
+  it('ignores Escape while closed', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await nextTick();
+
+    expect(cb.scope.isOpen).toBe(false);
+  });
+});
+
 describe('headless combobox (focus guard)', () => {
   it('does not steal focus from another text field when selecting', async () => {
     const users = createUsers();
