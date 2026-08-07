@@ -27,7 +27,7 @@ minimumReleaseAgeExclude:
   - '@vue/server-renderer@3.5.40'
   - '@vue/shared@3.5.40'
   - tailwindcss@4.3.3
-  - vite@8.1.5
+  - vite@8.1.5 || 8.2.1
   - vue@3.5.40
 shellEmulator: true
 
@@ -41,26 +41,26 @@ packages:
   - packages/*
 catalogs:
   default:
-    '@antfu/eslint-config': ^9.1.0
+    '@antfu/eslint-config': ^9.3.0
     '@tailwindcss/vite': ^4.3.3
-    '@types/node': ^26.1.1
+    '@types/node': ^26.1.2
     '@vitejs/plugin-vue': ^6.0.8
     '@vitest/coverage-v8': ^4.1.10
     '@vue/test-utils': ^2.4.11
-    daisyui: ^5.6.18
-    eslint: ^10.7.0
+    daisyui: ^5.7.16
+    eslint: ^10.8.0
     eslint-plugin-vuejs-accessibility: ^2.5.0
-    jsdom: ^29.1.1
-    shiki: ^4.3.1
+    jsdom: ^30.0.1
+    shiki: ^4.4.2
     tailwindcss: ^4.3.3
     typescript: ^6.0.3
     vike: ^0.4.260
     vike-vue: ^0.9.13
-    vite: ^8.1.5
+    vite: ^8.2.1
     vite-plugin-dts: ^5.0.3
     vitest: ^4.1.10
-    vue: ^3.5.40
-    vue-tsc: ^3.3.7
+    vue: ^3.5.41
+    vue-tsc: ^3.3.9
 onlyBuiltDependencies:
   - esbuild
 allowBuilds:
