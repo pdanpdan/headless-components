@@ -7,7 +7,6 @@
     "build": "vike build",
     "preview": "vike preview",
     "lint": "pnpm --dir ../.. lint",
-    "lint:fix": "pnpm --dir ../.. lint:fix",
     "typecheck": "vue-tsc --noEmit",
     "test:all": "pnpm lint && pnpm typecheck"
   },
