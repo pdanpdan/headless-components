@@ -1,7 +1,6 @@
 # headless-components
 
-Monorepo of headless (unstyled) Vue 3 components. Each component is a standalone, publishable
-package that ships no styles — style them with daisyUI 5 / Tailwind 4.
+Monorepo of headless (unstyled) Vue 3 components. Each component is a standalone, publishable package that ships no styles — style them with daisyUI 5 / Tailwind 4.
 
 ## Packages
 
