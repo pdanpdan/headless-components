@@ -1,3 +1,9 @@
+<script lang="ts">
+/* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
+export const title = 'Text options · single · no filter';
+export const description = 'A list of plain string options, single selection, no search input.';
+</script>
+
 <script setup lang="ts">
 import { HeadlessCombobox } from '@pdanpdan/headless-combobox';
 import { ref, useId } from 'vue';

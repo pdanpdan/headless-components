@@ -1,3 +1,9 @@
+<script lang="ts">
+/* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
+export const title = 'Select alignment';
+export const description = 'No search input; the dropdown aligns so the selected option overlays the trigger.';
+</script>
+
 <script setup lang="ts">
 import { HeadlessCombobox } from '@pdanpdan/headless-combobox';
 import { ref, useId } from 'vue';

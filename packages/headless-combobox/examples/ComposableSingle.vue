@@ -1,11 +1,11 @@
 <script lang="ts">
 /* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
-export const title = 'Typeahead (editable combobox)';
-export const description = 'Canonical APG editable pattern: the text input itself is the combobox (role=combobox); type to filter.';
+export const title = 'Composable · single · typeahead';
+export const description = 'Same headless behavior without the component: useHeadlessCombobox exposes state, ARIA bags, and actions directly — wire your own markup with plain refs.';
 </script>
 
 <script setup lang="ts">
-import { HeadlessCombobox } from '@pdanpdan/headless-combobox';
+import { useHeadlessCombobox } from '@pdanpdan/headless-combobox';
 import { ref, useId } from 'vue';
 
 const languages = [
@@ -27,65 +27,86 @@ const languages = [
   'Scala',
 ];
 
-const selected = ref<string | null>(null);
+const selected = ref<string | null>('TypeScript');
 const labelId = useId();
+
+// Same state machine as <HeadlessCombobox> — no slot indirection. Props accept
+// plain values or refs (unwrapped and tracked internally); the callback
+// receives every update:modelValue payload.
+const {
+  isOpen,
+  filteredOptions,
+  highlightedIndex,
+  searchQuery,
+  toggle,
+  isSelected,
+  handleKeydown,
+  cssAnchorName,
+  popupStyle,
+  comboboxInputProps,
+  listboxProps,
+  getOptionProps,
+  setContainerRef,
+  setTriggerRef,
+  setInputRef,
+  setDropdownRef,
+  setListRef,
+  setOptionRef,
+} = useHeadlessCombobox<string>(
+  {
+    modelValue: selected,
+    options: languages,
+  },
+  (value) => {
+    selected.value = value as string | null;
+  },
+);
 </script>
 
 <template>
   <div class="w-full max-w-sm">
-    <HeadlessCombobox
-      v-slot="{
-        isOpen, filteredOptions, highlightedIndex, searchQuery, toggle,
-        isSelected, canSelectMore, handleKeydown, cssAnchorName, popupStyle,
-        comboboxInputProps, listboxProps, getOptionProps, setContainerRef, setTriggerRef,
-        setInputRef, setDropdownRef, setListRef, setOptionRef,
-      }"
-      v-model="selected"
-      :options="languages"
+    <fieldset
+      :ref="setContainerRef"
+      class="flex flex-col gap-1"
     >
-      <fieldset
-        :ref="setContainerRef"
-        class="fieldset w-full"
+      <legend :id="labelId" class="font-semibold">Language (composable, typeahead)</legend>
+      <div
+        class="input relative flex w-full items-center"
+        :style="{ anchorName: cssAnchorName }"
       >
-        <legend :id="labelId" class="fieldset-legend font-semibold">Language (typeahead, editable)</legend>
-        <div
-          class="input relative flex w-full items-center"
-          :style="{ anchorName: cssAnchorName }"
+        <input
+          :ref="(el) => { setTriggerRef(el); setInputRef(el); }"
+          v-bind="comboboxInputProps"
+          :aria-labelledby="labelId"
+          :value="isOpen ? searchQuery : (selected ?? '')"
+          type="text"
+          class="w-full pr-8"
+          placeholder="Search a language…"
+          @keydown="(e) => { if (e.key !== ' ') { handleKeydown(e); } }"
+        />
+        <button
+          type="button"
+          tabindex="-1"
+          class="absolute top-1/2 right-1 -translate-y-1/2 cursor-pointer text-base-content/50"
+          aria-label="Toggle suggestions"
+          @click.stop="toggle"
         >
-          <input
-            :ref="(el) => { setTriggerRef(el); setInputRef(el); }"
-            v-bind="comboboxInputProps"
-            :aria-labelledby="labelId"
-            :value="isOpen ? searchQuery : (selected ?? '')"
-            type="text"
-            class="w-full pr-8"
-            placeholder="Search a language…"
-            @keydown="(e) => { if (e.key !== ' ') { handleKeydown(e); } }"
-          />
-          <button
-            type="button"
-            tabindex="-1"
-            class="absolute top-1/2 right-1 -translate-y-1/2 cursor-pointer text-base-content/50"
-            aria-label="Toggle suggestions"
-            @click.stop="toggle"
+          <svg
+            class="motion-safe:transition-transform h-4 w-4"
+            :class="{ 'rotate-180': isOpen }"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <svg
-              class="motion-safe:transition-transform h-4 w-4"
-              :class="{ 'rotate-180': isOpen }"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-        </div>
-      </fieldset>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
+      </div>
 
       <ul
         :ref="(el) => { setDropdownRef(el); setListRef(el); }"
@@ -115,7 +136,6 @@ const labelId = useId();
               'bg-primary/20': index === highlightedIndex,
 
               'text-primary': index === highlightedIndex,
-              'cursor-pointer': canSelectMore || isSelected(language),
             }"
           >
             <span>{{ language }}</span>
@@ -144,7 +164,7 @@ const labelId = useId();
           No matches.
         </li>
       </ul>
-    </HeadlessCombobox>
+    </fieldset>
   </div>
 </template>
 

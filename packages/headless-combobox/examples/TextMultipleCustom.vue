@@ -1,3 +1,9 @@
+<script lang="ts">
+/* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
+export const title = 'Text options · multiple · custom options';
+export const description = 'Options are fully customizable: the focused option gets a thick left border, and each option shows a checkbox (checked / unchecked) for its selection state.';
+</script>
+
 <script setup lang="ts">
 import { HeadlessCombobox } from '@pdanpdan/headless-combobox';
 import { ref, useId } from 'vue';
@@ -101,9 +107,8 @@ const MAX = 3;
               :ref="(el) => setOptionRef(framework, el)"
               type="button"
               v-bind="getOptionProps(framework, index)"
-              class="justify-between shadow-none gap-2 border-l-2 rounded-xs"
+              class="justify-between shadow-none gap-2 border-l-3 rounded-xs"
               :class="{
-                'menu-active': isSelected(framework),
                 'border-l-primary': index === highlightedIndex && (canSelectMore || isSelected(framework)),
                 'border-l-transparent': index !== highlightedIndex || !(canSelectMore || isSelected(framework)),
                 'cursor-pointer': canSelectMore || isSelected(framework),
@@ -116,22 +121,7 @@ const MAX = 3;
                 class="checkbox checkbox-xs checkbox-primary rounded-xs"
                 :aria-checked="isSelected(framework)"
                 aria-hidden="true"
-              >
-                <!-- <svg
-                  v-if="isSelected(framework)"
-                  class="h-3 w-3 text-primary-content"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="3"
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg> -->
-              </span>
+              />
             </button>
           </li>
         </ul>

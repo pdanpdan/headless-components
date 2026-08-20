@@ -1,3 +1,9 @@
+<script lang="ts">
+/* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
+export const title = 'Object options · multiple · validated';
+export const description = 'Multiple selection with required + min/max validation and a rendered message.';
+</script>
+
 <script setup lang="ts">
 import { HeadlessCombobox } from '@pdanpdan/headless-combobox';
 import { ref, useId } from 'vue';

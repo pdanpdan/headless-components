@@ -1,3 +1,9 @@
+<script lang="ts">
+/* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
+export const title = 'Text options · multiple · with filter';
+export const description = 'Multiple selection capped with max; selecting toggles, dropdown stays open.';
+</script>
+
 <script setup lang="ts">
 import { HeadlessCombobox } from '@pdanpdan/headless-combobox';
 import { ref, useId } from 'vue';

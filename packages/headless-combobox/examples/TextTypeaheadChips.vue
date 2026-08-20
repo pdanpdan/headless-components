@@ -1,3 +1,9 @@
+<script lang="ts">
+/* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
+export const title = 'Typeahead · chips inside the field';
+export const description = 'GitHub-style topic input: chips and the text input share one bordered field. The field is a plain container, so each chip can carry a remove button without nesting controls.';
+</script>
+
 <script setup lang="ts">
 import { HeadlessCombobox } from '@pdanpdan/headless-combobox';
 import { nextTick, ref, useId, watch } from 'vue';

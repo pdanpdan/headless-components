@@ -1,3 +1,9 @@
+<script lang="ts">
+/* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
+export const title = 'Text options · multiple · removable chips';
+export const description = 'Selected items as removable chips. The remove buttons live outside the combobox trigger, so the trigger stays a single focusable control.';
+</script>
+
 <script setup lang="ts">
 import { HeadlessCombobox } from '@pdanpdan/headless-combobox';
 import { ref, useId } from 'vue';
