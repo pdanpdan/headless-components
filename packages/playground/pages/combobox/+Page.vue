@@ -20,6 +20,8 @@ import TextMultipleChips, { description as textMultipleChipsDescription, title a
 import textMultipleChipsSource from '@pdanpdan/headless-combobox/examples/TextMultipleChips.vue?highlight';
 import TextMultipleCustom, { description as textMultipleCustomDescription, title as textMultipleCustomTitle } from '@pdanpdan/headless-combobox/examples/TextMultipleCustom.vue';
 import textMultipleCustomSource from '@pdanpdan/headless-combobox/examples/TextMultipleCustom.vue?highlight';
+import TextSelectOnTab, { description as textSelectOnTabDescription, title as textSelectOnTabTitle } from '@pdanpdan/headless-combobox/examples/TextSelectOnTab.vue';
+import textSelectOnTabSource from '@pdanpdan/headless-combobox/examples/TextSelectOnTab.vue?highlight';
 import TextSingle, { description as textSingleDescription, title as textSingleTitle } from '@pdanpdan/headless-combobox/examples/TextSingle.vue';
 import textSingleSource from '@pdanpdan/headless-combobox/examples/TextSingle.vue?highlight';
 import TextTypeahead, { description as textTypeaheadDescription, title as textTypeaheadTitle } from '@pdanpdan/headless-combobox/examples/TextTypeahead.vue';
@@ -261,6 +263,14 @@ const structureRows = [
         :source="textInternalSource"
       >
         <TextInternal />
+      </ExampleShowcase>
+
+      <ExampleShowcase
+        :title="textSelectOnTabTitle"
+        :description="textSelectOnTabDescription"
+        :source="textSelectOnTabSource"
+      >
+        <TextSelectOnTab />
       </ExampleShowcase>
 
       <ExampleShowcase
