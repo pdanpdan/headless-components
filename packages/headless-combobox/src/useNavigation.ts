@@ -11,12 +11,22 @@ export interface NavigationDeps<O> {
   close: (returnFocus?: boolean) => void;
   isInsideWidget: (target: Node | null) => boolean;
   scrollToHighlight: () => Promise<void>;
+  removeLastSelected: () => void;
 }
 
 function getFocusableElements(): HTMLElement[] {
   return [ ...document.querySelectorAll<HTMLElement>(
     'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
   ) ].filter((el) => el.getClientRects().length > 0);
+}
+
+// Backspace/Delete fall through to native behavior when the key is meant to
+// edit text (e.g. the typeahead input still holds a query).
+function hasTextValue(target: EventTarget | null): boolean {
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+    return target.value.length > 0;
+  }
+  return target instanceof HTMLElement && target.isContentEditable && (target.textContent?.length ?? 0) > 0;
 }
 
 /** The highlight state and the keyboard navigation (arrows, paging, Home/End, Tab). */
@@ -138,6 +148,9 @@ export function useNavigation<O, V, Q>(
       if ([ 'Enter', ' ', 'ArrowDown', 'ArrowUp' ].includes(e.key)) {
         e.preventDefault();
         deps.open();
+      } else if ([ 'Backspace', 'Delete' ].includes(e.key) && !hasTextValue(e.target)) {
+        e.preventDefault();
+        deps.removeLastSelected();
       }
       return;
     }
@@ -160,6 +173,16 @@ export function useNavigation<O, V, Q>(
         const highlightedOption = deps.filteredOptions.value[ highlightedIndex.value ];
         if (highlightedIndex.value >= 0 && highlightedOption != null) {
           deps.select(highlightedOption);
+        }
+        break;
+      }
+      case 'Backspace':
+      case 'Delete': {
+        // Without a filter input there is no text to delete, so Backspace/
+        // Delete drop the last (or only) selected option instead.
+        if (refs.inputRef == null && !hasTextValue(e.target)) {
+          e.preventDefault();
+          deps.removeLastSelected();
         }
         break;
       }

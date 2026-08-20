@@ -83,12 +83,13 @@ interface WiredElements {
 // searchbox input, dropdown listbox with options — with every ref wired through
 // the slot scope. `wireList: false` renders the options directly in the dropdown
 // without a scroll container.
-function mountWired(optionsArg: User[], config: MountConfig & { wireList?: boolean; } = {}) {
+function mountWired(optionsArg: User[], config: MountConfig & { wireList?: boolean; wireInput?: boolean; } = {}) {
   let scope: SlotProps;
   const els = { options: [] as HTMLElement[] } as unknown as WiredElements;
   // The test runner wraps props reactively; iterating the same proxies keeps
   // option identity consistent between the slot and the component internals.
   const options = reactive(optionsArg);
+  const wiredInput = config.wireInput !== false;
 
   const wrapper = mount(HeadlessCombobox, {
     attachTo: document.body,
@@ -121,21 +122,27 @@ function mountWired(optionsArg: User[], config: MountConfig & { wireList?: boole
             type: 'button',
             ...sc.triggerProps,
           }, 'Trigger'),
-          h('input', {
-            ref: (el: unknown) => {
-              sc.setInputRef(el);
-              els.input = el as HTMLInputElement;
-            },
-            class: 'filter',
-            ...sc.comboboxInputProps,
-          }),
-          h('input', {
-            ref: (el: unknown) => {
-              els.searchbox = el as HTMLInputElement;
-            },
-            class: 'searchbox',
-            ...sc.inputProps,
-          }),
+          wiredInput
+            ? h('input', {
+              ref: (el: unknown) => {
+                sc.setInputRef(el);
+                els.input = el as HTMLInputElement;
+              },
+              class: 'filter',
+              // The typeahead pattern wires keyboard handling manually.
+              onKeydown: (e: KeyboardEvent) => sc.handleKeydown(e),
+              ...sc.comboboxInputProps,
+            })
+            : null,
+          wiredInput
+            ? h('input', {
+              ref: (el: unknown) => {
+                els.searchbox = el as HTMLInputElement;
+              },
+              class: 'searchbox',
+              ...sc.inputProps,
+            })
+            : null,
           h('div', {
             ref: (el: unknown) => {
               sc.setDropdownRef(el);
@@ -2064,6 +2071,84 @@ describe('headless combobox (container keydown)', () => {
     // Native activation proceeds; the combobox does not select the highlighted
     // option instead of activating the button.
     expect(enter.defaultPrevented).toBe(false);
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    wired.wrapper.unmount();
+  });
+});
+
+describe('headless combobox (backspace/delete)', () => {
+  it('removes the last selected option on Backspace while closed (multiple)', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, modelValue: [ users[ 0 ], users[ 1 ] ] as User[] });
+
+    wired.els.trigger.focus();
+    const backspace = new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true });
+    wired.els.trigger.dispatchEvent(backspace);
+    await nextTick();
+
+    expect(backspace.defaultPrevented).toBe(true);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 0 ] ] ] ]);
+    expect(wired.scope.isOpen).toBe(false);
+
+    wired.wrapper.unmount();
+  });
+
+  it('clears the sole value on Backspace while closed (single)', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { modelValue: users[ 0 ] as User });
+
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ null ] ]);
+
+    wired.wrapper.unmount();
+  });
+
+  it('removes the last selected option on Delete while open without a filter input', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, modelValue: [ users[ 0 ], users[ 1 ] ] as User[], wireInput: false });
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.trigger.focus();
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, cancelable: true }));
+    await nextTick();
+
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 0 ] ] ] ]);
+    expect(wired.scope.isOpen).toBe(true);
+
+    wired.wrapper.unmount();
+  });
+
+  it('leaves Backspace to the input when it holds text, and removes only when empty', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, modelValue: [ users[ 0 ] ] as User[] });
+
+    wired.els.input.value = 'Wade';
+    wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    wired.els.input.value = '';
+    wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
+
+    wired.wrapper.unmount();
+  });
+
+  it('does not remove while open with a filter input', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, modelValue: [ users[ 0 ] ] as User[] });
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.trigger.focus();
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+
     expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
 
     wired.wrapper.unmount();

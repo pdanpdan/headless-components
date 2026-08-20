@@ -98,6 +98,22 @@ export function useSelection<O, V, Q>(
     }
   }
 
+  // Backspace/Delete: drop the trailing selection (multiple) or the sole value
+  // (single). Same focus handling as `clear`.
+  function removeLastSelected() {
+    if (isLocked.value) {
+      return;
+    }
+    const current = selectedList.value;
+    if (current.length === 0) {
+      return;
+    }
+    emit(props.multiple ? current.slice(0, -1) : null);
+    if (isOpen.value) {
+      nextTick(hooks.maybeRefocusInput);
+    }
+  }
+
   return {
     valueOf,
     findOptionByValue,
@@ -109,5 +125,6 @@ export function useSelection<O, V, Q>(
     isLocked,
     select,
     clear,
+    removeLastSelected,
   };
 }

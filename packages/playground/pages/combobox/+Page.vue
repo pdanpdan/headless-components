@@ -140,6 +140,7 @@ const slots = [
 
 const interactionRows = [
   { name: 'Enter / Space / ArrowDown / ArrowUp', type: 'popup closed', description: 'Open the dropdown.' },
+  { name: 'Backspace / Delete', type: 'popup closed, or open without a filter input', description: 'Remove the last (or only) selected option. Keys aimed at a text input that still holds text keep their native behavior.' },
   { name: 'ArrowDown / ArrowUp', type: 'popup open', description: 'Move the highlight; wraps around and skips disabled options.' },
   { name: 'PageDown / PageUp', type: 'popup open', description: 'Move the highlight a full page (visible options), clamped at the ends.' },
   { name: 'Home / End', type: 'popup open', description: 'Jump to the first/last selectable option (native caret behavior in inputs).' },

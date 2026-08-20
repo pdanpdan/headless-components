@@ -361,6 +361,7 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
     close: () => {},
     isInsideWidget: () => false,
     scrollToHighlight: positioning.scrollToHighlight,
+    removeLastSelected: () => {},
   };
   /* v8 ignore stop */
   const navigation = useNavigation(props, isOpen, highlightedIndex, refs, navigationDeps);
@@ -382,6 +383,7 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
   navigationDeps.open = popover.open;
   navigationDeps.close = popover.close;
   navigationDeps.isInsideWidget = popover.isInsideWidget;
+  navigationDeps.removeLastSelected = selection.removeLastSelected;
   a11yDeps.select = selection.select;
   a11yDeps.setHighlightedIndex = navigation.setHighlightedIndex;
   a11yDeps.toggle = popover.toggle;
