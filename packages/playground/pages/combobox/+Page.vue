@@ -34,8 +34,8 @@ import SnippetInstallSource from './SnippetInstall.bash?highlight';
 import SnippetPopupCssSource from './SnippetPopupCss.css?highlight';
 
 const props = [
-  { name: 'modelValue', type: 'T | T[] | null', default: '—', description: 'Selected option(s) (v-model). Array in multiple mode.' },
-  { name: 'options', type: 'T[]', default: '—', description: 'List of options.' },
+  { name: 'modelValue', type: 'V | V[] | null', default: '—', description: 'Selected value(s) (v-model). Array in multiple mode.' },
+  { name: 'options', type: 'O[]', default: '—', description: 'List of options.' },
   { name: 'multiple', type: 'boolean', default: 'false', description: 'Enable multiple selection.' },
   { name: 'minLength', type: 'number', default: '—', description: 'Multiple: minimum number of selected options (validation).' },
   { name: 'maxLength', type: 'number', default: '—', description: 'Multiple: maximum selected. Blocks adding beyond it.' },
@@ -45,15 +45,16 @@ const props = [
   { name: 'closeOnSelect', type: 'boolean | null', default: '!multiple', description: 'Close the dropdown after selecting.' },
   { name: 'closeOnClickOutside', type: 'boolean', default: 'true', description: 'Close when clicking outside the widget boundary.' },
   { name: 'clickOutsideFilter', type: '(target: EventTarget | null) => boolean', default: '—', description: 'Return false to keep the dropdown open for a specific outside target.' },
-  { name: 'displayValue', type: '(option: T) => string', default: 'String(option)', description: 'Maps an option to a string for filtering / rendering.' },
-  { name: 'filterFn', type: '(option: T, query: Q) => boolean', default: 'substring', description: 'Custom filter function. Q defaults to string.' },
+  { name: 'optionValue', type: '(option: O) => V', default: 'option itself', description: 'Maps an option to the value stored in modelValue / emitted on select.' },
+  { name: 'optionLabel', type: '(option: O) => string', default: 'String(option)', description: 'Maps an option to a string for filtering / rendering.' },
+  { name: 'optionFilter', type: '(option: O, query: Q) => boolean', default: 'substring', description: 'Custom filter function. Q defaults to string.' },
   { name: 'id', type: 'string', default: 'useId()', description: 'Base id for accessibility attributes.' },
   { name: 'alignSelected', type: 'boolean', default: 'false', description: 'Align the dropdown so the selected option covers the trigger.' },
   { name: 'errorMessages', type: 'Partial<Record<HeadlessComboboxErrorCode, string>>', default: '—', description: 'Override default validation messages.' },
 ];
 
 const emits = [
-  { name: 'update:modelValue', type: 'T | T[] | null', description: 'Emitted when the selection changes.' },
+  { name: 'update:modelValue', type: 'V | V[] | null', description: 'Emitted when the selection changes.' },
 ];
 
 const methods: { name: string; type?: string; description: string; }[] = [];
@@ -336,7 +337,7 @@ const structureRows = [
         :raw="SnippetComposableSource.raw"
         lang="vue"
       />
-      <p class="max-w-2xl text-sm text-base-content/70">The <em>Composable · single · typeahead</em> and <em>Composable · programmatic control</em> examples above show full usage. The returned <code>HeadlessComboboxScope&lt;T, Q&gt;</code> mirrors the slot scope — refs for state, plain functions for actions and ref setters.</p>
+      <p class="max-w-2xl text-sm text-base-content/70">The <em>Composable · single · typeahead</em> and <em>Composable · programmatic control</em> examples above show full usage. The returned <code>HeadlessComboboxScope&lt;O, V, Q&gt;</code> mirrors the slot scope — refs for state, plain functions for actions and ref setters.</p>
     </section>
 
     <section class="flex flex-col gap-4">

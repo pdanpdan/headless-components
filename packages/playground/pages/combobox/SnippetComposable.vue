@@ -31,7 +31,7 @@ const {
   {
     modelValue: selected,
     options: users,
-    displayValue: (user: User) => user.name,
+    optionLabel: (user: User) => user.name,
   },
   (value) => {
     selected.value = value as User | null;

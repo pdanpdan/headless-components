@@ -13,7 +13,7 @@ interface User {
 
 type SlotProps = HeadlessComboboxSlotProps<User>;
 
-type MountConfig = Partial<Pick<HeadlessComboboxProps<User>, 'modelValue' | 'multiple' | 'minLength' | 'maxLength' | 'required' | 'disabled' | 'readonly' | 'errorMessages' | 'filterFn' | 'alignSelected' | 'closeOnSelect' | 'closeOnClickOutside' | 'clickOutsideFilter'>>;
+type MountConfig = Partial<Pick<HeadlessComboboxProps<User, User>, 'modelValue' | 'multiple' | 'minLength' | 'maxLength' | 'required' | 'disabled' | 'readonly' | 'errorMessages' | 'optionFilter' | 'alignSelected' | 'closeOnSelect' | 'closeOnClickOutside' | 'clickOutsideFilter'>>;
 
 function createUsers(): User[] {
   return [
@@ -33,11 +33,11 @@ function buildProps(options: User[], config: MountConfig = {}) {
     required: config.required ?? false,
     disabled: config.disabled ?? false,
     readonly: config.readonly ?? false,
-    displayValue: (option: unknown) => (option as User).name,
+    optionLabel: (option: unknown) => (option as User).name,
     ...(config.minLength !== undefined ? { minLength: config.minLength } : {}),
     ...(config.maxLength !== undefined ? { maxLength: config.maxLength } : {}),
     ...(config.errorMessages !== undefined ? { errorMessages: config.errorMessages } : {}),
-    ...(config.filterFn !== undefined ? { filterFn: config.filterFn as (option: unknown, query: unknown) => boolean } : {}),
+    ...(config.optionFilter !== undefined ? { optionFilter: config.optionFilter as (option: unknown, query: unknown) => boolean } : {}),
     ...(config.alignSelected !== undefined ? { alignSelected: config.alignSelected } : {}),
     ...(config.closeOnSelect !== undefined ? { closeOnSelect: config.closeOnSelect } : {}),
     ...(config.closeOnClickOutside !== undefined ? { closeOnClickOutside: config.closeOnClickOutside } : {}),
@@ -730,7 +730,7 @@ describe('headless combobox (focus guard)', () => {
         modelValue: [],
         options: users,
         multiple: true,
-        displayValue: (option: unknown) => (option as User).name,
+        optionLabel: (option: unknown) => (option as User).name,
       },
       slots: {
         default: (s: unknown) => {
@@ -772,7 +772,7 @@ describe('headless combobox (focus guard)', () => {
         options: users,
         multiple: true,
         maxLength: 1,
-        displayValue: (option: unknown) => (option as User).name,
+        optionLabel: (option: unknown) => (option as User).name,
       },
       slots: {
         default: (s: unknown) => {
@@ -983,19 +983,19 @@ describe('headless combobox (typeahead input)', () => {
     wired.wrapper.unmount();
   });
 
-  it('filters with a custom filterFn', async () => {
+  it('filters with a custom optionFilter', async () => {
     const users = createUsers();
-    const filterFn = vi.fn((option: User, query: string) => option.id === Number(query));
-    const cb = mountComboBox(users, { filterFn });
+    const optionFilter = vi.fn((option: User, query: string) => option.id === Number(query));
+    const cb = mountComboBox(users, { optionFilter });
 
     cb.scope.setSearchQuery('3');
     await nextTick();
 
-    expect(filterFn).toHaveBeenCalledWith(users[ 2 ], '3');
+    expect(optionFilter).toHaveBeenCalledWith(users[ 2 ], '3');
     expect(cb.scope.filteredOptions).toEqual([ users[ 2 ] ]);
   });
 
-  it('works with plain string options and no displayValue', async () => {
+  it('works with plain string options and no optionLabel', async () => {
     const holder: { scope?: HeadlessComboboxSlotProps<string>; } = {};
     const wrapper = mount(HeadlessCombobox, {
       props: {
@@ -1423,7 +1423,7 @@ function mountComposable(config: MountConfig = {}) {
           options: users,
           ...(config.multiple !== undefined ? { multiple: config.multiple } : {}),
           ...(config.maxLength !== undefined ? { maxLength: config.maxLength } : {}),
-          displayValue: (option: unknown) => (option as User).name,
+          optionLabel: (option: unknown) => (option as User).name,
         }),
         (value) => {
           selected.value = value as User | null;
@@ -1500,7 +1500,7 @@ describe('useHeadlessCombobox (composable)', () => {
         holder.scope = useHeadlessCombobox<User>({
           modelValue: selected,
           options: users,
-          displayValue: (option: unknown) => (option as User).name,
+          optionLabel: (option: unknown) => (option as User).name,
         }, (value) => {
           selected.value = value as User | null;
         });
@@ -1520,5 +1520,186 @@ describe('useHeadlessCombobox (composable)', () => {
     expect(scope.filteredOptions.value).toEqual([ users[ 0 ] ]);
 
     wrapper.unmount();
+  });
+});
+
+describe('headless combobox (optionValue)', () => {
+  interface LabeledValue {
+    label: string;
+    value: number;
+  }
+
+  const labeledOptions = (): LabeledValue[] => [
+    { label: 'Vue', value: 1 },
+    { label: 'React', value: 2 },
+    { label: 'Svelte', value: 3 },
+  ];
+
+  type LabeledSlot = HeadlessComboboxSlotProps<LabeledValue, number>;
+
+  function mountLabeled(modelValue: number | number[] | null, config: { multiple?: boolean; alignSelected?: boolean; } = {}) {
+    let latest: LabeledSlot;
+    const els = {
+      dropdown: null as HTMLElement | null,
+      list: null as HTMLElement | null,
+      options: [] as HTMLElement[],
+    };
+    const options = labeledOptions();
+
+    const wrapper = mount(HeadlessCombobox, {
+      attachTo: document.body,
+      props: {
+        modelValue,
+        options,
+        optionLabel: (o: unknown) => (o as LabeledValue).label,
+        optionValue: (o: unknown) => (o as LabeledValue).value,
+        ...(config.multiple !== undefined ? { multiple: config.multiple } : {}),
+        ...(config.alignSelected !== undefined ? { alignSelected: config.alignSelected } : {}),
+      },
+      slots: {
+        default: (s: unknown) => {
+          const sc = s as LabeledSlot;
+          latest = sc;
+          return h('div', {
+            ref: (el: unknown) => {
+              sc.setDropdownRef(el);
+              els.dropdown = el as HTMLElement;
+            },
+          }, [
+            h('div', {
+              ref: (el: unknown) => {
+                sc.setListRef(el);
+                els.list = el as HTMLElement;
+              },
+            }, options.map((o, i) =>
+              h('div', {
+                ref: (el: unknown) => {
+                  sc.setOptionRef(o, el);
+                  els.options[ i ] = el as HTMLElement;
+                },
+                class: 'opt',
+                ...sc.getOptionProps(o, i),
+              }, o.label),
+            )),
+          ]);
+        },
+      },
+    });
+
+    return {
+      wrapper,
+      els,
+      get scope(): LabeledSlot {
+        return latest;
+      },
+    };
+  }
+
+  it('emits the option value instead of the option on select', async () => {
+    const options = labeledOptions();
+    const cb = mountLabeled(null);
+
+    cb.scope.select(options[ 1 ]!);
+    await nextTick();
+
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ 2 ] ]);
+  });
+
+  it('shows the option selected when the model holds its value', () => {
+    const options = labeledOptions();
+    const cb = mountLabeled(1);
+
+    expect(cb.scope.selectedCount).toBe(1);
+    expect(cb.scope.isSelected(options[ 0 ]!)).toBe(true);
+    expect(cb.scope.isSelected(options[ 1 ]!)).toBe(false);
+  });
+
+  it('removes the value when a selected option is selected again', async () => {
+    const options = labeledOptions();
+    const cb = mountLabeled([ 1, 2 ], { multiple: true });
+
+    cb.scope.select(options[ 1 ]!);
+    await nextTick();
+
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [ 1 ] ] ]);
+
+    cb.wrapper.unmount();
+  });
+
+  it('appends the option value in multiple mode', async () => {
+    const options = labeledOptions();
+    const cb = mountLabeled([ 1, 2 ], { multiple: true });
+
+    cb.scope.select(options[ 2 ]!);
+    await nextTick();
+
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [ 1, 2, 3 ] ] ]);
+
+    cb.wrapper.unmount();
+  });
+
+  it('opens with the option matching the model value highlighted', async () => {
+    const cb = mountLabeled(3);
+
+    cb.scope.open();
+    await nextTick();
+
+    expect(cb.scope.highlightedIndex).toBe(2);
+  });
+
+  it('aligns the popup over the option matching the selected value', async () => {
+    const wired = mountLabeled(2, { alignSelected: true });
+
+    Object.defineProperty(wired.els.list!, 'offsetWidth', { configurable: true, value: 200 });
+    Object.defineProperty(wired.els.dropdown!, 'offsetWidth', { configurable: true, value: 200 });
+    vi.spyOn(wired.els.list!, 'getBoundingClientRect').mockReturnValue({ top: 100, bottom: 300, width: 0 } as DOMRect);
+    vi.spyOn(wired.els.dropdown!, 'getBoundingClientRect').mockReturnValue({ top: 50, bottom: 350, width: 0 } as DOMRect);
+    // The option with value 2 sits at 160-200 within the page.
+    vi.spyOn(wired.els.options[ 1 ]!, 'getBoundingClientRect').mockReturnValue({ top: 160, bottom: 200 } as DOMRect);
+
+    wired.scope.open();
+    await nextTick();
+    await nextTick();
+
+    expect(wired.scope.alignmentOffset).toBe(110);
+    expect(wired.scope.popupStyle.translate).toBe('0 -110px');
+
+    wired.wrapper.unmount();
+  });
+
+  it('resets the alignment when no option matches the selected value', async () => {
+    const wired = mountLabeled(99, { alignSelected: true });
+
+    wired.scope.open();
+    await nextTick();
+    await nextTick();
+
+    expect(wired.scope.alignmentOffset).toBe(0);
+    expect(wired.scope.popupStyle.translate).toBe('0 -0px');
+
+    wired.wrapper.unmount();
+  });
+});
+
+describe('headless combobox (scroll guards)', () => {
+  it('skips scrolling when the list container is not mounted', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, { modelValue: users[ 0 ] as User });
+    const optionEl = document.createElement('div');
+    cb.scope.setOptionRef(users[ 0 ] as User, optionEl);
+
+    cb.scope.open();
+    await nextTick();
+
+    expect(cb.scope.highlightedIndex).toBe(0);
+  });
+
+  it('skips scrolling when there is no highlighted option', async () => {
+    const cb = mountComboBox([]);
+
+    cb.scope.open();
+    await nextTick();
+
+    expect(cb.scope.highlightedIndex).toBe(-1);
   });
 });

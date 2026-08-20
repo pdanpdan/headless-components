@@ -39,7 +39,7 @@ const labelId = useId();
       }"
       v-model="selected"
       :options="users"
-      :display-value="(u: User) => u.name"
+      :option-label="(u: User) => u.name"
       align-selected
     >
       <fieldset

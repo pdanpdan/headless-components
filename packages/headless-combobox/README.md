@@ -80,7 +80,7 @@ const selected = ref<User | null>(null);
     v-slot="{ isOpen, filteredOptions, toggle, select, triggerProps, setContainerRef, setTriggerRef, getOptionProps }"
     v-model="selected"
     :options="users"
-    :display-value="(u) => u.name"
+    :option-label="(u) => u.name"
   >
     <div :ref="setContainerRef">
       <button :ref="setTriggerRef" v-bind="triggerProps" type="button" @click="toggle">
@@ -140,7 +140,7 @@ const {
   {
     modelValue: selected,
     options: users,
-    displayValue: (u) => u.name,
+    optionLabel: (u) => u.name,
   },
   (value) => {
     selected.value = value as User | null;
@@ -185,8 +185,8 @@ const {
 
 | Prop            | Type                                      | Default            | Description                                                                 |
 |-----------------|-------------------------------------------|--------------------|-----------------------------------------------------------------------------|
-| `modelValue`    | `T \| T[] \| null`                        | —                  | Selected option(s) (`v-model`). Array in multiple mode.                     |
-| `options`       | `T[]`                                     | —                  | List of options.                                                            |
+| `modelValue`    | `V \| V[] \| null`                        | —                  | Selected value(s) (`v-model`). Array in multiple mode.                      |
+| `options`       | `O[]`                                     | —                  | List of options.                                                            |
 | `multiple`      | `boolean`                                 | `false`            | Enable multiple selection.                                                  |
 | `minLength`     | `number`                                  | —                  | Multiple: minimum number of selected options (validation).                  |
 | `maxLength`     | `number`                                  | —                  | Multiple: maximum selected. Blocks adding beyond it.                        |
@@ -196,8 +196,9 @@ const {
 | `closeOnSelect` | `boolean \| null`                         | `!multiple`        | Close the dropdown after selecting.                                         |
 | `closeOnClickOutside` | `boolean`                        | `true`             | Close when clicking outside the widget boundary.                            |
 | `clickOutsideFilter` | `(target: EventTarget \| null) => boolean` | —         | Return `false` to keep the dropdown open for a specific outside target.     |
-| `displayValue`  | `(option: T) => string`                   | `String(option)`   | Maps an option to a string for default filtering / rendering.               |
-| `filterFn`      | `(option: T, query: Q) => boolean`        | case-insensitive substring | Custom filter function. `Q` defaults to `string`.                   |
+| `optionValue`  | `(option: O) => V`                        | the option itself  | Maps an option to the value stored in `modelValue` / emitted on select.     |
+| `optionLabel`  | `(option: O) => string`                   | `String(option)`   | Maps an option to a string for default filtering / rendering.               |
+| `optionFilter` | `(option: O, query: Q) => boolean`        | case-insensitive substring | Custom filter function. `Q` defaults to `string`.                   |
 | `id`            | `string`                                  | auto (`useId()`)   | Base id for accessibility attributes.                                       |
 | `alignSelected` | `boolean`                                 | `false`            | Align the dropdown so the selected option covers the trigger. |
 | `errorMessages` | `Partial<Record<HeadlessComboboxErrorCode, string>>` | —               | Override default validation messages.                                       |
@@ -206,7 +207,7 @@ const {
 
 | Event               | Payload             | Description                        |
 |---------------------|---------------------|------------------------------------|
-| `update:modelValue` | `T \| T[] \| null`  | Fired when the selection changes.  |
+| `update:modelValue` | `V \| V[] \| null`  | Fired when the selection changes.  |
 
 ## Selection & validation
 

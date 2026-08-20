@@ -51,7 +51,7 @@ const {
   {
     modelValue: selected,
     options: users,
-    displayValue: (user: User) => user.name,
+    optionLabel: (user: User) => user.name,
     clickOutsideFilter: (target: EventTarget | null) =>
       !(target instanceof HTMLElement && target.closest('.cbx-controls')),
   },

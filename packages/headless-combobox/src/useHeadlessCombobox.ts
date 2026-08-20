@@ -72,9 +72,9 @@ export interface HeadlessComboboxPopupStyle {
   [key: `--${ string }`]: string | undefined;
 }
 
-export interface HeadlessComboboxProps<T, Q = string> {
-  modelValue: T | T[] | null;
-  options: T[];
+export interface HeadlessComboboxProps<O, V = O, Q = string> {
+  modelValue: V | V[] | null;
+  options: O[];
   /** Enable multiple selection. `modelValue` becomes an array. */
   multiple?: boolean;
   /** Multiple: minimum number of selected options (validation). */
@@ -93,10 +93,12 @@ export interface HeadlessComboboxProps<T, Q = string> {
   closeOnClickOutside?: boolean;
   /** Keep the dropdown open for specific outside targets: return `false` to prevent closing. */
   clickOutsideFilter?: (target: EventTarget | null) => boolean;
+  /** Maps an option to the value stored in `modelValue` / emitted on select. Defaults to the option itself. */
+  optionValue?: (option: O) => V;
   /** Maps an option object to a string for default filtering and rendering */
-  displayValue?: (option: T) => string;
+  optionLabel?: (option: O) => string;
   /** Custom filter function. Defaults to case-insensitive substring search */
-  filterFn?: (option: T, query: Q) => boolean;
+  optionFilter?: (option: O, query: Q) => boolean;
   /** Optional base ID for accessibility. Auto-generated if not provided */
   id?: string;
   /** Align the dropdown so the selected option covers the trigger */
@@ -106,21 +108,21 @@ export interface HeadlessComboboxProps<T, Q = string> {
 }
 
 /** Scope exposed by the default slot. */
-export interface HeadlessComboboxSlotProps<T, Q = string> {
+export interface HeadlessComboboxSlotProps<O, Q = string> {
   // State
   isOpen: boolean;
   multiple: boolean;
   disabled: boolean;
   readonly: boolean;
   searchQuery: Q | undefined;
-  filteredOptions: T[];
+  filteredOptions: O[];
   highlightedIndex: number;
   alignmentOffset: number;
   cssAnchorName: string;
   popupStyle: HeadlessComboboxPopupStyle;
   selectedCount: number;
   canSelectMore: boolean;
-  isSelected: (option: T) => boolean;
+  isSelected: (option: O) => boolean;
   valid: boolean;
   errors: HeadlessComboboxErrorCode[];
   validationMessage: string;
@@ -129,14 +131,14 @@ export interface HeadlessComboboxSlotProps<T, Q = string> {
   inputProps: HeadlessComboboxInputProps;
   comboboxInputProps: HeadlessComboboxComboboxInputProps;
   listboxProps: HeadlessComboboxListboxProps;
-  getOptionProps: (option: T, index: number) => HeadlessComboboxOptionProps;
+  getOptionProps: (option: O, index: number) => HeadlessComboboxOptionProps;
   // Actions
   setSearchQuery: (value: Q | undefined) => void;
   setHighlightedIndex: (index: number) => void;
   toggle: () => void;
   open: () => void;
   close: (returnFocus?: boolean) => void;
-  select: (option: T) => void;
+  select: (option: O) => void;
   clear: () => void;
   focusInput: () => void;
   handleKeydown: (event: KeyboardEvent) => void;
@@ -146,25 +148,25 @@ export interface HeadlessComboboxSlotProps<T, Q = string> {
   setDropdownRef: (el: unknown) => void;
   setInputRef: (el: unknown) => void;
   setListRef: (el: unknown) => void;
-  setOptionRef: (option: T, el: unknown) => void;
+  setOptionRef: (option: O, el: unknown) => void;
 }
 
 /** Return value of `useHeadlessCombobox` — same members as the slot scope, with refs for state. */
-export interface HeadlessComboboxScope<T, Q = string> {
+export interface HeadlessComboboxScope<O, Q = string> {
   // State
   isOpen: Ref<boolean>;
   multiple: ComputedRef<boolean>;
   disabled: ComputedRef<boolean>;
   readonly: ComputedRef<boolean>;
   searchQuery: Ref<Q | undefined>;
-  filteredOptions: ComputedRef<T[]>;
+  filteredOptions: ComputedRef<O[]>;
   highlightedIndex: Ref<number>;
   alignmentOffset: Ref<number>;
   cssAnchorName: string;
   popupStyle: ComputedRef<HeadlessComboboxPopupStyle>;
   selectedCount: ComputedRef<number>;
   canSelectMore: ComputedRef<boolean>;
-  isSelected: (option: T) => boolean;
+  isSelected: (option: O) => boolean;
   valid: ComputedRef<boolean>;
   errors: ComputedRef<HeadlessComboboxErrorCode[]>;
   validationMessage: ComputedRef<string>;
@@ -173,14 +175,14 @@ export interface HeadlessComboboxScope<T, Q = string> {
   inputProps: ComputedRef<HeadlessComboboxInputProps>;
   comboboxInputProps: ComputedRef<HeadlessComboboxComboboxInputProps>;
   listboxProps: ComputedRef<HeadlessComboboxListboxProps>;
-  getOptionProps: (option: T, index: number) => HeadlessComboboxOptionProps;
+  getOptionProps: (option: O, index: number) => HeadlessComboboxOptionProps;
   // Actions
   setSearchQuery: (value: Q | undefined) => void;
   setHighlightedIndex: (index: number) => void;
   toggle: () => void;
   open: () => Promise<void>;
   close: (returnFocus?: boolean) => void;
-  select: (option: T) => void;
+  select: (option: O) => void;
   clear: () => void;
   focusInput: () => void;
   handleKeydown: (event: KeyboardEvent) => void;
@@ -190,7 +192,7 @@ export interface HeadlessComboboxScope<T, Q = string> {
   setDropdownRef: (el: unknown) => void;
   setInputRef: (el: unknown) => void;
   setListRef: (el: unknown) => void;
-  setOptionRef: (option: T, el: unknown) => void;
+  setOptionRef: (option: O, el: unknown) => void;
 }
 
 /**
@@ -198,11 +200,11 @@ export interface HeadlessComboboxScope<T, Q = string> {
  * may be refs, which are unwrapped and tracked), a ref to a props object, or a
  * getter. Normalized internally — no `reactive()` wrapper needed by callers.
  */
-export type HeadlessComboboxPropsSource<T, Q = string>
-  = | HeadlessComboboxProps<T, Q>
-    | Ref<HeadlessComboboxProps<T, Q>>
-    | (() => HeadlessComboboxProps<T, Q>)
-    | { [K in keyof HeadlessComboboxProps<T, Q>]: HeadlessComboboxProps<T, Q>[ K ] | Ref<HeadlessComboboxProps<T, Q>[ K ]> };
+export type HeadlessComboboxPropsSource<O, V = O, Q = string>
+  = | HeadlessComboboxProps<O, V, Q>
+    | Ref<HeadlessComboboxProps<O, V, Q>>
+    | (() => HeadlessComboboxProps<O, V, Q>)
+    | { [K in keyof HeadlessComboboxProps<O, V, Q>]: HeadlessComboboxProps<O, V, Q>[ K ] | Ref<HeadlessComboboxProps<O, V, Q>[ K ]> };
 
 /**
  * Headless combobox state machine, usable outside the component.
@@ -220,13 +222,13 @@ export type HeadlessComboboxPropsSource<T, Q = string>
  * back to your state. Call it from `setup()` — it registers document-level
  * listeners and uses `useId()` for default accessibility ids.
  */
-export function useHeadlessCombobox<T, Q = string>(
-  propsSource: HeadlessComboboxPropsSource<T, Q>,
-  emit: (value: T | T[] | null) => void,
-): HeadlessComboboxScope<T, Q> {
+export function useHeadlessCombobox<O, V = O, Q = string>(
+  propsSource: HeadlessComboboxPropsSource<O, V, Q>,
+  emit: (value: V | V[] | null) => void,
+): HeadlessComboboxScope<O, Q> {
   // The component's defineProps object is already reactive and passes through
   // untouched; plain objects and refs are normalized here (refs unwrapped).
-  const props = reactive(toValue(propsSource)) as unknown as HeadlessComboboxProps<T, Q>;
+  const props = reactive(toValue(propsSource)) as unknown as HeadlessComboboxProps<O, V, Q>;
   // --- Internal State ---
   const isOpen = ref(false);
   const searchQuery = ref<Q | undefined>(undefined);
@@ -241,7 +243,7 @@ export function useHeadlessCombobox<T, Q = string>(
   let dropdownRef: HTMLElement | null = null;
   let inputRef: HTMLInputElement | null = null;
   let listRef: HTMLElement | null = null;
-  const optionRefs = new Map<T, HTMLElement>();
+  const optionRefs = new Map<O, HTMLElement>();
 
   function setContainerRef(el: unknown) {
     containerRef = el as HTMLElement;
@@ -258,18 +260,29 @@ export function useHeadlessCombobox<T, Q = string>(
   function setListRef(el: unknown) {
     listRef = el as HTMLElement;
   }
-  function setOptionRef(option: T, el: unknown) {
+  function setOptionRef(option: O, el: unknown) {
+    const key = toRaw(option);
     if (el) {
-      optionRefs.set(option, el as HTMLElement);
-    } else { optionRefs.delete(option); }
+      optionRefs.set(key, el as HTMLElement);
+    } else { optionRefs.delete(key); }
   }
 
-  // --- Selection (normalized to an array; equality by reference) ---
-  const selectedList = computed<T[]>(() => {
+  /** The value stored / emitted for an option; defaults to the option itself. */
+  function valueOf(option: O): V {
+    return props.optionValue ? props.optionValue(option) : option as unknown as V;
+  }
+
+  /** The option whose value equals `value` (used to resolve the model back to an option). */
+  function findOptionByValue(value: V): O | undefined {
+    return props.options.find((option) => toRaw(valueOf(option)) === toRaw(value));
+  }
+
+  // --- Selection (normalized to an array; equality by value) ---
+  const selectedList = computed<V[]>(() => {
     if (props.multiple) {
       return Array.isArray(props.modelValue) ? props.modelValue : [];
     }
-    return props.modelValue == null ? [] : [ props.modelValue as T ];
+    return props.modelValue == null ? [] : [ props.modelValue as V ];
   });
 
   const selectedCount = computed(() => selectedList.value.length);
@@ -281,13 +294,13 @@ export function useHeadlessCombobox<T, Q = string>(
     return props.maxLength == null || selectedCount.value < props.maxLength;
   });
 
-  function isSelected(option: T): boolean {
-    const raw = toRaw(option);
-    return selectedList.value.some((o) => toRaw(o) === raw);
+  function isSelected(option: O): boolean {
+    const value = toRaw(valueOf(option));
+    return selectedList.value.some((v) => toRaw(v) === value);
   }
 
   // Options that cannot be selected: only when at `maxLength` (multiple).
-  function isOptionDisabled(option: T): boolean {
+  function isOptionDisabled(option: O): boolean {
     return !isSelected(option) && !canSelectMore.value;
   }
 
@@ -295,22 +308,22 @@ export function useHeadlessCombobox<T, Q = string>(
   const isLocked = computed(() => props.disabled === true || props.readonly === true);
 
   // --- Strict Generic Filtering ---
-  function getDisplayValue(option: T): string {
-    return props.displayValue ? props.displayValue(option) : String(option);
+  function getOptionLabel(option: O): string {
+    return props.optionLabel ? props.optionLabel(option) : String(option);
   }
 
-  function defaultFilter(option: T, q: string): boolean {
-    return getDisplayValue(option).toLowerCase().includes(q.toLowerCase());
+  function defaultFilter(option: O, q: string): boolean {
+    return getOptionLabel(option).toLowerCase().includes(q.toLowerCase());
   }
 
-  function applyFilter(option: T, query: Q): boolean {
-    if (props.filterFn) {
-      return props.filterFn(option, query);
+  function applyFilter(option: O, query: Q): boolean {
+    if (props.optionFilter) {
+      return props.optionFilter(option, query);
     }
     return defaultFilter(option, String(query));
   }
 
-  const filteredOptions = computed<T[]>(() => {
+  const filteredOptions = computed<O[]>(() => {
     const q = searchQuery.value;
     if (q == null || (typeof q === 'string' && q === '')) {
       return props.options;
@@ -458,7 +471,7 @@ export function useHeadlessCombobox<T, Q = string>(
     'aria-multiselectable': props.multiple ? true : undefined,
   }));
 
-  function getOptionProps(option: T, index: number): HeadlessComboboxOptionProps {
+  function getOptionProps(option: O, index: number): HeadlessComboboxOptionProps {
     const actionable = () => !isOptionDisabled(option);
     return {
       id: getOptionId(index),
@@ -515,7 +528,7 @@ export function useHeadlessCombobox<T, Q = string>(
     searchQuery.value = undefined;
 
     const firstSelected = selectedList.value[ 0 ];
-    const selectedIndex = firstSelected == null ? -1 : filteredOptions.value.findIndex((o) => o === firstSelected);
+    const selectedIndex = firstSelected == null ? -1 : filteredOptions.value.findIndex((o) => toRaw(valueOf(o)) === toRaw(firstSelected));
     // A selected option is always actionable; otherwise start on the first one that can be selected.
     highlightedIndex.value = selectedIndex >= 0 ? selectedIndex : firstActionableIndex();
 
@@ -616,23 +629,24 @@ export function useHeadlessCombobox<T, Q = string>(
     }
   }
 
-  function select(option: T) {
+  function select(option: O) {
     if (isLocked.value) {
       return;
     }
 
+    const value = valueOf(option);
     if (props.multiple) {
       const current = selectedList.value;
-      const raw = toRaw(option);
-      const has = current.some((o) => toRaw(o) === raw);
+      const raw = toRaw(value);
+      const has = current.some((v) => toRaw(v) === raw);
       if (has) {
-        emit(current.filter((o) => toRaw(o) !== raw));
+        emit(current.filter((v) => toRaw(v) !== raw));
       } else if (canSelectMore.value) {
-        emit([ ...current, option ]);
+        emit([ ...current, value ]);
       }
       // else: blocked at `max` — no change, but still fall through to keep the filter focused.
     } else {
-      emit(option);
+      emit(value);
     }
 
     const shouldClose = props.closeOnSelect ?? !props.multiple;
@@ -682,7 +696,8 @@ export function useHeadlessCombobox<T, Q = string>(
     }
 
     const dropdownEl = dropdownRef;
-    const selectedEl = optionRefs.get(firstSelected);
+    const selectedOption = findOptionByValue(firstSelected);
+    const selectedEl = selectedOption == null ? undefined : optionRefs.get(toRaw(selectedOption));
     if (selectedEl && listRef) {
       scrollElementIntoContainer(selectedEl, listRef);
 
@@ -704,7 +719,7 @@ export function useHeadlessCombobox<T, Q = string>(
     if (!option) {
       return;
     }
-    const el = optionRefs.get(option);
+    const el = optionRefs.get(toRaw(option));
     if (el) {
       scrollElementIntoContainer(el, listRef);
     }

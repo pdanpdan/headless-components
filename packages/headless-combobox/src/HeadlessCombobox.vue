@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T, Q = string">
+<script setup lang="ts" generic="O, V = O, Q = string">
 import type { HeadlessComboboxProps, HeadlessComboboxPropsSource, HeadlessComboboxSlotProps } from './useHeadlessCombobox';
 
 import { useHeadlessCombobox } from './useHeadlessCombobox';
@@ -17,7 +17,7 @@ export type {
   HeadlessComboboxTriggerProps,
 } from './useHeadlessCombobox';
 
-const props = withDefaults(defineProps<HeadlessComboboxProps<T, Q>>(), {
+const props = withDefaults(defineProps<HeadlessComboboxProps<O, V, Q>>(), {
   // defaults to auto based on `multiple`.
   closeOnSelect: null,
   // Vue casts absent boolean props to `false`; the default must be explicit.
@@ -25,11 +25,11 @@ const props = withDefaults(defineProps<HeadlessComboboxProps<T, Q>>(), {
 });
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: T | T[] | null): void;
+  (e: 'update:modelValue', value: V | V[] | null): void;
 }>();
 
 defineSlots<{
-  default: (props: HeadlessComboboxSlotProps<T, Q>) => unknown;
+  default: (props: HeadlessComboboxSlotProps<O, Q>) => unknown;
 }>();
 
 const {
@@ -69,10 +69,10 @@ const {
   setInputRef,
   setListRef,
   setOptionRef,
-} = useHeadlessCombobox<T, Q>(
-  // defineProps widens optionals to `T | undefined` (exactOptionalPropertyTypes);
+} = useHeadlessCombobox<O, V, Q>(
+  // defineProps widens optionals to `O | undefined` (exactOptionalPropertyTypes);
   // the composable treats undefined and absent identically.
-  props as unknown as HeadlessComboboxPropsSource<T, Q>,
+  props as unknown as HeadlessComboboxPropsSource<O, V, Q>,
   (value) => emit('update:modelValue', value),
 );
 </script>
