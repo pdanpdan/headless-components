@@ -16,7 +16,7 @@ withDefaults(defineProps<{
   <div class="code-block relative overflow-hidden rounded-box text-sm">
     <CopyButton
       :text="raw"
-      class="btn-neutral absolute top-2 right-4 z-10"
+      class="btn-neutral absolute top-2 right-4 z-10 outline-neutral-content"
     />
 
     <div class="max-h-[80vh] overflow-auto">
@@ -35,6 +35,12 @@ withDefaults(defineProps<{
     padding: 1rem 1.25rem;
     background-color: transparent !important;
     line-height: 1.5;
+  }
+
+  /* The code block is dark; a visible focus ring for the focusable pre. */
+  &:has(pre.shiki:focus-visible) {
+    outline: 2px solid var(--color-neutral-content);
+    outline-offset: -4px;
   }
 }
 </style>

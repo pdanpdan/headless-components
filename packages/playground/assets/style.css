@@ -81,10 +81,17 @@
 main :is(h1, h2, h3, h4, h5, h6) {
   position: relative;
   scroll-margin-top: 1.5rem;
+
+  &:not(:has(.heading-link)) {
+    padding-inline-end: 0.2em;
+  }
 }
 .heading-link {
   color: inherit;
   text-decoration: none;
+  padding-inline-start: 0.75em;
+  padding-inline-end: 0.2em;
+  margin-inline-start: -0.75em;
 }
 .heading-hash {
   position: absolute;
