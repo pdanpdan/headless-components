@@ -1,7 +1,7 @@
 <script lang="ts">
 /* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
 export const title = 'Text options · single · internal state';
-export const description = 'No v-model binding: the component keeps the selection internally.';
+export const description = 'An initial modelValue seeds the internal selection; with no update listener the component keeps it internally.';
 </script>
 
 <script setup lang="ts">
@@ -28,11 +28,12 @@ const labelId = useId();
   <div class="w-full max-w-sm">
     <HeadlessCombobox
       v-slot="{
-        filteredOptions, highlightedIndex, isSelected, canSelectMore, selectedCount,
+        filteredOptions, highlightedIndex, isSelected, canSelectMore, selectedList,
         cssAnchorName, triggerProps, listboxProps,
         getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setListRef, setOptionRef,
       }"
       :options="frameworks"
+      model-value="Vue"
     >
       <fieldset
         :ref="setContainerRef"
@@ -47,8 +48,8 @@ const labelId = useId();
           class="input flex w-full cursor-pointer items-center justify-between shadow-sm"
           :style="{ anchorName: cssAnchorName }"
         >
-          <span :class="{ 'text-base-content/50': selectedCount === 0 }">
-            {{ selectedCount > 0 ? `${ selectedCount } selected` : 'Select a framework…' }}
+          <span :class="{ 'text-base-content/50': selectedList.length === 0 }">
+            {{ selectedList[ 0 ] ?? 'Select a framework…' }}
           </span>
           <svg
             class="h-4 w-4 opacity-50"

@@ -124,6 +124,8 @@ export interface HeadlessComboboxSlotProps<O, V, Q = string> {
   cssAnchorName: string;
   popupStyle: HeadlessComboboxPopupStyle;
   selectedCount: number;
+  /** The currently selected values (single mode: a single-element array). */
+  selectedList: V[];
   canSelectMore: boolean;
   isSelected: (option: O) => boolean;
   valid: boolean;
@@ -155,7 +157,7 @@ export interface HeadlessComboboxSlotProps<O, V, Q = string> {
 }
 
 /** Return value of `useHeadlessCombobox` — same members as the slot scope, with refs for state. */
-export interface HeadlessComboboxScope<O, Q = string> {
+export interface HeadlessComboboxScope<O, V, Q = string> {
   // State
   isOpen: Ref<boolean>;
   multiple: ComputedRef<boolean>;
@@ -168,6 +170,7 @@ export interface HeadlessComboboxScope<O, Q = string> {
   cssAnchorName: string;
   popupStyle: ComputedRef<HeadlessComboboxPopupStyle>;
   selectedCount: ComputedRef<number>;
+  selectedList: ComputedRef<V[]>;
   canSelectMore: ComputedRef<boolean>;
   isSelected: (option: O) => boolean;
   valid: ComputedRef<boolean>;
@@ -974,6 +977,7 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
     cssAnchorName,
     popupStyle,
     selectedCount,
+    selectedList,
     canSelectMore,
     isSelected,
     valid,

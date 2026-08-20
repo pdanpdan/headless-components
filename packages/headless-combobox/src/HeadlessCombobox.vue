@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<Omit<HeadlessComboboxProps<O, V, Q>, 'mod
 });
 
 defineSlots<{
-  default: (props: HeadlessComboboxSlotProps<O, Q>) => unknown;
+  default: (props: HeadlessComboboxSlotProps<O, V, Q>) => unknown;
 }>();
 
 // No parent `v-model`? The model falls back to local state (`defineModel`
@@ -44,6 +44,7 @@ const {
   cssAnchorName,
   popupStyle,
   selectedCount,
+  selectedList,
   canSelectMore,
   isSelected,
   valid,
@@ -93,6 +94,7 @@ const {
     :css-anchor-name="cssAnchorName"
     :popup-style="popupStyle"
     :selected-count="selectedCount"
+    :selected-list="selectedList"
     :can-select-more="canSelectMore"
     :is-selected="isSelected"
     :valid="valid"

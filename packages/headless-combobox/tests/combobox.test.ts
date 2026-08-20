@@ -11,9 +11,9 @@ interface User {
   name: string;
 }
 
-type SlotProps = HeadlessComboboxSlotProps<User>;
+type SlotProps = HeadlessComboboxSlotProps<User, User>;
 
-type MountConfig = Partial<Pick<HeadlessComboboxProps<User, User>, 'modelValue' | 'multiple' | 'minLength' | 'maxLength' | 'required' | 'disabled' | 'readonly' | 'errorMessages' | 'optionFilter' | 'alignSelected' | 'closeOnSelect' | 'closeOnClickOutside' | 'clickOutsideFilter'>>;
+type MountConfig = Partial<Pick<HeadlessComboboxProps<User, User>, 'modelValue' | 'multiple' | 'minLength' | 'maxLength' | 'required' | 'disabled' | 'readonly' | 'errorMessages' | 'optionFilter' | 'alignSelected' | 'closeOnSelect' | 'closeOnClickOutside' | 'clickOutsideFilter' | 'selectOnTab'>>;
 
 function createUsers(): User[] {
   return [
@@ -326,6 +326,7 @@ describe('headless combobox (multiple)', () => {
     const cb = mountComboBox(users, { multiple: true, modelValue: [ users[ 0 ] as User ] });
 
     expect(cb.scope.selectedCount).toBe(1);
+    expect(cb.scope.selectedList).toEqual([ users[ 0 ] ]);
     expect(cb.scope.isSelected(users[ 0 ] as User)).toBe(true);
     expect(cb.scope.isSelected(users[ 1 ] as User)).toBe(false);
   });
@@ -997,7 +998,7 @@ describe('headless combobox (typeahead input)', () => {
   });
 
   it('works with plain string options and no optionLabel', async () => {
-    const holder: { scope?: HeadlessComboboxSlotProps<string>; } = {};
+    const holder: { scope?: HeadlessComboboxSlotProps<string, string>; } = {};
     const wrapper = mount(HeadlessCombobox, {
       props: {
         modelValue: null,
@@ -1009,13 +1010,13 @@ describe('headless combobox (typeahead input)', () => {
       },
       slots: {
         default: (s: unknown) => {
-          holder.scope = s as HeadlessComboboxSlotProps<string>;
+          holder.scope = s as HeadlessComboboxSlotProps<string, string>;
           return h('div');
         },
       },
     });
 
-    const scope = holder.scope as HeadlessComboboxSlotProps<string>;
+    const scope = holder.scope as HeadlessComboboxSlotProps<string, string>;
     expect(scope.filteredOptions).toEqual([ 'Alpha', 'beta', 'GAMMA' ]);
 
     scope.setSearchQuery('ga');
@@ -1415,7 +1416,7 @@ describe('headless combobox (alignSelected)', () => {
 function mountComposable(config: MountConfig = {}) {
   const users = createUsers();
   const selected = ref<User | null>(null);
-  const holder: { scope?: HeadlessComboboxScope<User>; } = {};
+  const holder: { scope?: HeadlessComboboxScope<User, User>; } = {};
   const wrapper = mount({
     setup() {
       holder.scope = useHeadlessCombobox<User>(
@@ -1437,8 +1438,8 @@ function mountComposable(config: MountConfig = {}) {
     wrapper,
     users,
     selected,
-    get scope(): HeadlessComboboxScope<User> {
-      return holder.scope as HeadlessComboboxScope<User>;
+    get scope(): HeadlessComboboxScope<User, User> {
+      return holder.scope as HeadlessComboboxScope<User, User>;
     },
   };
 }
@@ -1495,7 +1496,7 @@ describe('useHeadlessCombobox (composable)', () => {
   it('accepts plain props with refs — no reactive wrapper needed', async () => {
     const users = createUsers();
     const selected = ref<User | null>(null);
-    const holder: { scope?: HeadlessComboboxScope<User>; } = {};
+    const holder: { scope?: HeadlessComboboxScope<User, User>; } = {};
     const wrapper = mount({
       setup() {
         holder.scope = useHeadlessCombobox<User>({
@@ -1509,7 +1510,7 @@ describe('useHeadlessCombobox (composable)', () => {
       },
     });
 
-    const scope = holder.scope as HeadlessComboboxScope<User>;
+    const scope = holder.scope as HeadlessComboboxScope<User, User>;
     // refs are unwrapped and tracked without any reactive() wrapper
     scope.select(users[ 0 ] as User);
     await nextTick();

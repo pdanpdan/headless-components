@@ -82,6 +82,7 @@ const slotGroups = [
       { name: 'cssAnchorName', type: 'string', description: 'Unique CSS anchor-name for popover positioning.' },
       { name: 'popupStyle', type: 'HeadlessComboboxPopupStyle', description: 'Default popup positioning style — spread/merge onto the dropdown.' },
       { name: 'selectedCount', type: 'number', description: 'Number of selected options.' },
+      { name: 'selectedList', type: 'V[]', description: 'The selected values (single mode: a single-element array).' },
       { name: 'canSelectMore', type: 'boolean', description: 'False when at `maxLength` (multiple).' },
       { name: 'isSelected', type: '(option: T) => boolean', description: 'Whether an option is selected.' },
       { name: 'valid', type: 'boolean', description: 'Whether the current selection passes validation.' },
@@ -364,14 +365,14 @@ const structureRows = [
 
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">Composable</h2>
-      <p class="max-w-2xl text-sm text-base-content/70">Two APIs, one state machine: the component renders its default slot with the scope below, and <code>useHeadlessCombobox</code> exposes the exact same state, ARIA prop bags, actions, and ref setters directly — the component is a thin wrapper around it. Use the component for slot-driven templates; use the composable for programmatic control, wrapper components, or non-slot layouts. Call it from <code>setup()</code>.</p>
-      <p class="max-w-2xl text-sm text-base-content/70">Props accept plain values, refs, or a getter — pass your <code>modelValue</code> ref directly (unwrapped and tracked internally). The second argument receives every <code>update:modelValue</code> payload; write it back to your state.</p>
+      <p class="text-sm text-base-content/70">Two APIs, one state machine: the component renders its default slot with the scope below, and <code>useHeadlessCombobox</code> exposes the exact same state, ARIA prop bags, actions, and ref setters directly — the component is a thin wrapper around it. Use the component for slot-driven templates; use the composable for programmatic control, wrapper components, or non-slot layouts. Call it from <code>setup()</code>.</p>
+      <p class="text-sm text-base-content/70">Props accept plain values, refs, or a getter — pass your <code>modelValue</code> ref directly (unwrapped and tracked internally). The second argument receives every <code>update:modelValue</code> payload; write it back to your state.</p>
       <CodeBlock
         :code="SnippetComposableSource.html"
         :raw="SnippetComposableSource.raw"
         lang="vue"
       />
-      <p class="max-w-2xl text-sm text-base-content/70">The <em>Composable · single · typeahead</em> and <em>Composable · programmatic control</em> examples above show full usage. The returned <code>HeadlessComboboxScope&lt;O, V, Q&gt;</code> mirrors the slot scope — refs for state, plain functions for actions and ref setters.</p>
+      <p class="text-sm text-base-content/70">The <em>Composable · single · typeahead</em> and <em>Composable · programmatic control</em> examples above show full usage. The returned <code>HeadlessComboboxScope&lt;O, V, Q&gt;</code> mirrors the slot scope — refs for state, plain functions for actions and ref setters.</p>
     </section>
 
     <section class="flex flex-col gap-4">

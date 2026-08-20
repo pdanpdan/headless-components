@@ -217,7 +217,7 @@ const {
 
 ## Slot props
 
-State: `isOpen`, `multiple`, `disabled`, `readonly`, `searchQuery` (`Q | undefined`, defaults to `string`), `filteredOptions`, `highlightedIndex`, `alignmentOffset`, `cssAnchorName`, `popupStyle` (`HeadlessComboboxPopupStyle`), `selectedCount`, `canSelectMore`, `isSelected(option)`, `valid`, `errors`, `validationMessage`.
+State: `isOpen`, `multiple`, `disabled`, `readonly`, `searchQuery` (`Q | undefined`, defaults to `string`), `filteredOptions`, `highlightedIndex`, `alignmentOffset`, `cssAnchorName`, `popupStyle` (`HeadlessComboboxPopupStyle`), `selectedCount`, `selectedList`, `canSelectMore`, `isSelected(option)`, `valid`, `errors`, `validationMessage`.
 
 ARIA prop bags (spread with `v-bind`) — each bag also carries its interaction handlers, so options, triggers, and inputs need no hand-written event wiring:
 - `triggerProps` — `HeadlessComboboxTriggerProps` (trigger as `role="combobox"`, plus `onClick` → toggle and `onKeydown` → `handleKeydown`)
