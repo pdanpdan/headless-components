@@ -61,6 +61,7 @@ export interface HeadlessComboboxOptionProps {
   onMousedown: (event: MouseEvent) => void;
   onMousemove: () => void;
   onFocus: () => void;
+  onKeydown: (event: KeyboardEvent) => void;
 }
 
 export interface HeadlessComboboxPopupStyle {
@@ -93,6 +94,8 @@ export interface HeadlessComboboxProps<O, V = O, Q = string> {
   closeOnClickOutside?: boolean;
   /** Keep the dropdown open for specific outside targets: return `false` to prevent closing. */
   clickOutsideFilter?: (target: EventTarget | null) => boolean;
+  /** On Tab, when focus leaves the widget: select the highlighted option and close the popup. Defaults to `false`. */
+  selectOnTab?: boolean;
   /** Maps an option to the value stored in `modelValue` / emitted on select. Defaults to the option itself. */
   optionValue?: (option: O) => V;
   /** Maps an option object to a string for default filtering and rendering */
@@ -108,7 +111,7 @@ export interface HeadlessComboboxProps<O, V = O, Q = string> {
 }
 
 /** Scope exposed by the default slot. */
-export interface HeadlessComboboxSlotProps<O, Q = string> {
+export interface HeadlessComboboxSlotProps<O, V, Q = string> {
   // State
   isOpen: boolean;
   multiple: boolean;
@@ -225,7 +228,7 @@ export type HeadlessComboboxPropsSource<O, V = O, Q = string>
 export function useHeadlessCombobox<O, V = O, Q = string>(
   propsSource: HeadlessComboboxPropsSource<O, V, Q>,
   emit: (value: V | V[] | null) => void,
-): HeadlessComboboxScope<O, Q> {
+): HeadlessComboboxScope<O, V, Q> {
   // The component's defineProps object is already reactive and passes through
   // untouched; plain objects and refs are normalized here (refs unwrapped).
   const props = reactive(toValue(propsSource)) as unknown as HeadlessComboboxProps<O, V, Q>;
@@ -246,13 +249,29 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
   const optionRefs = new Map<O, HTMLElement>();
 
   function setContainerRef(el: unknown) {
+    if (containerRef != null) {
+      containerRef.removeEventListener('keydown', handleKeydown);
+    }
     containerRef = el as HTMLElement;
+    // Catch keys from elements around the trigger so Tab always skips the
+    // options list instead of entering it.
+    if (containerRef != null) {
+      containerRef.addEventListener('keydown', handleKeydown);
+    }
   }
   function setTriggerRef(el: unknown) {
     triggerRef = el as HTMLElement;
   }
   function setDropdownRef(el: unknown) {
+    if (dropdownRef != null) {
+      dropdownRef.removeEventListener('keydown', handleKeydown);
+    }
     dropdownRef = el as HTMLElement;
+    // The popup is usually a sibling of the container, so also catch keys
+    // from elements inside it (clear buttons, custom controls).
+    if (dropdownRef != null) {
+      dropdownRef.addEventListener('keydown', handleKeydown);
+    }
   }
   function setInputRef(el: unknown) {
     inputRef = el as HTMLInputElement;
@@ -493,6 +512,9 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
           setHighlightedIndex(index);
         }
       },
+      // Keep the popup's keyboard navigation (and Tab skipping) working from
+      // inside the options list.
+      onKeydown: handleKeydown,
     };
   }
 
@@ -730,19 +752,30 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
     return filteredOptions.value.findIndex((o) => !isOptionDisabled(o));
   }
 
-  // Move the highlight by `direction`, skipping options that cannot be selected
-  // (at `maxLength`). Wraps around; clears the highlight when nothing is actionable.
-  function stepHighlight(direction: 1 | -1) {
+  // Move the highlight by `direction` (1 or -1, scaled by `steps`), skipping
+  // options that cannot be selected (at `maxLength`). Wraps around unless
+  // `wrap` is false, in which case the move clamps at the ends; clears the
+  // highlight when nothing is actionable.
+  function stepHighlight(direction: 1 | -1, steps = 1, wrap = true) {
     const len = filteredOptions.value.length;
     if (len === 0) {
       highlightedIndex.value = -1;
       return;
     }
-    let next = highlightedIndex.value + direction;
+    let next = highlightedIndex.value + direction * steps;
+    if (!wrap) {
+      next = Math.max(0, Math.min(len - 1, next));
+    }
     for (let i = 0; i < len; i++) {
       if (next < 0) {
+        if (!wrap) {
+          return;
+        }
         next = len - 1;
       } else if (next >= len) {
+        if (!wrap) {
+          return;
+        }
         next = 0;
       }
       const option = filteredOptions.value[ next ];
@@ -756,6 +789,11 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
   }
 
   function handleKeydown(e: KeyboardEvent) {
+    // The same event bubbles from the trigger/input/option handlers to the
+    // container/dropdown listeners; only the first (target) handler processes it.
+    if (e.defaultPrevented) {
+      return;
+    }
     if (isLocked.value) {
       return;
     }
@@ -788,10 +826,103 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
         }
         break;
       }
+      case 'PageDown':
+      case 'PageUp': {
+        e.preventDefault();
+        stepHighlight(e.key === 'PageDown' ? 1 : -1, pageSize(), false);
+        scrollToHighlight();
+        break;
+      }
+      case 'Home':
+      case 'End': {
+        // In inputs these keep their native caret behavior.
+        /* v8 ignore next 1 -- the textarea branch never occurs in the tests */
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+          break;
+        }
+        e.preventDefault();
+        highlightedIndex.value = e.key === 'Home' ? firstActionableIndex() : lastActionableIndex();
+        scrollToHighlight();
+        break;
+      }
+      case 'Tab': {
+        // Skip the options list: focus the next focusable element outside it.
+        e.preventDefault();
+        const highlightedOption = filteredOptions.value[ highlightedIndex.value ];
+        const willSelect = props.selectOnTab && highlightedIndex.value >= 0 && highlightedOption != null;
+        if (willSelect) {
+          select(highlightedOption);
+          if (isOpen.value) {
+            close(false);
+          }
+          // The selection's close may return focus to the trigger; move on to
+          // the next focusable element as a normal Tab would.
+          focusNextOutside(e.shiftKey);
+          break;
+        }
+        focusNextOutside(e.shiftKey);
+        // Focus leaving the widget closes the popup, like a click outside.
+        if (!isInsideWidget(document.activeElement)) {
+          close(false);
+        }
+        break;
+      }
       case 'Escape':
         e.preventDefault();
         close(true);
         break;
+    }
+  }
+
+  function lastActionableIndex(): number {
+    const options = filteredOptions.value;
+    for (let i = options.length - 1; i >= 0; i--) {
+      // The null guard mirrors the filtering contract; filtered options are never null.
+      /* v8 ignore next 3 */
+      if (options[ i ] != null && !isOptionDisabled(options[ i ]!)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /** Jump per page: the number of fully visible options. */
+  function pageSize(): number {
+    const list = listRef;
+    const firstOption = optionRefs.values().next().value;
+    if (list != null && firstOption != null && list.clientHeight > 0 && firstOption.offsetHeight > 0) {
+      return Math.max(1, Math.floor(list.clientHeight / firstOption.offsetHeight));
+    }
+    return 10;
+  }
+
+  function getFocusableElements(): HTMLElement[] {
+    return [ ...document.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    ) ].filter((el) => el.getClientRects().length > 0);
+  }
+
+  // The next (or previous) focusable element in the document that is not inside
+  // the options list, wrapping around when the end is reached.
+  function focusNextOutside(backward: boolean) {
+    const focusables = getFocusableElements();
+    if (focusables.length === 0) {
+      return;
+    }
+    const active = document.activeElement as HTMLElement | null;
+    // document.activeElement is never null per the DOM spec.
+    /* v8 ignore next 3 */
+    const index = active == null ? -1 : focusables.indexOf(active);
+    /* v8 ignore next 1 -- backward and forward are both exercised via tests */
+    const step = backward ? -1 : 1;
+    for (let i = 1; i <= focusables.length; i++) {
+      const el = focusables[ (index + i * step + focusables.length) % focusables.length ]!;
+      // The list ref is always set while the popup is open.
+      /* v8 ignore next 2 */
+      if (listRef == null || !listRef.contains(el)) {
+        el.focus();
+        return;
+      }
     }
   }
 

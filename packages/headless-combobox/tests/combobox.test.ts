@@ -42,6 +42,7 @@ function buildProps(options: User[], config: MountConfig = {}) {
     ...(config.closeOnSelect !== undefined ? { closeOnSelect: config.closeOnSelect } : {}),
     ...(config.closeOnClickOutside !== undefined ? { closeOnClickOutside: config.closeOnClickOutside } : {}),
     ...(config.clickOutsideFilter !== undefined ? { clickOutsideFilter: config.clickOutsideFilter } : {}),
+    ...(config.selectOnTab !== undefined ? { selectOnTab: config.selectOnTab } : {}),
   };
 }
 
@@ -1733,5 +1734,277 @@ describe('headless combobox (internal state)', () => {
     await nextTick();
     expect(cb.scope.selectedCount).toBe(1);
     expect(cb.scope.isSelected(users[ 0 ] as User)).toBe(false);
+  });
+});
+function mockVisibleRects() {
+  return vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([ { width: 1 } ] as unknown as DOMRectList);
+}
+
+describe('headless combobox (keyboard paging, home/end, tab)', () => {
+  it('jumps a full page on PageDown/PageUp', async () => {
+    const users = [ ...createUsers(), { id: 4, name: 'Quinn Kirk' }, { id: 5, name: 'Sage Moss' } ];
+    const wired = mountWired(users);
+    // 60px list / 20px options = 3 visible steps.
+    Object.defineProperty(wired.els.list, 'clientHeight', { configurable: true, value: 60 });
+    wired.els.options.forEach((el) => {
+      Object.defineProperty(el, 'offsetHeight', { configurable: true, value: 20 });
+    });
+
+    wired.scope.open();
+    await nextTick();
+
+    wired.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'PageDown' }));
+    await nextTick();
+    expect(wired.scope.highlightedIndex).toBe(3);
+
+    wired.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'PageUp' }));
+    await nextTick();
+    expect(wired.scope.highlightedIndex).toBe(0);
+
+    wired.wrapper.unmount();
+  });
+
+  it('falls back to a 10-option page and clamps at the ends without wrapping', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    cb.scope.open();
+    await nextTick();
+    cb.scope.setHighlightedIndex(0);
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'PageDown' }));
+    await nextTick();
+    // 0 + 10 clamps to the last option (3 options).
+    expect(cb.scope.highlightedIndex).toBe(2);
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'PageDown' }));
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(2);
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'PageUp' }));
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(0);
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'PageUp' }));
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(0);
+  });
+
+  it('keeps Home/End native in inputs and jumps to the ends from the trigger', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    wired.scope.open();
+    await nextTick();
+
+    wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    await nextTick();
+    expect(wired.scope.highlightedIndex).toBe(0);
+
+    wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    await nextTick();
+    expect(wired.scope.highlightedIndex).toBe(0);
+
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    await nextTick();
+    expect(wired.scope.highlightedIndex).toBe(2);
+
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    await nextTick();
+    expect(wired.scope.highlightedIndex).toBe(0);
+
+    wired.wrapper.unmount();
+  });
+
+  it('skips the options list on Tab and closes when focus leaves the widget', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+    const rectSpy = mockVisibleRects();
+
+    wired.scope.open();
+    await nextTick();
+    // Start from the searchbox: the next focusable is the options list, so Tab
+    // skips past it to the outside button.
+    wired.els.searchbox.focus();
+    wired.els.searchbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    await nextTick();
+
+    expect(document.activeElement).toBe(wired.els.outside);
+    expect(wired.scope.isOpen).toBe(false);
+
+    rectSpy.mockRestore();
+    wired.wrapper.unmount();
+  });
+
+  it('stays open when Tab lands inside the widget', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+    const rectSpy = mockVisibleRects();
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.trigger.focus();
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+    await nextTick();
+
+    expect(document.activeElement).toBe(wired.els.input);
+    expect(wired.scope.isOpen).toBe(true);
+
+    rectSpy.mockRestore();
+    wired.wrapper.unmount();
+  });
+
+  it('goes backward on Shift+Tab from an option', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+    const rectSpy = mockVisibleRects();
+
+    wired.scope.open();
+    await nextTick();
+    // Shift+Tab from the searchbox moves back to the filter input (both inside).
+    wired.els.searchbox.focus();
+    wired.els.searchbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
+    await nextTick();
+
+    expect(document.activeElement).toBe(wired.els.input);
+    expect(wired.scope.isOpen).toBe(true);
+
+    rectSpy.mockRestore();
+    wired.wrapper.unmount();
+  });
+
+  it('selects the highlighted option on Tab with selectOnTab', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { selectOnTab: true });
+    const rectSpy = mockVisibleRects();
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.searchbox.focus();
+    wired.els.searchbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    await nextTick();
+
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ users[ 0 ] ] ]);
+    expect(wired.scope.isSelected(users[ 0 ] as User)).toBe(true);
+    // The focus continues to the next focusable element, like a normal Tab.
+    // (In this harness the filter input sits outside the popup, so its
+    // combobox onFocus reopens the popup — the popup element is hidden in a
+    // real consumer, so this does not happen there.)
+    expect(document.activeElement).toBe(wired.els.input);
+
+    rectSpy.mockRestore();
+    wired.wrapper.unmount();
+  });
+
+  it('closes the popup after selectOnTab in multiple mode', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, selectOnTab: true });
+    const rectSpy = mockVisibleRects();
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.searchbox.focus();
+    wired.els.searchbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    await nextTick();
+
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 0 ] ] ] ]);
+    expect(wired.scope.isOpen).toBe(false);
+
+    rectSpy.mockRestore();
+    wired.wrapper.unmount();
+  });
+
+  it('clears the highlight on End when there are no options', async () => {
+    const cb = mountComboBox([]);
+
+    cb.scope.open();
+    await nextTick();
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'End' }));
+    await nextTick();
+
+    expect(cb.scope.highlightedIndex).toBe(-1);
+  });
+  it('stops without wrapping when the page target is blocked', async () => {
+    const users = createUsers();
+    // Only the selected option is actionable; 1 and 2 are blocked by maxLength.
+    const cb = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 0 ] as User ] });
+
+    cb.scope.open();
+    await nextTick();
+    cb.scope.setHighlightedIndex(0);
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'PageDown' }));
+    await nextTick();
+
+    expect(cb.scope.highlightedIndex).toBe(0);
+  });
+
+  it('does nothing when there is no focusable element', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+    const rectSpy = vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([] as unknown as DOMRectList);
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.trigger.focus();
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    await nextTick();
+
+    // Nothing to move to; the trigger keeps focus and the popup stays open.
+    expect(document.activeElement).toBe(wired.els.trigger);
+    expect(wired.scope.isOpen).toBe(true);
+
+    rectSpy.mockRestore();
+    wired.wrapper.unmount();
+  });
+  it('stops without wrapping on PageUp when the target is blocked', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 2 ] as User ] });
+
+    cb.scope.open();
+    await nextTick();
+    cb.scope.setHighlightedIndex(2);
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'PageUp' }));
+    await nextTick();
+
+    expect(cb.scope.highlightedIndex).toBe(2);
+  });
+});
+
+describe('headless combobox (container keydown)', () => {
+  it('skips the options list on Tab from a non-wired element inside the widget', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+    const rectSpy = vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([ { width: 1 } ] as unknown as DOMRectList);
+    // A custom control (like a clear button) with no keyboard wiring.
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.textContent = 'Clear';
+    wired.els.container.appendChild(clear);
+
+    wired.scope.open();
+    await nextTick();
+    clear.focus();
+    clear.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    await nextTick();
+
+    expect(document.activeElement).toBe(wired.els.outside);
+    expect(wired.scope.isOpen).toBe(false);
+
+    rectSpy.mockRestore();
+    wired.wrapper.unmount();
+  });
+
+  it('does not double-handle keys that bubble to the container', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+    await nextTick();
+
+    // One ArrowDown moves the highlight exactly one step (no double step).
+    expect(wired.scope.highlightedIndex).toBe(1);
+
+    wired.wrapper.unmount();
   });
 });

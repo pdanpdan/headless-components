@@ -196,6 +196,7 @@ const {
 | `closeOnSelect` | `boolean \| null`                         | `!multiple`        | Close the dropdown after selecting.                                         |
 | `closeOnClickOutside` | `boolean`                        | `true`             | Close when clicking outside the widget boundary.                            |
 | `clickOutsideFilter` | `(target: EventTarget \| null) => boolean` | —         | Return `false` to keep the dropdown open for a specific outside target.     |
+| `selectOnTab`  | `boolean`                                 | `false`            | On `Tab`, when focus leaves the widget: select the highlighted option and close. |
 | `optionValue`  | `(option: O) => V`                        | the option itself  | Maps an option to the value stored in `modelValue` / emitted on select.     |
 | `optionLabel`  | `(option: O) => string`                   | `String(option)`   | Maps an option to a string for default filtering / rendering.               |
 | `optionFilter` | `(option: O, query: Q) => boolean`        | case-insensitive substring | Custom filter function. `Q` defaults to `string`.                   |
@@ -304,10 +305,13 @@ If the dropdown element is a popover (`popover="manual"`), the component drives 
 |-------------------------|-------------------------------------------|
 | `Enter` / `Space` / `ArrowDown` / `ArrowUp` (closed) | Open the dropdown.           |
 | `ArrowDown` / `ArrowUp` (open) | Move the highlight.                |
+| `PageDown` / `PageUp`   | Move the highlight a full page (visible options), clamped at the ends. |
+| `Home` / `End`          | Jump to the first/last selectable option (native caret behavior in inputs). |
 | `Enter` (open)          | Select the highlighted option.            |
+| `Tab` / `Shift+Tab`     | Skip the options list to the next focusable element; closes when focus leaves the widget (`selectOnTab` selects the highlighted option first). |
 | `Escape`                | Close and return focus to the trigger.    |
 
-Clicking outside the container closes the dropdown.
+Clicking outside the container (or tabbing focus out of it) closes the dropdown.
 
 ## Distribution
 

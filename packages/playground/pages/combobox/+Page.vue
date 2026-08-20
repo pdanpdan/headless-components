@@ -49,6 +49,7 @@ const props = [
   { name: 'closeOnSelect', type: 'boolean | null', default: '!multiple', description: 'Close the dropdown after selecting.' },
   { name: 'closeOnClickOutside', type: 'boolean', default: 'true', description: 'Close when clicking outside the widget boundary.' },
   { name: 'clickOutsideFilter', type: '(target: EventTarget | null) => boolean', default: '—', description: 'Return false to keep the dropdown open for a specific outside target.' },
+  { name: 'selectOnTab', type: 'boolean', default: 'false', description: 'On Tab, when focus leaves the widget: select the highlighted option and close the popup.' },
   { name: 'optionValue', type: '(option: O) => V', default: 'option itself', description: 'Maps an option to the value stored in modelValue / emitted on select.' },
   { name: 'optionLabel', type: '(option: O) => string', default: 'String(option)', description: 'Maps an option to a string for filtering / rendering.' },
   { name: 'optionFilter', type: '(option: O, query: Q) => boolean', default: 'substring', description: 'Custom filter function. Q defaults to string.' },
@@ -137,7 +138,10 @@ const slots = [
 const interactionRows = [
   { name: 'Enter / Space / ArrowDown / ArrowUp', type: 'popup closed', description: 'Open the dropdown.' },
   { name: 'ArrowDown / ArrowUp', type: 'popup open', description: 'Move the highlight; wraps around and skips disabled options.' },
+  { name: 'PageDown / PageUp', type: 'popup open', description: 'Move the highlight a full page (visible options), clamped at the ends.' },
+  { name: 'Home / End', type: 'popup open', description: 'Jump to the first/last selectable option (native caret behavior in inputs).' },
   { name: 'Enter', type: 'popup open', description: 'Select the highlighted option.' },
+  { name: 'Tab / Shift+Tab', type: 'popup open', description: 'Skip the options list to the next focusable element; closes when focus leaves the widget (selectOnTab selects the highlighted option first).' },
   { name: 'Escape', type: 'popup open', description: 'Close the popup and return focus to the trigger.' },
 ];
 
@@ -168,7 +172,7 @@ const structureRows = [
         <MdiIcon :path="mdiGithub" class="size-5" />
         github.com/pdanpdan/headless-components/packages/headless-combobox
       </a>
-      <p class="max-w-2xl text-base-content/70">An accessible, renderless combobox. It renders nothing on its own &mdash; the default scoped slot exposes state, ARIA prop bags, and actions so you own 100% of the markup and styling. The same state machine is also available as the <code>useHeadlessCombobox</code> composable. Supports single or multiple selection (with min/max counts) and reactive validation.</p>
+      <p class="text-base-content/70">An accessible, renderless combobox. It renders nothing on its own &mdash; the default scoped slot exposes state, ARIA prop bags, and actions so you own 100% of the markup and styling. The same state machine is also available as the <code>useHeadlessCombobox</code> composable. Supports single or multiple selection (with min/max counts) and reactive validation.</p>
     </header>
 
     <section class="flex flex-col gap-2">
@@ -182,7 +186,7 @@ const structureRows = [
 
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">Structure</h2>
-      <p class="max-w-2xl text-sm text-base-content/70">The component renders nothing on its own — you build the markup and bind the slot scope to it. The markup follows the ARIA combobox pattern: a <strong>trigger</strong> that opens a <strong>popup</strong> listing the <strong>options</strong>, optionally with a search input. This is where each slot prop is designed to be used:</p>
+      <p class="text-sm text-base-content/70">The component renders nothing on its own — you build the markup and bind the slot scope to it. The markup follows the ARIA combobox pattern: a <strong>trigger</strong> that opens a <strong>popup</strong> listing the <strong>options</strong>, optionally with a search input. This is where each slot prop is designed to be used:</p>
 
       <p class="text-sm font-semibold">Trigger + popup — a button opens a list below it; most examples use this layout.</p>
       <div class="overflow-x-auto rounded-box bg-[#0d1117] p-5 font-mono text-sm leading-6 text-[#e6edf3]">
@@ -221,11 +225,11 @@ const structureRows = [
         </div>
       </div>
 
-      <p class="max-w-2xl text-sm text-base-content/70">Ref setters are wired with <code>:ref</code> and are optional; <code>setOptionRef</code> enables <code>alignSelected</code> and scroll-into-view, and <code>setContainerRef</code> extends the click-outside boundary (e.g. to external chips).</p>
+      <p class="text-sm text-base-content/70">Ref setters are wired with <code>:ref</code> and are optional; <code>setOptionRef</code> enables <code>alignSelected</code> and scroll-into-view, and <code>setContainerRef</code> extends the click-outside boundary (e.g. to external chips).</p>
 
-      <p class="max-w-2xl text-sm text-base-content/70">The popup is positioned with CSS anchor positioning: the trigger needs <code>:style="{ anchorName: cssAnchorName }"</code>, and the popup gets <code>:style="popupStyle"</code> plus <code>popover="manual"</code> — the component then drives it with the native Popover API (top-layer rendering, no <code>v-if</code>). Animate the open state with CSS transitions on <code>:popover-open</code>, like the examples do.</p>
+      <p class="text-sm text-base-content/70">The popup is positioned with CSS anchor positioning: the trigger needs <code>:style="{ anchorName: cssAnchorName }"</code>, and the popup gets <code>:style="popupStyle"</code> plus <code>popover="manual"</code> — the component then drives it with the native Popover API (top-layer rendering, no <code>v-if</code>). Animate the open state with CSS transitions on <code>:popover-open</code>, like the examples do.</p>
 
-      <p class="max-w-2xl text-sm text-base-content/70">A simple popup style: hidden unless open, with a slide + fade entry animation (the <code>@starting-style</code> block plays the entry; the <code>overlay</code>/<code>display</code> transitions make the top-layer appearance and the <code>display: none</code> switch animatable):</p>
+      <p class="text-sm text-base-content/70">A simple popup style: hidden unless open, with a slide + fade entry animation (the <code>@starting-style</code> block plays the entry; the <code>overlay</code>/<code>display</code> transitions make the top-layer appearance and the <code>display: none</code> switch animatable):</p>
       <CodeBlock
         :code="SnippetPopupCssSource.html"
         :raw="SnippetPopupCssSource.raw"
@@ -236,12 +240,12 @@ const structureRows = [
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">Keyboard</h2>
       <PropTable :rows="interactionRows" />
-      <p class="max-w-2xl text-sm text-base-content/70">Mouse interactions: clicking the trigger toggles the dropdown, hovering or focusing an option highlights it (the same highlight the keyboard drives), clicking an option selects it, and clicking outside the widget closes the dropdown. <code>Escape</code> works from anywhere inside the widget.</p>
+      <p class="text-sm text-base-content/70">Mouse interactions: clicking the trigger toggles the dropdown, hovering or focusing an option highlights it (the same highlight the keyboard drives), clicking an option selects it, and clicking outside the widget closes the dropdown. <code>Escape</code> works from anywhere inside the widget.</p>
     </section>
 
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">Examples</h2>
-      <p class="max-w-2xl text-sm text-base-content/70">Each popup uses the native <strong>Popover API</strong> (top-layer, via <code>popover="manual"</code>) with the exposed <code>popupStyle</code> for anchor positioning. The keyboard-active and mouse-hovered option share the same highlight (via <code>setHighlightedIndex</code> on hover); the selection is shown separately with a check.</p>
+      <p class="text-sm text-base-content/70">Each popup uses the native <strong>Popover API</strong> (top-layer, via <code>popover="manual"</code>) with the exposed <code>popupStyle</code> for anchor positioning. The keyboard-active and mouse-hovered option share the same highlight (via <code>setHighlightedIndex</code> on hover); the selection is shown separately with a check.</p>
 
       <ExampleShowcase
         :title="textSingleTitle"
