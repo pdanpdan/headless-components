@@ -10,6 +10,8 @@ import ObjectMultipleValidated, { description as objectMultipleValidatedDescript
 import objectMultipleSource from '@pdanpdan/headless-combobox/examples/ObjectMultipleValidated.vue?highlight';
 import ObjectSingle, { description as objectSingleDescription, title as objectSingleTitle } from '@pdanpdan/headless-combobox/examples/ObjectSingle.vue';
 import objectSingleSource from '@pdanpdan/headless-combobox/examples/ObjectSingle.vue?highlight';
+import ObjectValueSingle, { description as objectValueSingleDescription, title as objectValueSingleTitle } from '@pdanpdan/headless-combobox/examples/ObjectValueSingle.vue';
+import objectValueSingleSource from '@pdanpdan/headless-combobox/examples/ObjectValueSingle.vue?highlight';
 import TextMultiple, { description as textMultipleDescription, title as textMultipleTitle } from '@pdanpdan/headless-combobox/examples/TextMultiple.vue';
 import textMultipleSource from '@pdanpdan/headless-combobox/examples/TextMultiple.vue?highlight';
 import TextMultipleChips, { description as textMultipleChipsDescription, title as textMultipleChipsTitle } from '@pdanpdan/headless-combobox/examples/TextMultipleChips.vue';
@@ -253,6 +255,14 @@ const structureRows = [
         :source="objectSingleSource"
       >
         <ObjectSingle />
+      </ExampleShowcase>
+
+      <ExampleShowcase
+        :title="objectValueSingleTitle"
+        :description="objectValueSingleDescription"
+        :source="objectValueSingleSource"
+      >
+        <ObjectValueSingle />
       </ExampleShowcase>
 
       <ExampleShowcase
