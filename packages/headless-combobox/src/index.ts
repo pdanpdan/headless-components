@@ -1,4 +1,5 @@
 export { default as HeadlessCombobox } from './HeadlessCombobox.vue';
+export { useHeadlessCombobox } from './useHeadlessCombobox';
 export type {
   HeadlessComboboxComboboxInputProps,
   HeadlessComboboxErrorCode,
@@ -7,6 +8,8 @@ export type {
   HeadlessComboboxOptionProps,
   HeadlessComboboxPopupStyle,
   HeadlessComboboxProps,
+  HeadlessComboboxPropsSource,
+  HeadlessComboboxScope,
   HeadlessComboboxSlotProps,
   HeadlessComboboxTriggerProps,
-} from './HeadlessCombobox.vue';
+} from './useHeadlessCombobox';
