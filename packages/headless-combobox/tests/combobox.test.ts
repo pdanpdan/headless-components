@@ -1,10 +1,10 @@
-import type { HeadlessComboboxProps, HeadlessComboboxSlotProps } from '../src';
+import type { HeadlessComboboxProps, HeadlessComboboxScope, HeadlessComboboxSlotProps } from '../src';
 
 import { mount } from '@vue/test-utils';
-import { describe, expect, it } from 'vitest';
-import { h, nextTick } from 'vue';
+import { describe, expect, it, vi } from 'vitest';
+import { h, nextTick, reactive, ref } from 'vue';
 
-import { HeadlessCombobox } from '../src';
+import { HeadlessCombobox, useHeadlessCombobox } from '../src';
 
 interface User {
   id: number;
@@ -13,7 +13,7 @@ interface User {
 
 type SlotProps = HeadlessComboboxSlotProps<User>;
 
-type MountConfig = Partial<Pick<HeadlessComboboxProps<User>, 'modelValue' | 'multiple' | 'minLength' | 'maxLength' | 'required' | 'disabled' | 'readonly'>>;
+type MountConfig = Partial<Pick<HeadlessComboboxProps<User>, 'modelValue' | 'multiple' | 'minLength' | 'maxLength' | 'required' | 'disabled' | 'readonly' | 'errorMessages' | 'filterFn' | 'alignSelected' | 'closeOnSelect' | 'closeOnClickOutside' | 'clickOutsideFilter'>>;
 
 function createUsers(): User[] {
   return [
@@ -23,11 +23,11 @@ function createUsers(): User[] {
   ];
 }
 
-function mountComboBox(options: User[], config: MountConfig = {}) {
-  let latest: SlotProps;
-
-  const props = {
-    modelValue: config.modelValue ?? (config.multiple ? [] : null),
+function buildProps(options: User[], config: MountConfig = {}) {
+  return {
+    // `??` would swallow an explicit null into the default; null is a valid
+    // contract value (treated as an empty selection in multiple mode).
+    modelValue: config.modelValue !== undefined ? config.modelValue : (config.multiple ? [] : null),
     options,
     multiple: config.multiple ?? false,
     required: config.required ?? false,
@@ -36,10 +36,20 @@ function mountComboBox(options: User[], config: MountConfig = {}) {
     displayValue: (option: unknown) => (option as User).name,
     ...(config.minLength !== undefined ? { minLength: config.minLength } : {}),
     ...(config.maxLength !== undefined ? { maxLength: config.maxLength } : {}),
+    ...(config.errorMessages !== undefined ? { errorMessages: config.errorMessages } : {}),
+    ...(config.filterFn !== undefined ? { filterFn: config.filterFn as (option: unknown, query: unknown) => boolean } : {}),
+    ...(config.alignSelected !== undefined ? { alignSelected: config.alignSelected } : {}),
+    ...(config.closeOnSelect !== undefined ? { closeOnSelect: config.closeOnSelect } : {}),
+    ...(config.closeOnClickOutside !== undefined ? { closeOnClickOutside: config.closeOnClickOutside } : {}),
+    ...(config.clickOutsideFilter !== undefined ? { clickOutsideFilter: config.clickOutsideFilter } : {}),
   };
+}
+
+function mountComboBox(options: User[], config: MountConfig = {}) {
+  let latest: SlotProps;
 
   const wrapper = mount(HeadlessCombobox, {
-    props,
+    props: buildProps(options, config),
     slots: {
       default: (scope: unknown) => {
         latest = scope as SlotProps;
@@ -53,6 +63,115 @@ function mountComboBox(options: User[], config: MountConfig = {}) {
     // Getter (not destructured) so every read returns the latest slot scope.
     get scope(): SlotProps {
       return latest;
+    },
+  };
+}
+
+interface WiredElements {
+  container: HTMLElement;
+  trigger: HTMLButtonElement;
+  input: HTMLInputElement;
+  searchbox: HTMLInputElement;
+  dropdown: HTMLElement;
+  list: HTMLElement;
+  options: HTMLElement[];
+  outside: HTMLButtonElement;
+}
+
+// Renders a realistic consumer layout — trigger button, filter input, standalone
+// searchbox input, dropdown listbox with options — with every ref wired through
+// the slot scope. `wireList: false` renders the options directly in the dropdown
+// without a scroll container.
+function mountWired(optionsArg: User[], config: MountConfig & { wireList?: boolean; } = {}) {
+  let scope: SlotProps;
+  const els = { options: [] as HTMLElement[] } as unknown as WiredElements;
+  // The test runner wraps props reactively; iterating the same proxies keeps
+  // option identity consistent between the slot and the component internals.
+  const options = reactive(optionsArg);
+
+  const wrapper = mount(HeadlessCombobox, {
+    attachTo: document.body,
+    props: buildProps(options, config),
+    slots: {
+      default: (s: unknown) => {
+        const sc = s as SlotProps;
+        scope = sc;
+        const listContent = options.map((o, i) =>
+          h('div', {
+            ref: (el: unknown) => {
+              sc.setOptionRef(o, el);
+              els.options[ i ] = el as HTMLElement;
+            },
+            class: 'opt',
+            ...sc.getOptionProps(o, i),
+          }),
+        );
+        return h('div', {
+          ref: (el: unknown) => {
+            sc.setContainerRef(el);
+            els.container = el as HTMLElement;
+          },
+        }, [
+          h('button', {
+            ref: (el: unknown) => {
+              sc.setTriggerRef(el);
+              els.trigger = el as HTMLButtonElement;
+            },
+            type: 'button',
+            ...sc.triggerProps,
+          }, 'Trigger'),
+          h('input', {
+            ref: (el: unknown) => {
+              sc.setInputRef(el);
+              els.input = el as HTMLInputElement;
+            },
+            class: 'filter',
+            ...sc.comboboxInputProps,
+          }),
+          h('input', {
+            ref: (el: unknown) => {
+              els.searchbox = el as HTMLInputElement;
+            },
+            class: 'searchbox',
+            ...sc.inputProps,
+          }),
+          h('div', {
+            ref: (el: unknown) => {
+              sc.setDropdownRef(el);
+              els.dropdown = el as HTMLElement;
+            },
+            class: 'dropdown',
+          }, [
+            config.wireList === false
+              ? listContent
+              : h('div', {
+                ref: (el: unknown) => {
+                  sc.setListRef(el);
+                  els.list = el as HTMLElement;
+                },
+                class: 'list',
+              }, listContent),
+          ]),
+        ]);
+      },
+    },
+  });
+
+  // The outside control must live outside the container ref so the widget
+  // boundary does not include it.
+  const outside = document.createElement('button');
+  outside.type = 'button';
+  outside.className = 'outside';
+  outside.textContent = 'Outside';
+  document.body.appendChild(outside);
+  els.outside = outside;
+
+  return {
+    wrapper,
+    els,
+    // Getter (not destructured) so every read returns the latest slot scope.
+    get scope(): SlotProps {
+      return scope;
     },
   };
 }
@@ -143,6 +262,17 @@ describe('headless combobox (single)', () => {
 
     expect(cb.scope.highlightedIndex).toBe(2);
   });
+
+  it('closing while already closed is a no-op', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    cb.scope.close();
+    await nextTick();
+
+    expect(cb.scope.isOpen).toBe(false);
+    expect(cb.scope.highlightedIndex).toBe(-1);
+  });
 });
 
 describe('headless combobox (multiple)', () => {
@@ -208,6 +338,38 @@ describe('headless combobox (multiple)', () => {
 
     expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
   });
+
+  it('closes after selecting when closeOnSelect is true', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, { multiple: true, closeOnSelect: true, modelValue: [] });
+
+    cb.scope.open();
+    await nextTick();
+    cb.scope.select(users[ 0 ] as User);
+    await nextTick();
+
+    expect(cb.scope.isOpen).toBe(false);
+  });
+
+  it('handles Vue reactive options and selections', async () => {
+    const users = reactive(createUsers());
+    const selected = reactive(users[ 0 ] as User);
+    const cb = mountComboBox(users, { multiple: true, modelValue: [ selected ] });
+
+    expect(cb.scope.selectedCount).toBe(1);
+    expect(cb.scope.isSelected(users[ 0 ] as User)).toBe(true);
+
+    // Toggling the selected reactive option removes it.
+    cb.scope.select(users[ 0 ] as User);
+    await nextTick();
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
+
+    // No v-model feedback in the harness, so the next select appends to the
+    // still-held prop value.
+    cb.scope.select(users[ 1 ] as User);
+    await nextTick();
+    expect(cb.wrapper.emitted('update:modelValue')?.[ 1 ]).toEqual([ [ users[ 0 ], users[ 1 ] ] ]);
+  });
 });
 
 describe('headless combobox (validation)', () => {
@@ -242,6 +404,35 @@ describe('headless combobox (validation)', () => {
 
     expect(cb.scope.valid).toBe(false);
     expect(cb.scope.errors).toEqual([ 'maxlength' ]);
+  });
+
+  it('uses singular wording for a min or max of one', () => {
+    const users = createUsers();
+    const min = mountComboBox(users, { multiple: true, minLength: 1, modelValue: [] });
+    expect(min.scope.validationMessage).toBe('Select at least 1 option.');
+
+    const max = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 0 ] as User, users[ 1 ] as User ] });
+    expect(max.scope.validationMessage).toBe('Select at most 1 option.');
+  });
+
+  it('uses plural wording for a min or max above one', () => {
+    const users = createUsers();
+    const min = mountComboBox(users, { multiple: true, minLength: 2, modelValue: [ users[ 0 ] as User ] });
+    expect(min.scope.validationMessage).toBe('Select at least 2 options.');
+
+    const max = mountComboBox(users, { multiple: true, maxLength: 2, modelValue: [ users[ 0 ] as User, users[ 1 ] as User, users[ 2 ] as User ] });
+    expect(max.scope.validationMessage).toBe('Select at most 2 options.');
+  });
+
+  it('uses custom validation messages', () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, {
+      required: true,
+      modelValue: null,
+      errorMessages: { required: 'Pick someone.' },
+    });
+
+    expect(cb.scope.validationMessage).toBe('Pick someone.');
   });
 });
 
@@ -278,6 +469,23 @@ describe('headless combobox (disabled / readonly)', () => {
     cb.scope.select(users[ 0 ] as User);
     await nextTick();
     expect(cb.wrapper.emitted('update:modelValue')).toBeUndefined();
+  });
+
+  it('ignores toggle, clear, and keyboard input when disabled', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, { disabled: true, modelValue: users[ 0 ] as User });
+
+    cb.scope.toggle();
+    await nextTick();
+    expect(cb.scope.isOpen).toBe(false);
+
+    cb.scope.clear();
+    await nextTick();
+    expect(cb.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await nextTick();
+    expect(cb.scope.isOpen).toBe(false);
   });
 });
 
@@ -376,6 +584,39 @@ describe('headless combobox (keyboard + disabled options)', () => {
     cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
     await nextTick();
     expect(cb.scope.highlightedIndex).toBe(-1);
+  });
+
+  it('keeps the highlight cleared with no options and ignores Enter', async () => {
+    const cb = mountComboBox([]);
+
+    cb.scope.open();
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(-1);
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(-1);
+
+    cb.scope.handleKeydown(new KeyboardEvent('keydown', { key: 'Enter' }));
+    await nextTick();
+    expect(cb.wrapper.emitted('update:modelValue')).toBeUndefined();
+  });
+
+  it('ignores out-of-range highlight indexes', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    cb.scope.open();
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(0);
+
+    cb.scope.setHighlightedIndex(99);
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(0);
+
+    cb.scope.setHighlightedIndex(-1);
+    await nextTick();
+    expect(cb.scope.highlightedIndex).toBe(0);
   });
 });
 
@@ -620,5 +861,665 @@ describe('headless combobox (null handling in multiple)', () => {
     const cb = mountComboBox(users, { multiple: true, maxLength: 2, modelValue: null });
 
     expect(cb.scope.canSelectMore).toBe(true);
+  });
+});
+
+describe('headless combobox (trigger interactions)', () => {
+  it('toggles the popup when the trigger is clicked', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(true);
+    expect(wired.els.trigger.getAttribute('aria-expanded')).toBe('true');
+
+    await wired.els.trigger.click();
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(false);
+    expect(wired.els.trigger.getAttribute('aria-expanded')).toBe('false');
+
+    wired.wrapper.unmount();
+  });
+
+  it('opens with ArrowDown on the trigger and selects with Enter', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    const down = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true });
+    wired.els.trigger.dispatchEvent(down);
+    expect(down.defaultPrevented).toBe(true);
+    await nextTick();
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(true);
+    expect(wired.els.trigger.getAttribute('aria-activedescendant')).toMatch(/-opt-0$/);
+
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(wired.scope.highlightedIndex).toBe(1);
+    expect(wired.els.trigger.getAttribute('aria-activedescendant')).toMatch(/-opt-1$/);
+
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ users[ 1 ] ] ]);
+    expect(wired.scope.isOpen).toBe(false);
+
+    wired.wrapper.unmount();
+  });
+
+  it('ignores keys that do not open the popup while closed', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    // A plain letter on the trigger does not open the popup.
+    const key = new KeyboardEvent('keydown', { key: 'a', bubbles: true, cancelable: true });
+    wired.els.trigger.dispatchEvent(key);
+    await nextTick();
+
+    expect(key.defaultPrevented).toBe(false);
+    expect(wired.scope.isOpen).toBe(false);
+    expect(wired.scope.searchQuery).toBeUndefined();
+
+    // ArrowDown on the same trigger does open it — proving the handler is wired.
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(true);
+
+    wired.wrapper.unmount();
+  });
+
+  it('ignores clicks and keyboard when disabled', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { disabled: true });
+
+    wired.els.trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(false);
+
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(false);
+
+    wired.wrapper.unmount();
+  });
+});
+
+describe('headless combobox (typeahead input)', () => {
+  it('filters as the user types and restores all options when the filter clears', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    wired.els.input.value = 'wade';
+    wired.els.input.dispatchEvent(new Event('input', { bubbles: true }));
+    await nextTick();
+
+    expect(wired.scope.isOpen).toBe(true);
+    expect(wired.scope.searchQuery).toBe('wade');
+    expect(wired.scope.filteredOptions).toEqual([ users[ 0 ] ]);
+
+    wired.els.input.value = '';
+    wired.els.input.dispatchEvent(new Event('input', { bubbles: true }));
+    await nextTick();
+    expect(wired.scope.filteredOptions).toEqual(users);
+
+    wired.wrapper.unmount();
+  });
+
+  it('filters through the standalone searchbox input', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+    expect(wired.els.searchbox.getAttribute('role')).toBe('searchbox');
+
+    wired.els.searchbox.value = 'devon';
+    wired.els.searchbox.dispatchEvent(new Event('input', { bubbles: true }));
+    await nextTick();
+
+    expect(wired.scope.filteredOptions).toEqual([ users[ 2 ] ]);
+
+    wired.wrapper.unmount();
+  });
+
+  it('filters with a custom filterFn', async () => {
+    const users = createUsers();
+    const filterFn = vi.fn((option: User, query: string) => option.id === Number(query));
+    const cb = mountComboBox(users, { filterFn });
+
+    cb.scope.setSearchQuery('3');
+    await nextTick();
+
+    expect(filterFn).toHaveBeenCalledWith(users[ 2 ], '3');
+    expect(cb.scope.filteredOptions).toEqual([ users[ 2 ] ]);
+  });
+
+  it('works with plain string options and no displayValue', async () => {
+    const holder: { scope?: HeadlessComboboxSlotProps<string>; } = {};
+    const wrapper = mount(HeadlessCombobox, {
+      props: {
+        modelValue: null,
+        options: [ 'Alpha', 'beta', 'GAMMA' ],
+        multiple: false,
+        required: false,
+        disabled: false,
+        readonly: false,
+      },
+      slots: {
+        default: (s: unknown) => {
+          holder.scope = s as HeadlessComboboxSlotProps<string>;
+          return h('div');
+        },
+      },
+    });
+
+    const scope = holder.scope as HeadlessComboboxSlotProps<string>;
+    expect(scope.filteredOptions).toEqual([ 'Alpha', 'beta', 'GAMMA' ]);
+
+    scope.setSearchQuery('ga');
+    await nextTick();
+    expect(holder.scope?.filteredOptions).toEqual([ 'GAMMA' ]);
+
+    wrapper.unmount();
+  });
+});
+
+describe('headless combobox (click outside)', () => {
+  it('closes the popup when clicking outside the widget', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(true);
+
+    document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(false);
+
+    wired.wrapper.unmount();
+  });
+
+  it('keeps the popup open when clicking inside the widget', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(true);
+
+    wired.els.input.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(true);
+
+    wired.wrapper.unmount();
+  });
+
+  it('keeps the popup open on outside clicks when closeOnClickOutside is false', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { closeOnClickOutside: false });
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(true);
+
+    document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(true);
+
+    // Escape and explicit close still work.
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(false);
+
+    wired.wrapper.unmount();
+  });
+
+  it('keeps the popup open for targets rejected by clickOutsideFilter', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, {
+      clickOutsideFilter: (target) => !(target instanceof HTMLElement && target.classList.contains('outside')),
+    });
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(true);
+
+    // The filter rejects the external control button: the popup stays open.
+    wired.els.outside.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(true);
+
+    // Other outside targets are still rejected by the boundary and close.
+    document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    await nextTick();
+    expect(wired.scope.isOpen).toBe(false);
+
+    wired.wrapper.unmount();
+  });
+});
+
+describe('headless combobox (option hover and focus)', () => {
+  it('highlights the option under the mouse', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+
+    wired.els.options[ 2 ]!.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+    await nextTick();
+
+    expect(wired.scope.highlightedIndex).toBe(2);
+    expect(wired.els.options[ 2 ]!.getAttribute('data-highlighted')).toBe('true');
+
+    wired.wrapper.unmount();
+  });
+
+  it('highlights the option that receives focus', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+
+    wired.els.options[ 2 ]!.dispatchEvent(new FocusEvent('focus'));
+    await nextTick();
+
+    expect(wired.scope.highlightedIndex).toBe(2);
+
+    wired.wrapper.unmount();
+  });
+});
+
+describe('headless combobox (focus retention)', () => {
+  it('keeps the filter focused when selecting with the popup open', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, modelValue: [] });
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+    expect(document.activeElement).toBe(wired.els.input);
+
+    wired.scope.select(users[ 0 ] as User);
+    await nextTick();
+
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 0 ] ] ] ]);
+    expect(document.activeElement).toBe(wired.els.input);
+
+    wired.wrapper.unmount();
+  });
+
+  it('does not steal focus from a textarea while selecting', async () => {
+    const users = createUsers();
+    const holder: { scope?: SlotProps; } = {};
+
+    const wrapper = mount(HeadlessCombobox, {
+      attachTo: document.body,
+      props: buildProps(users, { multiple: true, modelValue: [] }),
+      slots: {
+        default: (s: unknown) => {
+          const sc = s as SlotProps;
+          holder.scope = sc;
+          return h('div', { ref: sc.setContainerRef }, [
+            h('input', { ref: sc.setInputRef, class: 'filter' }),
+            h('textarea', { class: 'notes' }),
+          ]);
+        },
+      },
+    });
+
+    const scope = holder.scope as SlotProps;
+    scope.open();
+    await nextTick();
+    await nextTick();
+
+    const notes = wrapper.find('.notes').element as HTMLTextAreaElement;
+    notes.focus();
+    expect(document.activeElement).toBe(notes);
+
+    scope.select(users[ 0 ] as User);
+    await nextTick();
+    expect(document.activeElement).toBe(notes);
+
+    wrapper.unmount();
+  });
+
+  it('does not steal focus from a contenteditable element while selecting', async () => {
+    const users = createUsers();
+    const holder: { scope?: SlotProps; } = {};
+
+    const wrapper = mount(HeadlessCombobox, {
+      attachTo: document.body,
+      props: buildProps(users, { multiple: true, modelValue: [] }),
+      slots: {
+        default: (s: unknown) => {
+          const sc = s as SlotProps;
+          holder.scope = sc;
+          return h('div', { ref: sc.setContainerRef }, [
+            h('input', { ref: sc.setInputRef, class: 'filter' }),
+            h('div', { class: 'editable', contenteditable: 'true' }),
+          ]);
+        },
+      },
+    });
+
+    const scope = holder.scope as SlotProps;
+    scope.open();
+    await nextTick();
+    await nextTick();
+
+    const editable = wrapper.find('.editable').element as HTMLElement;
+    // jsdom does not implement isContentEditable; browsers report it for contenteditable.
+    Object.defineProperty(editable, 'isContentEditable', { configurable: true, value: true });
+    editable.focus();
+
+    scope.select(users[ 0 ] as User);
+    await nextTick();
+    expect(document.activeElement).toBe(editable);
+
+    wrapper.unmount();
+  });
+
+  it('does not steal focus from a control outside the widget', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, modelValue: [] });
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+
+    wired.els.outside.focus();
+    expect(document.activeElement).toBe(wired.els.outside);
+
+    wired.scope.select(users[ 0 ] as User);
+    await nextTick();
+    expect(document.activeElement).toBe(wired.els.outside);
+
+    wired.wrapper.unmount();
+    wired.els.outside.remove();
+  });
+
+  it('clear keeps the popup open and keeps the filter focused', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, modelValue: [ users[ 0 ] as User ] });
+
+    await wired.els.trigger.click();
+    await nextTick();
+    await nextTick();
+
+    wired.scope.clear();
+    await nextTick();
+
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
+    expect(wired.scope.isOpen).toBe(true);
+    expect(document.activeElement).toBe(wired.els.input);
+
+    wired.wrapper.unmount();
+  });
+
+  it('focusInput moves focus to the filter input', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+
+    expect(document.activeElement).not.toBe(wired.els.input);
+    wired.scope.focusInput();
+    await nextTick();
+    expect(document.activeElement).toBe(wired.els.input);
+
+    wired.wrapper.unmount();
+  });
+});
+
+describe('headless combobox (popover mode)', () => {
+  it('drives the native popover API when the dropdown is a popover', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { wireList: false });
+
+    const dropdown = wired.els.dropdown;
+    dropdown.setAttribute('popover', '');
+    // jsdom does not implement the Popover API; browsers expose it on elements.
+    const show = vi.fn();
+    const hide = vi.fn();
+    Object.assign(dropdown, { showPopover: show, hidePopover: hide });
+
+    wired.scope.open();
+    await nextTick();
+    expect(show).toHaveBeenCalledTimes(1);
+
+    wired.scope.close();
+    await nextTick();
+    expect(hide).not.toHaveBeenCalled();
+
+    // Simulate the browser reporting the popover as open (:popover-open).
+    vi.spyOn(dropdown, 'matches').mockReturnValue(true);
+
+    wired.scope.open();
+    await nextTick();
+    expect(show).toHaveBeenCalledTimes(1);
+
+    wired.scope.close();
+    await nextTick();
+    expect(hide).toHaveBeenCalledTimes(1);
+
+    wired.wrapper.unmount();
+  });
+
+  it('falls back to v-if rendering when the popover API is unavailable', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { wireList: false });
+
+    wired.els.dropdown.setAttribute('popover', '');
+
+    wired.scope.open();
+    await nextTick();
+
+    expect(wired.scope.isOpen).toBe(true);
+
+    wired.wrapper.unmount();
+  });
+});
+
+describe('headless combobox (alignSelected)', () => {
+  it('anchors the popup over the selected option', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, { alignSelected: true, modelValue: users[ 1 ] as User });
+
+    cb.scope.open();
+    await nextTick();
+
+    expect(cb.scope.popupStyle.top).toBe('anchor(top)');
+    expect(cb.scope.popupStyle.translate).toBe('0 -0px');
+  });
+
+  it('scrolls a selected option clipped above into view and aligns the popup over it', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { alignSelected: true, modelValue: users[ 1 ] as User });
+
+    // The dropdown is scaled to 50% (offsetWidth > rect width), so measured
+    // offsets are divided by the scale to recover unscaled coordinates.
+    Object.defineProperty(wired.els.list, 'offsetWidth', { configurable: true, value: 200 });
+    Object.defineProperty(wired.els.dropdown, 'offsetWidth', { configurable: true, value: 200 });
+    vi.spyOn(wired.els.list, 'getBoundingClientRect').mockReturnValue({ top: 100, bottom: 300, width: 0 } as DOMRect);
+    vi.spyOn(wired.els.dropdown, 'getBoundingClientRect').mockReturnValue({ top: 50, bottom: 350, width: 0 } as DOMRect);
+    // The selected option sits above the visible list area (top 60 < container top 100).
+    vi.spyOn(wired.els.options[ 1 ]!, 'getBoundingClientRect').mockReturnValue({ top: 60, bottom: 120 } as DOMRect);
+
+    wired.scope.open();
+    await nextTick();
+    await nextTick();
+
+    // 0-width rects make the scale 0, which falls back to 1.
+    expect(wired.els.list.scrollTop).toBe(-40);
+    expect(wired.scope.alignmentOffset).toBe(10);
+    expect(wired.scope.popupStyle.translate).toBe('0 -10px');
+
+    wired.wrapper.unmount();
+  });
+
+  it('scrolls a selected option clipped below into view', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { alignSelected: true, modelValue: users[ 1 ] as User });
+
+    vi.spyOn(wired.els.list, 'getBoundingClientRect').mockReturnValue({ top: 100, bottom: 300, width: 0 } as DOMRect);
+    vi.spyOn(wired.els.dropdown, 'getBoundingClientRect').mockReturnValue({ top: 50, bottom: 350, width: 0 } as DOMRect);
+    // The selected option sits below the visible list area (bottom 450 > container bottom 300).
+    vi.spyOn(wired.els.options[ 1 ]!, 'getBoundingClientRect').mockReturnValue({ top: 350, bottom: 450 } as DOMRect);
+
+    wired.scope.open();
+    await nextTick();
+    await nextTick();
+
+    expect(wired.els.list.scrollTop).toBe(150);
+    expect(wired.scope.alignmentOffset).toBe(300);
+
+    wired.wrapper.unmount();
+  });
+
+  it('resets the alignment offset when the selected option has no element', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { alignSelected: true, modelValue: users[ 1 ] as User, wireList: false });
+
+    wired.scope.open();
+    await nextTick();
+    await nextTick();
+
+    expect(wired.scope.alignmentOffset).toBe(0);
+
+    wired.wrapper.unmount();
+  });
+
+  it('scrolls the highlighted option into view on open, even without a scroll container', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { wireList: false });
+
+    wired.scope.open();
+    await nextTick();
+    await nextTick();
+
+    expect(wired.scope.isOpen).toBe(true);
+
+    wired.wrapper.unmount();
+  });
+});
+
+function mountComposable(config: MountConfig = {}) {
+  const users = createUsers();
+  const selected = ref<User | null>(null);
+  const holder: { scope?: HeadlessComboboxScope<User>; } = {};
+  const wrapper = mount({
+    setup() {
+      holder.scope = useHeadlessCombobox<User>(
+        reactive({
+          modelValue: selected,
+          options: users,
+          ...(config.multiple !== undefined ? { multiple: config.multiple } : {}),
+          ...(config.maxLength !== undefined ? { maxLength: config.maxLength } : {}),
+          displayValue: (option: unknown) => (option as User).name,
+        }),
+        (value) => {
+          selected.value = value as User | null;
+        },
+      );
+      return () => h('div');
+    },
+  });
+  return {
+    wrapper,
+    users,
+    selected,
+    get scope(): HeadlessComboboxScope<User> {
+      return holder.scope as HeadlessComboboxScope<User>;
+    },
+  };
+}
+
+describe('useHeadlessCombobox (composable)', () => {
+  it('syncs the modelValue ref through the emit callback', async () => {
+    const cb = mountComposable();
+
+    cb.scope.select(cb.users[ 0 ] as User);
+    await nextTick();
+
+    // A ref deep-converts object values (reactive), so compare structurally;
+    // `isSelected` is the identity-safe API.
+    expect(cb.selected.value).toEqual(cb.users[ 0 ]);
+    expect(cb.scope.isSelected(cb.users[ 0 ] as User)).toBe(true);
+    expect(cb.scope.selectedCount.value).toBe(1);
+
+    cb.scope.clear();
+    await nextTick();
+    expect(cb.selected.value).toBeNull();
+
+    cb.wrapper.unmount();
+  });
+
+  it('supports programmatic control outside a template', async () => {
+    const cb = mountComposable();
+
+    await cb.scope.open();
+    expect(cb.scope.isOpen.value).toBe(true);
+
+    cb.scope.close();
+    expect(cb.scope.isOpen.value).toBe(false);
+
+    cb.scope.toggle();
+    await nextTick();
+    expect(cb.scope.isOpen.value).toBe(true);
+    await cb.scope.close();
+
+    cb.wrapper.unmount();
+  });
+
+  it('filters through the exposed query refs', async () => {
+    const cb = mountComposable();
+
+    cb.scope.setSearchQuery('wade');
+    await nextTick();
+
+    expect(cb.scope.searchQuery.value).toBe('wade');
+    expect(cb.scope.filteredOptions.value).toEqual([ cb.users[ 0 ] ]);
+
+    cb.wrapper.unmount();
+  });
+
+  it('accepts plain props with refs — no reactive wrapper needed', async () => {
+    const users = createUsers();
+    const selected = ref<User | null>(null);
+    const holder: { scope?: HeadlessComboboxScope<User>; } = {};
+    const wrapper = mount({
+      setup() {
+        holder.scope = useHeadlessCombobox<User>({
+          modelValue: selected,
+          options: users,
+          displayValue: (option: unknown) => (option as User).name,
+        }, (value) => {
+          selected.value = value as User | null;
+        });
+        return () => h('div');
+      },
+    });
+
+    const scope = holder.scope as HeadlessComboboxScope<User>;
+    // refs are unwrapped and tracked without any reactive() wrapper
+    scope.select(users[ 0 ] as User);
+    await nextTick();
+    expect(selected.value).toEqual(users[ 0 ]);
+    expect(scope.isSelected(users[ 0 ] as User)).toBe(true);
+
+    scope.setSearchQuery('wade');
+    await nextTick();
+    expect(scope.filteredOptions.value).toEqual([ users[ 0 ] ]);
+
+    wrapper.unmount();
   });
 });
