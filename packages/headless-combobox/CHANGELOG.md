@@ -1,5 +1,16 @@
 # Changelog
 
+# [1.1.0](https://github.com/pdanpdan/headless-components/compare/v1.0.0...v1.1.0) (2026-08-20)
+
+### Bug Fixes
+
+* space no longer toggles the popup closed from the trigger ([dc94ce7](https://github.com/pdanpdan/headless-components/commit/dc94ce777468b29ab92d0b15899d8d9608e16907))
+* stop intercepting keys aimed at non-wired controls ([6e52cb6](https://github.com/pdanpdan/headless-components/commit/6e52cb663c0350af60dd84627bf8d9b1000e7a1e))
+
+### Features
+
+* remove the last selected option on backspace/delete ([e405327](https://github.com/pdanpdan/headless-components/commit/e405327dc40d69549a21a9531b2335acabef8042))
+
 # [1.0.0](https://github.com/pdanpdan/headless-components/compare/v0.2.0...v1.0.0) (2026-08-20)
 
 * feat!: expose selectedList and seed the internal-state example ([eb50d94](https://github.com/pdanpdan/headless-components/commit/eb50d944f41f622d1196420fb4d854e7620ccd2b))
