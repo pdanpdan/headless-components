@@ -185,7 +185,7 @@ const {
 
 | Prop            | Type                                      | Default            | Description                                                                 |
 |-----------------|-------------------------------------------|--------------------|-----------------------------------------------------------------------------|
-| `modelValue`    | `V \| V[] \| null`                        | —                  | Selected value(s) (`v-model`). Array in multiple mode.                      |
+| `modelValue`    | `V \| V[] \| null`                        | internal state     | Selected value(s) (`v-model`). Optional: without `v-model` the component keeps the selection internally. |
 | `options`       | `O[]`                                     | —                  | List of options.                                                            |
 | `multiple`      | `boolean`                                 | `false`            | Enable multiple selection.                                                  |
 | `minLength`     | `number`                                  | —                  | Multiple: minimum number of selected options (validation).                  |

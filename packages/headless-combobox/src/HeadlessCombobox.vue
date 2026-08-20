@@ -17,20 +17,20 @@ export type {
   HeadlessComboboxTriggerProps,
 } from './useHeadlessCombobox';
 
-const props = withDefaults(defineProps<HeadlessComboboxProps<O, V, Q>>(), {
+const props = withDefaults(defineProps<Omit<HeadlessComboboxProps<O, V, Q>, 'modelValue'>>(), {
   // defaults to auto based on `multiple`.
   closeOnSelect: null,
   // Vue casts absent boolean props to `false`; the default must be explicit.
   closeOnClickOutside: true,
 });
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: V | V[] | null): void;
-}>();
-
 defineSlots<{
   default: (props: HeadlessComboboxSlotProps<O, Q>) => unknown;
 }>();
+
+// No parent `v-model`? The model falls back to local state (`defineModel`
+// keeps the last set value internally) so the component still works.
+const model = defineModel<V | V[] | null>('modelValue', { default: null });
 
 const {
   isOpen,
@@ -71,9 +71,12 @@ const {
   setOptionRef,
 } = useHeadlessCombobox<O, V, Q>(
   // defineProps widens optionals to `O | undefined` (exactOptionalPropertyTypes);
-  // the composable treats undefined and absent identically.
-  props as unknown as HeadlessComboboxPropsSource<O, V, Q>,
-  (value) => emit('update:modelValue', value),
+  // the composable treats undefined and absent identically. The model ref is
+  // passed directly so the internal fallback state stays in sync.
+  { ...props, modelValue: model } as unknown as HeadlessComboboxPropsSource<O, V, Q>,
+  (value) => {
+    model.value = value;
+  },
 );
 </script>
 

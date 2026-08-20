@@ -364,11 +364,11 @@ describe('headless combobox (multiple)', () => {
     await nextTick();
     expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
 
-    // No v-model feedback in the harness, so the next select appends to the
-    // still-held prop value.
+    // No v-model feedback in the harness, but the internal model state
+    // carries the toggle, so the next select appends to the empty list.
     cb.scope.select(users[ 1 ] as User);
     await nextTick();
-    expect(cb.wrapper.emitted('update:modelValue')?.[ 1 ]).toEqual([ [ users[ 0 ], users[ 1 ] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')?.[ 1 ]).toEqual([ [ users[ 1 ] ] ]);
   });
 });
 
@@ -1701,5 +1701,37 @@ describe('headless combobox (scroll guards)', () => {
     await nextTick();
 
     expect(cb.scope.highlightedIndex).toBe(-1);
+  });
+});
+
+describe('headless combobox (internal state)', () => {
+  it('keeps the selection internally when no v-model listener is attached', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    cb.scope.select(users[ 1 ] as User);
+    await nextTick();
+
+    expect(cb.scope.isSelected(users[ 1 ] as User)).toBe(true);
+    expect(cb.scope.selectedCount).toBe(1);
+    // The value is still emitted (a no-op without a listener).
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ users[ 1 ] ] ]);
+  });
+
+  it('toggles the internal selection in multiple mode', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, { multiple: true });
+
+    cb.scope.select(users[ 0 ] as User);
+    await nextTick();
+    cb.scope.select(users[ 1 ] as User);
+    await nextTick();
+    expect(cb.scope.selectedCount).toBe(2);
+    expect(cb.scope.isSelected(users[ 1 ] as User)).toBe(true);
+
+    cb.scope.select(users[ 0 ] as User);
+    await nextTick();
+    expect(cb.scope.selectedCount).toBe(1);
+    expect(cb.scope.isSelected(users[ 0 ] as User)).toBe(false);
   });
 });

@@ -36,7 +36,7 @@ import SnippetInstallSource from './SnippetInstall.bash?highlight';
 import SnippetPopupCssSource from './SnippetPopupCss.css?highlight';
 
 const props = [
-  { name: 'modelValue', type: 'V | V[] | null', default: '—', description: 'Selected value(s) (v-model). Array in multiple mode.' },
+  { name: 'modelValue', type: 'V | V[] | null', default: 'internal', description: 'Selected value(s) (v-model). Optional: without v-model the component keeps the selection internally.' },
   { name: 'options', type: 'O[]', default: '—', description: 'List of options.' },
   { name: 'multiple', type: 'boolean', default: 'false', description: 'Enable multiple selection.' },
   { name: 'minLength', type: 'number', default: '—', description: 'Multiple: minimum number of selected options (validation).' },
