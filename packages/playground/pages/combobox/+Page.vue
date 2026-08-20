@@ -145,6 +145,7 @@ const interactionRows = [
   { name: 'PageDown / PageUp', type: 'popup open', description: 'Move the highlight a full page (visible options), clamped at the ends.' },
   { name: 'Home / End', type: 'popup open', description: 'Jump to the first/last selectable option (native caret behavior in inputs).' },
   { name: 'Enter', type: 'popup open', description: 'Select the highlighted option.' },
+  { name: 'Space', type: 'popup open', description: 'Does nothing on the trigger (the native click that would toggle the popup closed is suppressed); options and text entries keep their native behavior.' },
   { name: 'Tab / Shift+Tab', type: 'popup open', description: 'Skip the options list to the next focusable element; closes when focus leaves the widget (selectOnTab selects the highlighted option first).' },
   { name: 'Escape', type: 'popup open', description: 'Close the popup and return focus to the trigger.' },
 ];

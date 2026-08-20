@@ -2154,3 +2154,49 @@ describe('headless combobox (backspace/delete)', () => {
     wired.wrapper.unmount();
   });
 });
+
+describe('headless combobox (space key)', () => {
+  it('does nothing on the trigger without a filter input — no toggle, no select', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, wireInput: false });
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.trigger.focus();
+    const space = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true });
+    wired.els.trigger.dispatchEvent(space);
+    await nextTick();
+
+    // Space must not reach the native button click, which would toggle the
+    // popup closed; it selects nothing either.
+    expect(space.defaultPrevented).toBe(true);
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+    expect(wired.scope.isOpen).toBe(true);
+
+    wired.wrapper.unmount();
+  });
+
+  it('lets Space type in text entries and activate options natively', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, modelValue: [] as User[] });
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.searchbox.focus();
+    wired.els.searchbox.value = 'Wade';
+    const space = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true });
+    wired.els.searchbox.dispatchEvent(space);
+    await nextTick();
+    expect(space.defaultPrevented).toBe(false);
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    // On an option, Space falls through to the native click → select.
+    wired.els.options[ 1 ]!.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true }));
+    wired.els.options[ 1 ]!.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
+    wired.els.options[ 1 ]!.click();
+    await nextTick();
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 1 ] ] ] ]);
+
+    wired.wrapper.unmount();
+  });
+});

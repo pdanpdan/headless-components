@@ -309,6 +309,7 @@ If the dropdown element is a popover (`popover="manual"`), the component drives 
 | `PageDown` / `PageUp`   | Move the highlight a full page (visible options), clamped at the ends. |
 | `Home` / `End`          | Jump to the first/last selectable option (native caret behavior in inputs). |
 | `Enter` (open)          | Select the highlighted option.            |
+| `Space` (open)          | Does nothing on the trigger (the native click that would toggle the popup closed is suppressed); options and text entries keep their native behavior. |
 | `Tab` / `Shift+Tab`     | Skip the options list to the next focusable element; closes when focus leaves the widget (`selectOnTab` selects the highlighted option first). |
 | `Escape`                | Close and return focus to the trigger.    |
 

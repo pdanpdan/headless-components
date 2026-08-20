@@ -176,6 +176,16 @@ export function useNavigation<O, V, Q>(
         }
         break;
       }
+      case ' ': {
+        // Space types in text entries and natively activates option buttons
+        // (click → select). On the trigger its native click would toggle the
+        // popup closed; suppress that — Space does nothing there.
+        if (e.target !== refs.triggerRef) {
+          break;
+        }
+        e.preventDefault();
+        break;
+      }
       case 'Backspace':
       case 'Delete': {
         // Without a filter input there is no text to delete, so Backspace/
