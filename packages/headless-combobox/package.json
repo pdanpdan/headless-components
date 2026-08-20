@@ -56,7 +56,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "vue-tsc -p tsconfig.app.json --noEmit && vue-tsc -p tsconfig.vitest.json --noEmit",
-    "test:all": "pnpm lint && pnpm typecheck && pnpm test",
+    "test:all": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:coverage",
     "release:npm": "pnpm publish"
   },
   "peerDependencies": {
