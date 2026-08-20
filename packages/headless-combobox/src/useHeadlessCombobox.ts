@@ -1,6 +1,18 @@
+import type { AccessibilityDeps } from './useAccessibility';
+import type { FilteringHooks } from './useFiltering';
+import type { NavigationDeps } from './useNavigation';
+import type { SelectionHooks } from './useSelection';
 import type { ComputedRef, Ref } from 'vue';
 
-import { computed, nextTick, onMounted, onUnmounted, reactive, ref, toRaw, toValue, useId, watch } from 'vue';
+import { computed, reactive, ref, toRaw, toValue, useId, watch } from 'vue';
+
+import { useAccessibility } from './useAccessibility';
+import { useFiltering } from './useFiltering';
+import { useNavigation } from './useNavigation';
+import { usePopover } from './usePopover';
+import { usePositioning } from './usePositioning';
+import { useSelection } from './useSelection';
+import { useValidation } from './useValidation';
 
 export type HeadlessComboboxErrorCode = 'required' | 'minlength' | 'maxlength';
 
@@ -212,6 +224,16 @@ export type HeadlessComboboxPropsSource<O, V = O, Q = string>
     | (() => HeadlessComboboxProps<O, V, Q>)
     | { [K in keyof HeadlessComboboxProps<O, V, Q>]: HeadlessComboboxProps<O, V, Q>[ K ] | Ref<HeadlessComboboxProps<O, V, Q>[ K ]> };
 
+/** Mutable DOM refs shared by the feature composables; setters are exposed to consumers. */
+export interface HeadlessComboboxDomRefs<O> {
+  containerRef: HTMLElement | null;
+  triggerRef: HTMLElement | null;
+  dropdownRef: HTMLElement | null;
+  inputRef: HTMLInputElement | null;
+  listRef: HTMLElement | null;
+  optionRefs: Map<O, HTMLElement>;
+}
+
 /**
  * Headless combobox state machine, usable outside the component.
  *
@@ -244,720 +266,135 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
   const instanceId = props.id || useId();
 
   // --- Refs for DOM/Focus Management ---
-  let containerRef: HTMLElement | null = null;
-  let triggerRef: HTMLElement | null = null;
-  let dropdownRef: HTMLElement | null = null;
-  let inputRef: HTMLInputElement | null = null;
-  let listRef: HTMLElement | null = null;
-  const optionRefs = new Map<O, HTMLElement>();
+  const refs: HeadlessComboboxDomRefs<O> = {
+    containerRef: null,
+    triggerRef: null,
+    dropdownRef: null,
+    inputRef: null,
+    listRef: null,
+    optionRefs: new Map(),
+  };
+
+  // The container/dropdown keydown listeners are attached on ref set; the
+  // handler comes from useNavigation, so it is late-bound.
+  /* v8 ignore next 1 -- placeholder replaced by the late binding */
+  let keydownHandler: (event: KeyboardEvent) => void = () => {};
 
   function setContainerRef(el: unknown) {
-    if (containerRef != null) {
-      containerRef.removeEventListener('keydown', handleKeydown);
+    if (refs.containerRef != null) {
+      refs.containerRef.removeEventListener('keydown', keydownHandler);
     }
-    containerRef = el as HTMLElement;
+    refs.containerRef = el as HTMLElement;
     // Catch keys from elements around the trigger so Tab always skips the
     // options list instead of entering it.
-    if (containerRef != null) {
-      containerRef.addEventListener('keydown', handleKeydown);
+    if (refs.containerRef != null) {
+      refs.containerRef.addEventListener('keydown', keydownHandler);
     }
   }
   function setTriggerRef(el: unknown) {
-    triggerRef = el as HTMLElement;
+    refs.triggerRef = el as HTMLElement;
   }
   function setDropdownRef(el: unknown) {
-    if (dropdownRef != null) {
-      dropdownRef.removeEventListener('keydown', handleKeydown);
+    if (refs.dropdownRef != null) {
+      refs.dropdownRef.removeEventListener('keydown', keydownHandler);
     }
-    dropdownRef = el as HTMLElement;
+    refs.dropdownRef = el as HTMLElement;
     // The popup is usually a sibling of the container, so also catch keys
     // from elements inside it (clear buttons, custom controls).
-    if (dropdownRef != null) {
-      dropdownRef.addEventListener('keydown', handleKeydown);
+    if (refs.dropdownRef != null) {
+      refs.dropdownRef.addEventListener('keydown', keydownHandler);
     }
   }
   function setInputRef(el: unknown) {
-    inputRef = el as HTMLInputElement;
+    refs.inputRef = el as HTMLInputElement;
   }
   function setListRef(el: unknown) {
-    listRef = el as HTMLElement;
+    refs.listRef = el as HTMLElement;
   }
   function setOptionRef(option: O, el: unknown) {
     const key = toRaw(option);
     if (el) {
-      optionRefs.set(key, el as HTMLElement);
-    } else { optionRefs.delete(key); }
+      refs.optionRefs.set(key, el as HTMLElement);
+    } else { refs.optionRefs.delete(key); }
   }
 
-  /** The value stored / emitted for an option; defaults to the option itself. */
-  function valueOf(option: O): V {
-    return props.optionValue ? props.optionValue(option) : option as unknown as V;
-  }
+  // --- Feature composables (internal split for maintainability) ---
+  // The hook objects below start as placeholder no-ops and are replaced by the
+  // late binding after all composables exist (they form a dependency cycle).
+  /* v8 ignore start */
+  const selectionHooks: SelectionHooks = { close: () => {}, maybeRefocusInput: () => {} };
+  const selection = useSelection(props, emit, isOpen, selectionHooks);
 
-  /** The option whose value equals `value` (used to resolve the model back to an option). */
-  function findOptionByValue(value: V): O | undefined {
-    return props.options.find((option) => toRaw(valueOf(option)) === toRaw(value));
-  }
+  const filteringHooks: FilteringHooks = { open: async () => {} };
+  const filtering = useFiltering(props, searchQuery as unknown as Ref<Q | undefined>, filteringHooks);
 
-  // --- Selection (normalized to an array; equality by value) ---
-  const selectedList = computed<V[]>(() => {
-    if (props.multiple) {
-      return Array.isArray(props.modelValue) ? props.modelValue : [];
-    }
-    return props.modelValue == null ? [] : [ props.modelValue as V ];
+  const validation = useValidation(props, selection.selectedCount);
+
+  const a11yDeps: AccessibilityDeps<O> = {
+    select: () => {},
+    setHighlightedIndex: () => {},
+    toggle: () => {},
+    handleKeydown: () => {},
+    open: async () => {},
+    setQueryFromEvent: () => {},
+    openAndSetQueryFromEvent: () => {},
+    isSelected: () => false,
+    isOptionDisabled: () => false,
+  };
+  /* v8 ignore stop */
+  const a11y = useAccessibility(props, instanceId, isOpen, highlightedIndex, a11yDeps);
+
+  const positioning = usePositioning(props, a11y.cssAnchorName, alignmentOffset, refs, {
+    selectedList: selection.selectedList,
+    filteredOptions: filtering.filteredOptions,
+    highlightedIndex,
+    findOptionByValue: selection.findOptionByValue,
   });
 
-  const selectedCount = computed(() => selectedList.value.length);
+  /* v8 ignore start */
+  const navigationDeps: NavigationDeps<O> = {
+    filteredOptions: filtering.filteredOptions,
+    isOptionDisabled: selection.isOptionDisabled,
+    isLocked: selection.isLocked,
+    open: async () => {},
+    select: selection.select,
+    close: () => {},
+    isInsideWidget: () => false,
+    scrollToHighlight: positioning.scrollToHighlight,
+  };
+  /* v8 ignore stop */
+  const navigation = useNavigation(props, isOpen, highlightedIndex, refs, navigationDeps);
 
-  const canSelectMore = computed(() => {
-    if (!props.multiple) {
-      return true;
-    }
-    return props.maxLength == null || selectedCount.value < props.maxLength;
+  const popover = usePopover(props, isOpen, searchQuery as unknown as Ref<Q | undefined>, highlightedIndex, refs, {
+    isLocked: selection.isLocked,
+    selectedList: selection.selectedList,
+    filteredOptions: filtering.filteredOptions,
+    valueOf: selection.valueOf,
+    firstActionableIndex: navigation.firstActionableIndex,
+    calculateAlignment: positioning.calculateAlignment,
+    scrollToHighlight: positioning.scrollToHighlight,
   });
 
-  function isSelected(option: O): boolean {
-    const value = toRaw(valueOf(option));
-    return selectedList.value.some((v) => toRaw(v) === value);
-  }
-
-  // Options that cannot be selected: only when at `maxLength` (multiple).
-  function isOptionDisabled(option: O): boolean {
-    return !isSelected(option) && !canSelectMore.value;
-  }
-
-  // Disabled and read-only both block opening and changing the selection.
-  const isLocked = computed(() => props.disabled === true || props.readonly === true);
-
-  // --- Strict Generic Filtering ---
-  function getOptionLabel(option: O): string {
-    return props.optionLabel ? props.optionLabel(option) : String(option);
-  }
-
-  function defaultFilter(option: O, q: string): boolean {
-    return getOptionLabel(option).toLowerCase().includes(q.toLowerCase());
-  }
-
-  function applyFilter(option: O, query: Q): boolean {
-    if (props.optionFilter) {
-      return props.optionFilter(option, query);
-    }
-    return defaultFilter(option, String(query));
-  }
-
-  const filteredOptions = computed<O[]>(() => {
-    const q = searchQuery.value;
-    if (q == null || (typeof q === 'string' && q === '')) {
-      return props.options;
-    }
-    return props.options.filter((o) => applyFilter(o, q));
-  });
+  // --- Late-bound cross-links between the feature composables ---
+  selectionHooks.close = popover.close;
+  selectionHooks.maybeRefocusInput = popover.maybeRefocusInput;
+  filteringHooks.open = popover.open;
+  navigationDeps.open = popover.open;
+  navigationDeps.close = popover.close;
+  navigationDeps.isInsideWidget = popover.isInsideWidget;
+  a11yDeps.select = selection.select;
+  a11yDeps.setHighlightedIndex = navigation.setHighlightedIndex;
+  a11yDeps.toggle = popover.toggle;
+  a11yDeps.handleKeydown = navigation.handleKeydown;
+  a11yDeps.open = popover.open;
+  a11yDeps.setQueryFromEvent = filtering.setQueryFromEvent;
+  a11yDeps.openAndSetQueryFromEvent = filtering.openAndSetQueryFromEvent;
+  a11yDeps.isSelected = selection.isSelected;
+  a11yDeps.isOptionDisabled = selection.isOptionDisabled;
+  keydownHandler = navigation.handleKeydown;
 
   watch(searchQuery, () => {
-    highlightedIndex.value = firstActionableIndex();
-  });
-
-  // --- Validation ---
-  const errors = computed<HeadlessComboboxErrorCode[]>(() => {
-    const list: HeadlessComboboxErrorCode[] = [];
-    const count = selectedCount.value;
-
-    if (props.required && count === 0) {
-      list.push('required');
-    }
-    if (props.multiple) {
-      if (props.minLength != null && count < props.minLength) {
-        list.push('minlength');
-      }
-      if (props.maxLength != null && count > props.maxLength) {
-        list.push('maxlength');
-      }
-    }
-    return list;
-  });
-
-  const valid = computed(() => errors.value.length === 0);
-
-  const validationMessage = computed(() => {
-    const code = errors.value[ 0 ];
-    if (!code) {
-      return '';
-    }
-    const custom = props.errorMessages?.[ code ];
-    if (custom != null) {
-      return custom;
-    }
-    switch (code) {
-      case 'required':
-        return 'Selection is required.';
-      case 'minlength':
-        return `Select at least ${ props.minLength } option${ props.minLength === 1 ? '' : 's' }.`;
-      case 'maxlength':
-        return `Select at most ${ props.maxLength } option${ props.maxLength === 1 ? '' : 's' }.`;
-    }
-    // Unreachable: the switch above is exhaustive over HeadlessComboboxErrorCode.
-    /* v8 ignore next 1 */
-    return '';
-  });
-
-  // --- A11y & IDs ---
-  // Ensure the colon from Vue's default useId (e.g., v-0) is stripped if used in CSS custom properties
-  const safeInstanceId = instanceId.replace(/:/g, '-');
-
-  const listboxId = `${ safeInstanceId }-listbox`;
-  const triggerId = `${ safeInstanceId }-trigger`;
-  const inputId = `${ safeInstanceId }-input`;
-  const getOptionId = (index: number) => `${ safeInstanceId }-opt-${ index }`;
-  const cssAnchorName = `--anchor-${ safeInstanceId }`;
-
-  const activeDescendant = computed(() => {
-    if (!isOpen.value || highlightedIndex.value === -1) {
-      return undefined;
-    }
-    return getOptionId(highlightedIndex.value);
-  });
-
-  // A11y Prop Bindings to spread onto elements
-  const triggerProps = computed<HeadlessComboboxTriggerProps>(() => ({
-    id: triggerId,
-    role: 'combobox',
-    'aria-controls': listboxId,
-    'aria-expanded': isOpen.value,
-    'aria-haspopup': 'listbox',
-    'aria-activedescendant': activeDescendant.value,
-    disabled: props.disabled ? true : undefined,
-    'aria-disabled': props.disabled ? true : undefined,
-    'aria-readonly': props.readonly ? true : undefined,
-    onClick: toggle,
-    onKeydown: handleKeydown,
-  }));
-
-  // Default popup positioning — spread (or merge) onto the dropdown element's style.
-  // No `position` is set: a popover gets `position: fixed` from the UA stylesheet,
-  // and a regular element keeps the position you give it.
-  const popupStyle = computed<HeadlessComboboxPopupStyle>(() => {
-    const style: HeadlessComboboxPopupStyle = {
-      positionAnchor: cssAnchorName,
-      left: 'anchor(left)',
-      width: 'anchor-size(width)',
-      top: props.alignSelected ? 'anchor(top)' : 'anchor(bottom)',
-    };
-    if (props.alignSelected) {
-      style.translate = `0 -${ alignmentOffset.value }px`;
-    }
-    return style;
-  });
-
-  function setQueryFromEvent(event: Event) {
-    setSearchQuery((event.target as HTMLInputElement).value as Q);
-  }
-
-  // Typing in the typeahead input reopens the popup (open() resets the query
-  // first, so the order matters) and filters the options.
-  function openAndSetQueryFromEvent(event: Event) {
-    open();
-    setSearchQuery((event.target as HTMLInputElement).value as Q);
-  }
-
-  const inputProps = computed<HeadlessComboboxInputProps>(() => ({
-    id: inputId,
-    role: 'searchbox',
-    'aria-autocomplete': 'list',
-    'aria-controls': listboxId,
-    'aria-activedescendant': activeDescendant.value,
-    onInput: setQueryFromEvent,
-    onKeydown: handleKeydown,
-  }));
-
-  // For the canonical editable (typeahead) pattern where the text input *is* the combobox.
-  const comboboxInputProps = computed<HeadlessComboboxComboboxInputProps>(() => ({
-    id: inputId,
-    role: 'combobox',
-    'aria-autocomplete': 'list',
-    'aria-controls': listboxId,
-    'aria-expanded': isOpen.value,
-    'aria-haspopup': 'listbox',
-    'aria-activedescendant': activeDescendant.value,
-    'aria-disabled': props.disabled ? true : undefined,
-    'aria-readonly': props.readonly ? true : undefined,
-    disabled: props.disabled ? true : undefined,
-    readonly: props.readonly ? true : undefined,
-    onClick: open,
-    onFocus: open,
-    onInput: openAndSetQueryFromEvent,
-  }));
-
-  const listboxProps = computed<HeadlessComboboxListboxProps>(() => ({
-    id: listboxId,
-    role: 'listbox',
-    'aria-multiselectable': props.multiple ? true : undefined,
-  }));
-
-  function getOptionProps(option: O, index: number): HeadlessComboboxOptionProps {
-    const actionable = () => !isOptionDisabled(option);
-    return {
-      id: getOptionId(index),
-      role: 'option',
-      'aria-selected': isSelected(option),
-      'aria-disabled': isOptionDisabled(option) ? true : undefined,
-      'data-highlighted': index === highlightedIndex.value ? true : undefined,
-      onClick: () => select(option),
-      // Keep the filter input focused when the option is clicked.
-      onMousedown: (event: MouseEvent) => event.preventDefault(),
-      // Hover and focus drive the highlight; blocked options never get it.
-      onMousemove: () => {
-        if (actionable()) {
-          setHighlightedIndex(index);
-        }
-      },
-      onFocus: () => {
-        if (actionable()) {
-          setHighlightedIndex(index);
-        }
-      },
-      // Keep the popup's keyboard navigation (and Tab skipping) working from
-      // inside the options list.
-      onKeydown: handleKeydown,
-    };
-  }
-
-  // --- Actions & Focus Management ---
-
-  // If the consumer marked the dropdown as a popover, drive it with the Popover API
-  // (top-layer rendering) instead of relying on v-if.
-  function popoverEl(): HTMLElement | null {
-    return dropdownRef != null && dropdownRef.hasAttribute('popover') && typeof dropdownRef.showPopover === 'function'
-      ? dropdownRef
-      : null;
-  }
-
-  function showPopoverIfAny() {
-    const el = popoverEl();
-    if (el != null && !el.matches(':popover-open')) {
-      el.showPopover();
-    }
-  }
-
-  function hidePopoverIfAny() {
-    const el = popoverEl();
-    if (el != null && el.matches(':popover-open')) {
-      el.hidePopover();
-    }
-  }
-
-  async function open() {
-    if (isOpen.value || isLocked.value) {
-      return;
-    }
-    isOpen.value = true;
-    searchQuery.value = undefined;
-
-    const firstSelected = selectedList.value[ 0 ];
-    const selectedIndex = firstSelected == null ? -1 : filteredOptions.value.findIndex((o) => toRaw(valueOf(o)) === toRaw(firstSelected));
-    // A selected option is always actionable; otherwise start on the first one that can be selected.
-    highlightedIndex.value = selectedIndex >= 0 ? selectedIndex : firstActionableIndex();
-
-    await nextTick();
-    showPopoverIfAny();
-    calculateAlignment();
-    if (!props.alignSelected) {
-      // Bring the first selected option (or the top) into view.
-      scrollToHighlight();
-    }
-    inputRef?.focus({ preventScroll: true });
-  }
-
-  function close(returnFocus = true) {
-    if (!isOpen.value) {
-      return;
-    }
-    hidePopoverIfAny();
-    isOpen.value = false;
-    highlightedIndex.value = -1;
-    searchQuery.value = undefined;
-    if (returnFocus) {
-      triggerRef?.focus();
-    }
-  }
-
-  function toggle() {
-    if (isLocked.value) {
-      return;
-    }
-    if (isOpen.value) {
-      close();
-    } else {
-      open();
-    }
-  }
-
-  // Return focus to the filter input (used when the popup stays open after an interaction).
-  function focusInput() {
-    inputRef?.focus({ preventScroll: true });
-  }
-
-  // Elements the user types into — we must never steal focus from these.
-  function isTextEntryElement(el: Element | null): boolean {
-    if (el instanceof HTMLTextAreaElement) {
-      return true;
-    }
-    if (el instanceof HTMLElement && el.isContentEditable) {
-      return true;
-    }
-    if (el instanceof HTMLInputElement) {
-      return ![ 'button', 'submit', 'reset', 'checkbox', 'radio', 'range', 'color', 'file' ].includes(el.type);
-    }
-    return false;
-  }
-
-  // Refocus the filter only when it is safe to do so — i.e. don't yank focus away
-  // from another text field (e.g. an "add option" input) or a control the user
-  // intentionally moved to outside the combobox.
-  // The widget boundary = any of the wired parts (control container, trigger, dropdown).
-  // `setContainerRef` is optional; wire it only to extend the boundary (e.g. external chips).
-  function isInsideWidget(target: Node | null): boolean {
-    // Unreachable in normal use: callers always pass a DOM node (an event target
-    // or document.activeElement, which is never null per the DOM spec).
-    /* v8 ignore next 2 */
-    if (target == null) {
-      return false;
-    }
-    return [ containerRef, triggerRef, dropdownRef ].some((r) => r != null && r.contains(target));
-  }
-
-  function maybeRefocusInput() {
-    const input = inputRef;
-    if (input == null) {
-      return;
-    }
-    const active = document.activeElement;
-    if (active == null || active === input || active === document.body || active === document.documentElement) {
-      input.focus({ preventScroll: true });
-      return;
-    }
-    if (isTextEntryElement(active)) {
-      return;
-    }
-    if (!isInsideWidget(active)) {
-      return;
-    }
-    input.focus({ preventScroll: true });
-  }
-
-  function setSearchQuery(val: Q | undefined) {
-    searchQuery.value = val;
-  }
-
-  function setHighlightedIndex(index: number) {
-    if (index >= 0 && index < filteredOptions.value.length) {
-      highlightedIndex.value = index;
-    }
-  }
-
-  function select(option: O) {
-    if (isLocked.value) {
-      return;
-    }
-
-    const value = valueOf(option);
-    if (props.multiple) {
-      const current = selectedList.value;
-      const raw = toRaw(value);
-      const has = current.some((v) => toRaw(v) === raw);
-      if (has) {
-        emit(current.filter((v) => toRaw(v) !== raw));
-      } else if (canSelectMore.value) {
-        emit([ ...current, value ]);
-      }
-      // else: blocked at `max` — no change, but still fall through to keep the filter focused.
-    } else {
-      emit(value);
-    }
-
-    const shouldClose = props.closeOnSelect ?? !props.multiple;
-    if (shouldClose) {
-      close(true);
-    } else if (isOpen.value) {
-      // Popup stays open (e.g. multiple): keep the filter focused for continued typing,
-      // unless the user is focused on another text field / control.
-      nextTick(maybeRefocusInput);
-    }
-  }
-
-  function clear() {
-    if (isLocked.value) {
-      return;
-    }
-    emit(props.multiple ? [] : null);
-    if (isOpen.value) {
-      nextTick(maybeRefocusInput);
-    }
-  }
-
-  // --- Alignment Logic ---
-  function scrollElementIntoContainer(el: HTMLElement, container: HTMLElement | null) {
-    if (!container) {
-      return;
-    }
-    const containerRect = container.getBoundingClientRect();
-    const elRect = el.getBoundingClientRect();
-    // Compensate for any CSS scale applied by the open animation: getBoundingClientRect
-    // is scaled, but scrollTop is in unscaled content units.
-    const scale = container.offsetWidth > 0 ? containerRect.width / container.offsetWidth : 1;
-    const s = scale || 1;
-
-    if (elRect.top < containerRect.top) {
-      container.scrollTop -= (containerRect.top - elRect.top) / s;
-    } else if (elRect.bottom > containerRect.bottom) {
-      container.scrollTop += (elRect.bottom - containerRect.bottom) / s;
-    }
-  }
-
-  function calculateAlignment() {
-    const firstSelected = selectedList.value[ 0 ];
-    if (!dropdownRef || !props.alignSelected || firstSelected == null) {
-      alignmentOffset.value = 0;
-      return;
-    }
-
-    const dropdownEl = dropdownRef;
-    const selectedOption = findOptionByValue(firstSelected);
-    const selectedEl = selectedOption == null ? undefined : optionRefs.get(toRaw(selectedOption));
-    if (selectedEl && listRef) {
-      scrollElementIntoContainer(selectedEl, listRef);
-
-      const dropdownRect = dropdownEl.getBoundingClientRect();
-      const selectedRect = selectedEl.getBoundingClientRect();
-      // The popup settles at scale 1, so divide out the current scale to get the
-      // final (unscaled) offset. Both rects share the popup's scale, so the vector
-      // difference scales by the same factor regardless of transform-origin.
-      const scale = dropdownEl.offsetWidth > 0 ? dropdownRect.width / dropdownEl.offsetWidth : 1;
-      alignmentOffset.value = (selectedRect.top - dropdownRect.top) / (scale || 1);
-    } else {
-      alignmentOffset.value = 0;
-    }
-  }
-
-  async function scrollToHighlight() {
-    await nextTick();
-    const option = filteredOptions.value[ highlightedIndex.value ];
-    if (!option) {
-      return;
-    }
-    const el = optionRefs.get(toRaw(option));
-    if (el) {
-      scrollElementIntoContainer(el, listRef);
-    }
-  }
-
-  // --- Keyboard Navigation ---
-  function firstActionableIndex(): number {
-    return filteredOptions.value.findIndex((o) => !isOptionDisabled(o));
-  }
-
-  // Move the highlight by `direction` (1 or -1, scaled by `steps`), skipping
-  // options that cannot be selected (at `maxLength`). Wraps around unless
-  // `wrap` is false, in which case the move clamps at the ends; clears the
-  // highlight when nothing is actionable.
-  function stepHighlight(direction: 1 | -1, steps = 1, wrap = true) {
-    const len = filteredOptions.value.length;
-    if (len === 0) {
-      highlightedIndex.value = -1;
-      return;
-    }
-    let next = highlightedIndex.value + direction * steps;
-    if (!wrap) {
-      next = Math.max(0, Math.min(len - 1, next));
-    }
-    for (let i = 0; i < len; i++) {
-      if (next < 0) {
-        if (!wrap) {
-          return;
-        }
-        next = len - 1;
-      } else if (next >= len) {
-        if (!wrap) {
-          return;
-        }
-        next = 0;
-      }
-      const option = filteredOptions.value[ next ];
-      if (option != null && !isOptionDisabled(option)) {
-        highlightedIndex.value = next;
-        return;
-      }
-      next += direction;
-    }
-    highlightedIndex.value = -1;
-  }
-
-  function handleKeydown(e: KeyboardEvent) {
-    // The same event bubbles from the trigger/input/option handlers to the
-    // container/dropdown listeners; only the first (target) handler processes it.
-    if (e.defaultPrevented) {
-      return;
-    }
-    if (isLocked.value) {
-      return;
-    }
-    if (!isOpen.value) {
-      if ([ 'Enter', ' ', 'ArrowDown', 'ArrowUp' ].includes(e.key)) {
-        e.preventDefault();
-        open();
-      }
-      return;
-    }
-
-    switch (e.key) {
-      case 'ArrowDown': {
-        e.preventDefault();
-        stepHighlight(1);
-        scrollToHighlight();
-        break;
-      }
-      case 'ArrowUp': {
-        e.preventDefault();
-        stepHighlight(-1);
-        scrollToHighlight();
-        break;
-      }
-      case 'Enter': {
-        e.preventDefault();
-        const highlightedOption = filteredOptions.value[ highlightedIndex.value ];
-        if (highlightedIndex.value >= 0 && highlightedOption != null) {
-          select(highlightedOption);
-        }
-        break;
-      }
-      case 'PageDown':
-      case 'PageUp': {
-        e.preventDefault();
-        stepHighlight(e.key === 'PageDown' ? 1 : -1, pageSize(), false);
-        scrollToHighlight();
-        break;
-      }
-      case 'Home':
-      case 'End': {
-        // In inputs these keep their native caret behavior.
-        /* v8 ignore next 1 -- the textarea branch never occurs in the tests */
-        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-          break;
-        }
-        e.preventDefault();
-        highlightedIndex.value = e.key === 'Home' ? firstActionableIndex() : lastActionableIndex();
-        scrollToHighlight();
-        break;
-      }
-      case 'Tab': {
-        // Skip the options list: focus the next focusable element outside it.
-        e.preventDefault();
-        const highlightedOption = filteredOptions.value[ highlightedIndex.value ];
-        const willSelect = props.selectOnTab && highlightedIndex.value >= 0 && highlightedOption != null;
-        if (willSelect) {
-          select(highlightedOption);
-          if (isOpen.value) {
-            close(false);
-          }
-          // The selection's close may return focus to the trigger; move on to
-          // the next focusable element as a normal Tab would.
-          focusNextOutside(e.shiftKey);
-          break;
-        }
-        focusNextOutside(e.shiftKey);
-        // Focus leaving the widget closes the popup, like a click outside.
-        if (!isInsideWidget(document.activeElement)) {
-          close(false);
-        }
-        break;
-      }
-      case 'Escape':
-        e.preventDefault();
-        close(true);
-        break;
-    }
-  }
-
-  function lastActionableIndex(): number {
-    const options = filteredOptions.value;
-    for (let i = options.length - 1; i >= 0; i--) {
-      // The null guard mirrors the filtering contract; filtered options are never null.
-      /* v8 ignore next 3 */
-      if (options[ i ] != null && !isOptionDisabled(options[ i ]!)) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  /** Jump per page: the number of fully visible options. */
-  function pageSize(): number {
-    const list = listRef;
-    const firstOption = optionRefs.values().next().value;
-    if (list != null && firstOption != null && list.clientHeight > 0 && firstOption.offsetHeight > 0) {
-      return Math.max(1, Math.floor(list.clientHeight / firstOption.offsetHeight));
-    }
-    return 10;
-  }
-
-  function getFocusableElements(): HTMLElement[] {
-    return [ ...document.querySelectorAll<HTMLElement>(
-      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-    ) ].filter((el) => el.getClientRects().length > 0);
-  }
-
-  // The next (or previous) focusable element in the document that is not inside
-  // the options list, wrapping around when the end is reached.
-  function focusNextOutside(backward: boolean) {
-    const focusables = getFocusableElements();
-    if (focusables.length === 0) {
-      return;
-    }
-    const active = document.activeElement as HTMLElement | null;
-    // document.activeElement is never null per the DOM spec.
-    /* v8 ignore next 3 */
-    const index = active == null ? -1 : focusables.indexOf(active);
-    /* v8 ignore next 1 -- backward and forward are both exercised via tests */
-    const step = backward ? -1 : 1;
-    for (let i = 1; i <= focusables.length; i++) {
-      const el = focusables[ (index + i * step + focusables.length) % focusables.length ]!;
-      // The list ref is always set while the popup is open.
-      /* v8 ignore next 2 */
-      if (listRef == null || !listRef.contains(el)) {
-        el.focus();
-        return;
-      }
-    }
-  }
-
-  // --- Click Outside ---
-  function handleClickOutside(e: MouseEvent) {
-    if (!isOpen.value || props.closeOnClickOutside === false) {
-      return;
-    }
-    if (props.clickOutsideFilter?.(e.target) === false) {
-      return;
-    }
-    if (!isInsideWidget(e.target as Node)) {
-      close(false);
-    }
-  }
-
-  // ESC closes the popup no matter which control inside the widget has focus
-  // (clear button, option buttons, …) — WAI-ARIA combobox pattern.
-  function handleDocumentKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && isOpen.value) {
-      e.preventDefault();
-      close(true);
-    }
-  }
-
-  onMounted(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleDocumentKeydown);
-  });
-  onUnmounted(() => {
-    document.removeEventListener('mousedown', handleClickOutside);
-    document.removeEventListener('keydown', handleDocumentKeydown);
+    highlightedIndex.value = navigation.firstActionableIndex();
   });
 
   const multiple = computed(() => props.multiple === true);
@@ -971,32 +408,32 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
     readonly,
     // `ref` types the value as `UnwrapRef<Q>`; the public contract is `Q`.
     searchQuery: searchQuery as unknown as Ref<Q | undefined>,
-    filteredOptions,
+    filteredOptions: filtering.filteredOptions,
     highlightedIndex,
     alignmentOffset,
-    cssAnchorName,
-    popupStyle,
-    selectedCount,
-    selectedList,
-    canSelectMore,
-    isSelected,
-    valid,
-    errors,
-    validationMessage,
-    triggerProps,
-    inputProps,
-    comboboxInputProps,
-    listboxProps,
-    getOptionProps,
-    setSearchQuery,
-    setHighlightedIndex,
-    toggle,
-    open,
-    close,
-    select,
-    clear,
-    focusInput,
-    handleKeydown,
+    cssAnchorName: a11y.cssAnchorName,
+    popupStyle: positioning.popupStyle,
+    selectedCount: selection.selectedCount,
+    selectedList: selection.selectedList,
+    canSelectMore: selection.canSelectMore,
+    isSelected: selection.isSelected,
+    valid: validation.valid,
+    errors: validation.errors,
+    validationMessage: validation.validationMessage,
+    triggerProps: a11y.triggerProps,
+    inputProps: a11y.inputProps,
+    comboboxInputProps: a11y.comboboxInputProps,
+    listboxProps: a11y.listboxProps,
+    getOptionProps: a11y.getOptionProps,
+    setSearchQuery: filtering.setSearchQuery,
+    setHighlightedIndex: navigation.setHighlightedIndex,
+    toggle: popover.toggle,
+    open: popover.open,
+    close: popover.close,
+    select: selection.select,
+    clear: selection.clear,
+    focusInput: popover.focusInput,
+    handleKeydown: navigation.handleKeydown,
     setContainerRef,
     setTriggerRef,
     setDropdownRef,
