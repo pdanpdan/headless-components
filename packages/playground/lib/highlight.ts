@@ -13,7 +13,7 @@ export async function highlight(code: string, lang: string) {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
       themes: [ 'github-dark' ],
-      langs: [ 'vue', 'bash', 'ts', 'js' ],
+      langs: [ 'vue', 'bash', 'ts', 'js', 'css' ],
     });
   }
 

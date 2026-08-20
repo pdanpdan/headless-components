@@ -1,28 +1,37 @@
 <script setup lang="ts">
 import { mdiGithub } from '@mdi/js';
-import NiceSelect from '@pdanpdan/headless-combobox/examples/NiceSelect.vue';
+import ComposableProgrammatic, { description as composableProgrammaticDescription, title as composableProgrammaticTitle } from '@pdanpdan/headless-combobox/examples/ComposableProgrammatic.vue';
+import composableProgrammaticSource from '@pdanpdan/headless-combobox/examples/ComposableProgrammatic.vue?highlight';
+import ComposableSingle, { description as composableSingleDescription, title as composableSingleTitle } from '@pdanpdan/headless-combobox/examples/ComposableSingle.vue';
+import composableSingleSource from '@pdanpdan/headless-combobox/examples/ComposableSingle.vue?highlight';
+import NiceSelect, { description as niceSelectDescription, title as niceSelectTitle } from '@pdanpdan/headless-combobox/examples/NiceSelect.vue';
 import niceSource from '@pdanpdan/headless-combobox/examples/NiceSelect.vue?highlight';
-import ObjectMultipleValidated from '@pdanpdan/headless-combobox/examples/ObjectMultipleValidated.vue';
+import ObjectMultipleValidated, { description as objectMultipleValidatedDescription, title as objectMultipleValidatedTitle } from '@pdanpdan/headless-combobox/examples/ObjectMultipleValidated.vue';
 import objectMultipleSource from '@pdanpdan/headless-combobox/examples/ObjectMultipleValidated.vue?highlight';
-import ObjectSingle from '@pdanpdan/headless-combobox/examples/ObjectSingle.vue';
+import ObjectSingle, { description as objectSingleDescription, title as objectSingleTitle } from '@pdanpdan/headless-combobox/examples/ObjectSingle.vue';
 import objectSingleSource from '@pdanpdan/headless-combobox/examples/ObjectSingle.vue?highlight';
-import TextMultiple from '@pdanpdan/headless-combobox/examples/TextMultiple.vue';
+import TextMultiple, { description as textMultipleDescription, title as textMultipleTitle } from '@pdanpdan/headless-combobox/examples/TextMultiple.vue';
 import textMultipleSource from '@pdanpdan/headless-combobox/examples/TextMultiple.vue?highlight';
-import TextMultipleChips from '@pdanpdan/headless-combobox/examples/TextMultipleChips.vue';
+import TextMultipleChips, { description as textMultipleChipsDescription, title as textMultipleChipsTitle } from '@pdanpdan/headless-combobox/examples/TextMultipleChips.vue';
 import textMultipleChipsSource from '@pdanpdan/headless-combobox/examples/TextMultipleChips.vue?highlight';
-import TextMultipleCustom from '@pdanpdan/headless-combobox/examples/TextMultipleCustom.vue';
+import TextMultipleCustom, { description as textMultipleCustomDescription, title as textMultipleCustomTitle } from '@pdanpdan/headless-combobox/examples/TextMultipleCustom.vue';
 import textMultipleCustomSource from '@pdanpdan/headless-combobox/examples/TextMultipleCustom.vue?highlight';
-import TextSingle from '@pdanpdan/headless-combobox/examples/TextSingle.vue';
+import TextSingle, { description as textSingleDescription, title as textSingleTitle } from '@pdanpdan/headless-combobox/examples/TextSingle.vue';
 import textSingleSource from '@pdanpdan/headless-combobox/examples/TextSingle.vue?highlight';
-import TextTypeahead from '@pdanpdan/headless-combobox/examples/TextTypeahead.vue';
+import TextTypeahead, { description as textTypeaheadDescription, title as textTypeaheadTitle } from '@pdanpdan/headless-combobox/examples/TextTypeahead.vue';
 import textTypeaheadSource from '@pdanpdan/headless-combobox/examples/TextTypeahead.vue?highlight';
-import TextTypeaheadChips from '@pdanpdan/headless-combobox/examples/TextTypeaheadChips.vue';
+import TextTypeaheadChips, { description as textTypeaheadChipsDescription, title as textTypeaheadChipsTitle } from '@pdanpdan/headless-combobox/examples/TextTypeaheadChips.vue';
 import textTypeaheadChipsSource from '@pdanpdan/headless-combobox/examples/TextTypeaheadChips.vue?highlight';
 
-import CopyButton from '#/components/CopyButton.vue';
+import CodeBlock from '#/components/CodeBlock.vue';
 import ExampleShowcase from '#/components/ExampleShowcase.vue';
 import MdiIcon from '#/components/MdiIcon.vue';
 import PropTable from '#/components/PropTable.vue';
+
+import SnippetComposableSource from './SnippetComposable.vue?highlight';
+import SnippetInstallSource from './SnippetInstall.bash?highlight';
+
+import SnippetPopupCssSource from './SnippetPopupCss.css?highlight';
 
 const props = [
   { name: 'modelValue', type: 'T | T[] | null', default: '—', description: 'Selected option(s) (v-model). Array in multiple mode.' },
@@ -34,6 +43,8 @@ const props = [
   { name: 'disabled', type: 'boolean', default: 'false', description: 'Disable the control: not focusable, cannot open or change.' },
   { name: 'readonly', type: 'boolean', default: 'false', description: 'Read-only: focusable, shows the value, but cannot open or change.' },
   { name: 'closeOnSelect', type: 'boolean | null', default: '!multiple', description: 'Close the dropdown after selecting.' },
+  { name: 'closeOnClickOutside', type: 'boolean', default: 'true', description: 'Close when clicking outside the widget boundary.' },
+  { name: 'clickOutsideFilter', type: '(target: EventTarget | null) => boolean', default: '—', description: 'Return false to keep the dropdown open for a specific outside target.' },
   { name: 'displayValue', type: '(option: T) => string', default: 'String(option)', description: 'Maps an option to a string for filtering / rendering.' },
   { name: 'filterFn', type: '(option: T, query: Q) => boolean', default: 'substring', description: 'Custom filter function. Q defaults to string.' },
   { name: 'id', type: 'string', default: 'useId()', description: 'Base id for accessibility attributes.' },
@@ -118,7 +129,22 @@ const slots = [
   },
 ];
 
-const install = 'pnpm add @pdanpdan/headless-combobox';
+const interactionRows = [
+  { name: 'Enter / Space / ArrowDown / ArrowUp', type: 'popup closed', description: 'Open the dropdown.' },
+  { name: 'ArrowDown / ArrowUp', type: 'popup open', description: 'Move the highlight; wraps around and skips disabled options.' },
+  { name: 'Enter', type: 'popup open', description: 'Select the highlighted option.' },
+  { name: 'Escape', type: 'popup open', description: 'Close the popup and return focus to the trigger.' },
+];
+
+const structureRows = [
+  { name: 'wrapper element', type: 'setContainerRef', description: 'Widget boundary for click-outside and focus. Optional, recommended.' },
+  { name: 'trigger button', type: 'triggerProps, setTriggerRef', description: 'role="combobox" — toggles the popup, keyboard navigation.' },
+  { name: 'typeahead input', type: 'comboboxInputProps, setTriggerRef, setInputRef', description: 'The input is the combobox: typing reopens and filters.' },
+  { name: 'search input (in popup)', type: 'inputProps, setInputRef', description: 'role="searchbox" — filters while the popup stays open.' },
+  { name: 'popup element', type: 'popupStyle, setDropdownRef', description: 'Positioning; add popover="manual" to use the native Popover API.' },
+  { name: 'list element', type: 'listboxProps, setListRef', description: 'role="listbox" — the options container.' },
+  { name: 'each option element', type: 'getOptionProps(option, index), setOptionRef(option, el)', description: 'Option semantics + select/highlight handlers.' },
+];
 </script>
 
 <template>
@@ -137,100 +163,180 @@ const install = 'pnpm add @pdanpdan/headless-combobox';
         <MdiIcon :path="mdiGithub" class="size-5" />
         github.com/pdanpdan/headless-components/packages/headless-combobox
       </a>
-      <p class="max-w-2xl text-base-content/70">
-        An accessible, renderless combobox. It renders nothing on its own &mdash; the default scoped
-        slot exposes state, ARIA prop bags, and actions so you own 100% of the markup and styling.
-        Supports single or multiple selection (with min/max counts) and reactive validation.
-      </p>
+      <p class="max-w-2xl text-base-content/70">An accessible, renderless combobox. It renders nothing on its own &mdash; the default scoped slot exposes state, ARIA prop bags, and actions so you own 100% of the markup and styling. The same state machine is also available as the <code>useHeadlessCombobox</code> composable. Supports single or multiple selection (with min/max counts) and reactive validation.</p>
     </header>
 
     <section class="flex flex-col gap-2">
       <h2 class="text-xl font-semibold">Installation</h2>
-      <div class="mockup-code relative border border-base-content/10 bg-base-content/2 text-base-content w-full overflow-x-auto">
-        <CopyButton :text="install" class="btn-ghost absolute top-2 right-4 z-10" />
-        <pre data-prefix="$"><code>{{ install }}</code></pre>
+      <CodeBlock
+        :code="SnippetInstallSource.html"
+        :raw="SnippetInstallSource.raw"
+        lang="bash"
+      />
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <h2 class="text-xl font-semibold">Structure</h2>
+      <p class="max-w-2xl text-sm text-base-content/70">The component renders nothing on its own — you build the markup and bind the slot scope to it. The markup follows the ARIA combobox pattern: a <strong>trigger</strong> that opens a <strong>popup</strong> listing the <strong>options</strong>, optionally with a search input. This is where each slot prop is designed to be used:</p>
+
+      <p class="text-sm font-semibold">Trigger + popup — a button opens a list below it; most examples use this layout.</p>
+      <div class="overflow-x-auto rounded-box bg-[#0d1117] p-5 font-mono text-sm leading-6 text-[#e6edf3]">
+        <pre class="min-w-0"><code>HeadlessCombobox (default slot scope)
+└─ div :ref="setContainerRef"                       widget boundary (optional)
+   ├─ button :ref="setTriggerRef"                   the trigger
+   │  │        v-bind="triggerProps"
+   │  └─ selected label
+   ├─ ul :ref="setDropdownRef"                      the popup
+   │  │      v-bind="listboxProps" :style="popupStyle"
+   │  │      popover="manual"                       optional: native Popover API
+   │  └─ li v-for="(option, i) in filteredOptions"
+   │     └─ button :ref="setOptionRef(option, el)"  one option
+   │             v-bind="getOptionProps(option, i)"
+   └─ input :ref="setInputRef"                      search input (optional)
+           v-bind="inputProps"</code></pre>
       </div>
+      <p class="text-sm font-semibold">Typeahead — the text input itself is the combobox; typing reopens the popup and filters.</p>
+      <div class="overflow-x-auto rounded-box bg-[#0d1117] p-5 font-mono text-sm leading-6 text-[#e6edf3]">
+        <pre class="min-w-0"><code>HeadlessCombobox (default slot scope)
+└─ div :ref="setContainerRef"                       widget boundary (optional)
+   ├─ input :ref="setTriggerRef"                    the combobox input
+   │  │       v-bind="comboboxInputProps"
+   └─ ul :ref="setDropdownRef"                      the popup
+      │      v-bind="listboxProps" :style="popupStyle"
+      │      popover="manual"                       optional: native Popover API
+      └─ li v-for="(option, i) in filteredOptions"
+         └─ button :ref="setOptionRef(option, el)"  one option
+                 v-bind="getOptionProps(option, i)"</code></pre>
+      </div>
+
+      <div class="card border border-base-content/10 bg-base-content/2 overflow-x-auto">
+        <div class="card-body gap-3">
+          <h3 class="card-title text-base">Markup &rarr; slot props</h3>
+          <PropTable :rows="structureRows" />
+        </div>
+      </div>
+
+      <p class="max-w-2xl text-sm text-base-content/70">Ref setters are wired with <code>:ref</code> and are optional; <code>setOptionRef</code> enables <code>alignSelected</code> and scroll-into-view, and <code>setContainerRef</code> extends the click-outside boundary (e.g. to external chips).</p>
+
+      <p class="max-w-2xl text-sm text-base-content/70">The popup is positioned with CSS anchor positioning: the trigger needs <code>:style="{ anchorName: cssAnchorName }"</code>, and the popup gets <code>:style="popupStyle"</code> plus <code>popover="manual"</code> — the component then drives it with the native Popover API (top-layer rendering, no <code>v-if</code>). Animate the open state with CSS transitions on <code>:popover-open</code>, like the examples do.</p>
+
+      <p class="max-w-2xl text-sm text-base-content/70">A simple popup style: hidden unless open, with a slide + fade entry animation (the <code>@starting-style</code> block plays the entry; the <code>overlay</code>/<code>display</code> transitions make the top-layer appearance and the <code>display: none</code> switch animatable):</p>
+      <CodeBlock
+        :code="SnippetPopupCssSource.html"
+        :raw="SnippetPopupCssSource.raw"
+        lang="css"
+      />
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <h2 class="text-xl font-semibold">Keyboard</h2>
+      <PropTable :rows="interactionRows" />
+      <p class="max-w-2xl text-sm text-base-content/70">Mouse interactions: clicking the trigger toggles the dropdown, hovering or focusing an option highlights it (the same highlight the keyboard drives), clicking an option selects it, and clicking outside the widget closes the dropdown. <code>Escape</code> works from anywhere inside the widget.</p>
     </section>
 
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">Examples</h2>
-      <p class="max-w-2xl text-sm text-base-content/70">
-        Each popup uses the native <strong>Popover API</strong> (top-layer, via <code>popover="manual"</code>) with
-        the exposed <code>popupStyle</code> for anchor positioning. The keyboard-active and mouse-hovered option share the
-        same highlight (via <code>setHighlightedIndex</code> on hover); the selection is shown separately with a check.
-      </p>
+      <p class="max-w-2xl text-sm text-base-content/70">Each popup uses the native <strong>Popover API</strong> (top-layer, via <code>popover="manual"</code>) with the exposed <code>popupStyle</code> for anchor positioning. The keyboard-active and mouse-hovered option share the same highlight (via <code>setHighlightedIndex</code> on hover); the selection is shown separately with a check.</p>
 
       <ExampleShowcase
-        title="Text options · single · no filter"
-        description="A list of plain string options, single selection, no search input."
+        :title="textSingleTitle"
+        :description="textSingleDescription"
         :source="textSingleSource"
       >
         <TextSingle />
       </ExampleShowcase>
 
       <ExampleShowcase
-        title="Object options · single · with filter"
-        description="Object options with a custom layout and a searchable input."
+        :title="objectSingleTitle"
+        :description="objectSingleDescription"
         :source="objectSingleSource"
       >
         <ObjectSingle />
       </ExampleShowcase>
 
       <ExampleShowcase
-        title="Text options · multiple · with filter"
-        description="Multiple selection capped with max; selecting toggles, dropdown stays open."
+        :title="textMultipleTitle"
+        :description="textMultipleDescription"
         :source="textMultipleSource"
       >
         <TextMultiple />
       </ExampleShowcase>
 
       <ExampleShowcase
-        title="Text options · multiple · removable chips"
-        description="Selected items as removable chips. The remove buttons live outside the combobox trigger, so the trigger stays a single focusable control."
+        :title="textMultipleChipsTitle"
+        :description="textMultipleChipsDescription"
         :source="textMultipleChipsSource"
       >
         <TextMultipleChips />
       </ExampleShowcase>
 
       <ExampleShowcase
-        title="Text options · multiple · custom options"
-        description="Options are fully customizable: the focused option gets a thick left border, and each option shows a checkbox (checked / unchecked) for its selection state."
+        :title="textMultipleCustomTitle"
+        :description="textMultipleCustomDescription"
         :source="textMultipleCustomSource"
       >
         <TextMultipleCustom />
       </ExampleShowcase>
 
       <ExampleShowcase
-        title="Object options · multiple · validated"
-        description="Multiple selection with required + min/max validation and a rendered message."
+        :title="objectMultipleValidatedTitle"
+        :description="objectMultipleValidatedDescription"
         :source="objectMultipleSource"
       >
         <ObjectMultipleValidated />
       </ExampleShowcase>
 
       <ExampleShowcase
-        title="Select alignment"
-        description="No search input; the dropdown aligns so the selected option overlays the trigger."
+        :title="niceSelectTitle"
+        :description="niceSelectDescription"
         :source="niceSource"
       >
         <NiceSelect />
       </ExampleShowcase>
 
       <ExampleShowcase
-        title="Typeahead (editable combobox)"
-        description="Canonical APG editable pattern: the text input itself is the combobox (role=combobox); type to filter."
+        :title="textTypeaheadTitle"
+        :description="textTypeaheadDescription"
         :source="textTypeaheadSource"
       >
         <TextTypeahead />
       </ExampleShowcase>
 
       <ExampleShowcase
-        title="Typeahead · chips inside the field"
-        description="GitHub-style topic input: chips and the text input share one bordered field. The field is a plain container, so each chip can carry a remove button without nesting controls."
+        :title="textTypeaheadChipsTitle"
+        :description="textTypeaheadChipsDescription"
         :source="textTypeaheadChipsSource"
       >
         <TextTypeaheadChips />
       </ExampleShowcase>
+
+      <ExampleShowcase
+        :title="composableSingleTitle"
+        :description="composableSingleDescription"
+        :source="composableSingleSource"
+      >
+        <ComposableSingle />
+      </ExampleShowcase>
+
+      <ExampleShowcase
+        :title="composableProgrammaticTitle"
+        :description="composableProgrammaticDescription"
+        :source="composableProgrammaticSource"
+      >
+        <ComposableProgrammatic />
+      </ExampleShowcase>
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <h2 class="text-xl font-semibold">Composable</h2>
+      <p class="max-w-2xl text-sm text-base-content/70">Two APIs, one state machine: the component renders its default slot with the scope below, and <code>useHeadlessCombobox</code> exposes the exact same state, ARIA prop bags, actions, and ref setters directly — the component is a thin wrapper around it. Use the component for slot-driven templates; use the composable for programmatic control, wrapper components, or non-slot layouts. Call it from <code>setup()</code>.</p>
+      <p class="max-w-2xl text-sm text-base-content/70">Props accept plain values, refs, or a getter — pass your <code>modelValue</code> ref directly (unwrapped and tracked internally). The second argument receives every <code>update:modelValue</code> payload; write it back to your state.</p>
+      <CodeBlock
+        :code="SnippetComposableSource.html"
+        :raw="SnippetComposableSource.raw"
+        lang="vue"
+      />
+      <p class="max-w-2xl text-sm text-base-content/70">The <em>Composable · single · typeahead</em> and <em>Composable · programmatic control</em> examples above show full usage. The returned <code>HeadlessComboboxScope&lt;T, Q&gt;</code> mirrors the slot scope — refs for state, plain functions for actions and ref setters.</p>
     </section>
 
     <section class="flex flex-col gap-4">
