@@ -91,7 +91,7 @@ const labelId = useId();
             :ref="(el) => setOptionRef(user, el)"
             type="button"
             v-bind="getOptionProps(user, index)"
-            class="justify-between shadow-none hover:bg-primary/20 hover:text-primary"
+            class="min-h-10 flex items-center justify-between shadow-none hover:bg-primary/20 hover:text-primary"
             :class="{
               'menu-active': isSelected(user),
               'hover:brightness-95': isSelected(user),

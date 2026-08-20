@@ -64,7 +64,6 @@ export interface HeadlessComboboxOptionProps {
 }
 
 export interface HeadlessComboboxPopupStyle {
-  position: 'absolute';
   positionAnchor: string;
   left: string;
   width: string;
@@ -399,11 +398,10 @@ export function useHeadlessCombobox<T, Q = string>(
   }));
 
   // Default popup positioning — spread (or merge) onto the dropdown element's style.
-  // For `alignSelected` it anchors to the trigger's top and applies the
-  // measured offset so the selected option covers the trigger.
+  // No `position` is set: a popover gets `position: fixed` from the UA stylesheet,
+  // and a regular element keeps the position you give it.
   const popupStyle = computed<HeadlessComboboxPopupStyle>(() => {
     const style: HeadlessComboboxPopupStyle = {
-      position: 'absolute',
       positionAnchor: cssAnchorName,
       left: 'anchor(left)',
       width: 'anchor-size(width)',

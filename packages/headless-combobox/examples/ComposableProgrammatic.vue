@@ -165,6 +165,8 @@ const {
 <style scoped>
 /* Popup opens below the control: slide + fade via the Popover API. */
 .cbx-popup {
+  inset: auto;
+  position-try: flip-block;
   opacity: 0;
   translate: 0 -0.375rem;
   transition:

@@ -34,7 +34,7 @@ const labelId = useId();
     <HeadlessCombobox
       v-slot="{
         filteredOptions, highlightedIndex, searchQuery,
-        isSelected, canSelectMore, cssAnchorName, popupStyle, triggerProps, inputProps,
+        isSelected, canSelectMore, cssAnchorName, triggerProps, inputProps,
         listboxProps, getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setInputRef,
         setListRef, setOptionRef,
       }"
@@ -77,11 +77,12 @@ const labelId = useId();
         :ref="setDropdownRef"
         popover="manual"
         class="cbx-popup rounded-box bg-base-200 shadow-xl"
-        :style="[popupStyle, {
+        :style="{
+          positionAnchor: cssAnchorName,
           top: 'calc(anchor(bottom) + 0.375rem)',
           left: 'calc(anchor(left) - 0.25rem)',
           width: 'calc(anchor-size(width) + 0.5rem)',
-        }]"
+        }"
       >
         <div class="border-b border-base-content/10 p-2">
           <input
@@ -157,6 +158,8 @@ const labelId = useId();
 <style scoped>
 /* Popup opens below the control: slide + fade via the Popover API. */
 .cbx-popup {
+  inset: auto;
+  position-try: flip-block;
   opacity: 0;
   translate: 0 -0.375rem;
   transition:

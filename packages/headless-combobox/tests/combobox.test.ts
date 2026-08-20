@@ -495,7 +495,6 @@ describe('headless combobox (popupStyle)', () => {
     const cb = mountComboBox(users);
 
     expect(cb.scope.popupStyle).toMatchObject({
-      position: 'absolute',
       top: 'anchor(bottom)',
       left: 'anchor(left)',
       width: 'anchor-size(width)',

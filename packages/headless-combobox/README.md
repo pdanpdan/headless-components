@@ -255,17 +255,19 @@ Positioning the popup needs two styles: the **trigger** exposes an anchor via `c
 </ul>
 ```
 
-`popupStyle` (`HeadlessComboboxPopupStyle`) is a ready-to-apply style object:
+`popupStyle` (`HeadlessComboboxPopupStyle`) is a ready-to-apply style object — no `position` is set: a popover gets `position: fixed` from the UA stylesheet, and a regular element keeps the position you give it:
 
 ```
-{ position: 'absolute', positionAnchor: cssAnchorName, top: 'anchor(bottom)', left: 'anchor(left)', width: 'anchor-size(width)' }
+{ positionAnchor: cssAnchorName, top: 'anchor(bottom)', left: 'anchor(left)', width: 'anchor-size(width)' }
 ```
 
-Merge overrides with an array (`:style="[popupStyle, { top: '…' }]"`). A simple popup style hides the element unless it is open and slides/fades it in (the `@starting-style` block plays the entry; the `overlay`/`display` transitions make the top-layer appearance and the `display: none` switch animatable). The transition is applied only when the user has not requested reduced motion — under `prefers-reduced-motion: reduce` the popup still opens, it just appears instantly:
+Merge overrides with an array (`:style="[popupStyle, { top: '…' }]"`). A simple popup style hides the element unless it is open and slides/fades it in (the `@starting-style` block plays the entry; the `overlay`/`display` transitions make the top-layer appearance and the `display: none` switch animatable). The popover UA pins the element with `inset: 0`, so flippable popups reset it (`inset: auto`) and `position-try: flip-block` flips the anchored base position to the other side when there is no space. The transition is applied only when the user has not requested reduced motion — under `prefers-reduced-motion: reduce` the popup still opens, it just appears instantly:
 
 ```css
 /* A simple popup: slide + fade via the Popover API. */
 .cbx-popup {
+  inset: auto;
+  position-try: flip-block;
   opacity: 0;
   translate: 0 -0.375rem;
 
