@@ -76,38 +76,24 @@
 @source "../components/**/*.vue";
 @source "../../headless-combobox/examples/**/*.vue";
 
-/* Drive the theme toggle indicator from `data-theme` (set by theme.js before first
-   paint, and by the media query before hydration) instead of the checkbox state,
-   so the icon matches the theme from the very first frame. */
-:root[data-theme="light"] .toggle-theme {
-  .swap-on {
-    opacity: 0;
-    rotate: 45deg;
-  }
-  .swap-off {
-    opacity: 1;
-    rotate: 0deg;
-  }
+/* Heading anchors: the whole title becomes a link (lib/heading-links.ts); the
+   `#` span is revealed on heading hover or link focus-visible. */
+main :is(h1, h2, h3, h4, h5, h6) {
+  position: relative;
+  scroll-margin-top: 1.5rem;
 }
-:root[data-theme="dark"] .toggle-theme {
-  .swap-on {
-    opacity: 1;
-    rotate: 0deg;
-  }
-  .swap-off {
-    opacity: 0;
-    rotate: -45deg;
-  }
+.heading-link {
+  color: inherit;
+  text-decoration: none;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .toggle-theme {
-    .swap-on {
-      opacity: 1;
-      rotate: 0deg;
-    }
-    .swap-off {
-      opacity: 0;
-      rotate: -45deg;
-    }
-  }
+.heading-hash {
+  position: absolute;
+  inset-inline-start: -0.65em;
+  opacity: 0;
+  color: var(--color-base-content);
 }
+main :is(h1, h2, h3, h4, h5, h6):hover .heading-hash,
+.heading-link:focus-visible .heading-hash {
+  opacity: 0.5;
+}
+
