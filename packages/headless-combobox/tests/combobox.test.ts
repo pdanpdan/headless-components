@@ -2008,4 +2008,64 @@ describe('headless combobox (container keydown)', () => {
 
     wired.wrapper.unmount();
   });
+
+  it('does not intercept Enter/Space/arrows on a non-wired button inside the container (chip remove button)', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { modelValue: users[ 0 ] as User });
+    // Simulates a chip remove button: no keyboard wiring, native activation
+    // must reach its click handler instead of the combobox opening.
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.textContent = 'Remove';
+    const onClick = vi.fn();
+    remove.addEventListener('click', onClick);
+    wired.els.container.appendChild(remove);
+
+    remove.focus();
+    const enter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    remove.dispatchEvent(enter);
+    await nextTick();
+    expect(enter.defaultPrevented).toBe(false);
+    expect(wired.scope.isOpen).toBe(false);
+
+    const space = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true });
+    remove.dispatchEvent(space);
+    await nextTick();
+    expect(space.defaultPrevented).toBe(false);
+    expect(wired.scope.isOpen).toBe(false);
+
+    const down = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true });
+    remove.dispatchEvent(down);
+    await nextTick();
+    expect(down.defaultPrevented).toBe(false);
+    expect(wired.scope.isOpen).toBe(false);
+
+    wired.wrapper.unmount();
+  });
+
+  it('does not intercept Enter on a non-wired button inside the dropdown while open', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { multiple: true, modelValue: [] as User[] });
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.textContent = 'Clear';
+    const onClick = vi.fn();
+    clear.addEventListener('click', onClick);
+    wired.els.dropdown.appendChild(clear);
+
+    wired.scope.open();
+    await nextTick();
+    wired.scope.setHighlightedIndex(1);
+    clear.focus();
+    const enter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    clear.dispatchEvent(enter);
+    await nextTick();
+
+    // Native activation proceeds; the combobox does not select the highlighted
+    // option instead of activating the button.
+    expect(enter.defaultPrevented).toBe(false);
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    wired.wrapper.unmount();
+  });
 });

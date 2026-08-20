@@ -313,6 +313,8 @@ If the dropdown element is a popover (`popover="manual"`), the component drives 
 
 Clicking outside the container (or tabbing focus out of it) closes the dropdown.
 
+Keys pressed on elements outside the combobox's own controls — e.g. chip remove buttons or popup clear buttons — are never intercepted; they keep their native activation.
+
 ## Distribution
 
 This package ships both compiled output and raw source:

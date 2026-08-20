@@ -127,6 +127,13 @@ export function useNavigation<O, V, Q>(
     if (deps.isLocked.value) {
       return;
     }
+    // The container/dropdown listeners exist to catch Tab (so it skips the
+    // options list) from elements around the trigger. Keys aimed at non-wired
+    // elements — chip remove buttons, popup clear buttons — must fall through
+    // to their native activation instead of driving the combobox.
+    if (e.currentTarget !== e.target && e.key !== 'Tab') {
+      return;
+    }
     if (!isOpen.value) {
       if ([ 'Enter', ' ', 'ArrowDown', 'ArrowUp' ].includes(e.key)) {
         e.preventDefault();
