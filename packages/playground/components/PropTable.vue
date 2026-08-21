@@ -38,7 +38,7 @@ withDefaults(defineProps<{
       </thead>
       <tbody>
         <tr v-for="row in rows" :key="row.name">
-          <td class="font-mono font-semibold whitespace-nowrap">{{ row.name }}</td>
+          <td class="font-mono font-semibold">{{ row.name }}</td>
           <td class="font-mono text-base-content/80">{{ row.type }}</td>
           <td v-if="showDefault" class="font-mono">{{ row.default }}</td>
           <td class="min-w-48">{{ row.description }}</td>
