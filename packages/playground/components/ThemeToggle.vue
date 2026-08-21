@@ -20,47 +20,47 @@ function toggleTheme(event: Event) {
     return;
   }
 
-  // Circle reveal geometry: the smallest circle centered on the toggle that
-  // covers the whole viewport. The clip-path is applied to the root
-  // view-transition snapshot, whose coordinate space ("snapshot root") is
-  // page-relative: its origin sits at the top-left of the PAGE, and on
-  // Chrome for Android underneath the URL bar, whose height insets the
-  // visible viewport (the browser shrinks the viewport to fit below the
-  // bar). getBoundingClientRect is relative to the visible viewport, so
-  // translate with scrollX/scrollY plus the URL bar height. Without the
-  // translation the circle starts above the screen once the page is scrolled
-  // or the URL bar is visible — on phones its center hides behind the bar and
-  // only the left part of the arc is ever on screen.
+  // Use fractions of the viewport, not pixels: the snapshot box is
+  // page-anchored and may be scaled on mobile, so a fraction of the box
+  // always matches the toggle. Scroll offsets make the rect page-relative.
   const label = labelEl.value;
   if (!label) {
     applyTheme(isDark);
     return;
   }
   const rect = label.getBoundingClientRect();
-  // Chrome for Android only: the visible viewport is inset by the URL bar,
-  // so the snapshot root extends above it by that height. iOS Safari keeps
-  // the viewport full-height and overlays the bar, so the difference is 0.
-  const userAgentData = (navigator as Navigator & { userAgentData?: { mobile: boolean; }; }).userAgentData;
-  const isMobile = userAgentData
-    ? userAgentData.mobile
-    : /Mobi|Android/i.test(navigator.userAgent);
-  const urlBarHeight = isMobile ? Math.max(0, window.outerHeight - window.innerHeight) : 0;
-  const originX = window.scrollX;
-  const originY = window.scrollY + urlBarHeight;
-  const x = rect.left + rect.width / 2 + originX;
-  const y = rect.top + rect.height / 2 + originY;
-  const radius = Math.hypot(
-    Math.max(x - originX, originX + window.innerWidth - x),
-    Math.max(y - originY, originY + window.innerHeight - y),
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+  const x = rect.left + rect.width / 2 + scrollX;
+  const y = rect.top + rect.height / 2 + scrollY;
+  const ratioX = (100 * x) / window.innerWidth;
+  const ratioY = (100 * y) / window.innerHeight;
+  // Cover the viewport: radius as a fraction of the box's half-diagonal.
+  const endRadius = Math.hypot(
+    Math.max(x - scrollX, scrollX + window.innerWidth - x),
+    Math.max(y - scrollY, scrollY + window.innerHeight - y),
   );
+  const halfDiagonal = Math.hypot(window.innerWidth, window.innerHeight) / Math.SQRT2;
+  const ratioR = (100 * endRadius) / halfDiagonal;
 
-  const root = document.documentElement;
-  root.style.setProperty('--theme-reveal-x', `${ x }px`);
-  root.style.setProperty('--theme-reveal-y', `${ y }px`);
-  root.style.setProperty('--theme-reveal-r', `${ radius }px`);
-
-  document.startViewTransition(() => {
+  const transition = document.startViewTransition(() => {
     applyTheme(isDark);
+  });
+  // WAAPI avoids CSS variables: the values go straight to the pseudo-element.
+  transition.ready.then(() => {
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0% at ${ ratioX }% ${ ratioY }%)`,
+          `circle(${ ratioR }% at ${ ratioX }% ${ ratioY }%)`,
+        ],
+      },
+      {
+        duration: 600,
+        easing: 'ease',
+        pseudoElement: '::view-transition-new(root)',
+      },
+    );
   });
 }
 
@@ -93,10 +93,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* Drive the icon state (opacity + rotation) from `data-theme` (set by theme.js
-   before first paint, and by the media query before hydration) instead of the
-   checkbox state, so the icons match the theme — including the swap-rotate
-   tilt — from the very first frame. */
+/* Icons follow data-theme, not the checkbox, so they match from first paint. */
 :root[data-theme="light"] .toggle-theme {
   .swap-on {
     opacity: 0;
@@ -132,27 +129,10 @@ onMounted(() => {
 </style>
 
 <style>
-/* Circular page reveal growing from the toggle button (View Transitions API).
-   These target page-level ::view-transition snapshots, so they cannot be
-   scoped. Geometry comes from the toggle position via CSS custom properties
-   set in `toggleTheme`. */
-::view-transition-old(root) {
-  animation: none;
-}
-/* The circle reveal is applied only when the user has not requested reduced
-   motion; under reduce the new snapshot appears instantly (the JS also skips
-   the view transition entirely). */
+/* The reveal is animated from toggleTheme via WAAPI on ::view-transition-new(root);
+   disable the UA cross-fade so the two don't fight. Reduced motion is handled in JS. */
+::view-transition-old(root),
 ::view-transition-new(root) {
-  @media (prefers-reduced-motion: no-preference) {
-    animation: theme-reveal 0.6s ease;
-  }
-}
-@keyframes theme-reveal {
-  from {
-    clip-path: circle(0px at var(--theme-reveal-x) var(--theme-reveal-y));
-  }
-  to {
-    clip-path: circle(var(--theme-reveal-r) at var(--theme-reveal-x) var(--theme-reveal-y));
-  }
+  animation: none;
 }
 </style>
