@@ -202,6 +202,7 @@ const {
 | `optionFilter` | `(option: O, query: Q) => boolean`        | case-insensitive substring | Custom filter function. `Q` defaults to `string`.                   |
 | `id`            | `string`                                  | auto (`useId()`)   | Base id for accessibility attributes.                                       |
 | `alignSelected` | `boolean`                                 | `false`            | Align the dropdown so the selected option covers the trigger. |
+| `inputOnOpen` | `'select' \| 'keep' \| 'clear'`                | `'select'`         | Typeahead input when the popup opens: `select` keeps showing the current value and selects it (typing replaces it); `keep` shows it without selecting; `clear` opens with an empty input. |
 | `errorMessages` | `Partial<Record<HeadlessComboboxErrorCode, string>>` | —               | Override default validation messages.                                       |
 
 ## Emits

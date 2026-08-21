@@ -22,6 +22,7 @@ const props = withDefaults(defineProps<Omit<HeadlessComboboxProps<O, V, Q>, 'mod
   closeOnSelect: null,
   // Vue casts absent boolean props to `false`; the default must be explicit.
   closeOnClickOutside: true,
+  inputOnOpen: 'select',
 });
 
 defineSlots<{

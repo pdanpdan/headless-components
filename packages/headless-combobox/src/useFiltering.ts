@@ -5,7 +5,8 @@ import { computed } from 'vue';
 
 /** Late-bound popup action the filtering needs (wired by the orchestrator). */
 export interface FilteringHooks {
-  open: () => Promise<void>;
+  /** `selectText: false` when the popup reopens by typing — the input text must not be selected then. */
+  open: (selectText?: boolean) => Promise<void>;
 }
 
 /** Search query, filtering, and the resulting options list. */
@@ -46,9 +47,10 @@ export function useFiltering<O, V, Q>(
   }
 
   // Typing in the typeahead input reopens the popup (open() resets the query
-  // first, so the order matters) and filters the options.
+  // first, so the order matters) and filters the options. The text being typed
+  // must not be selected by the open, so it opens with selectText disabled.
   function openAndSetQueryFromEvent(event: Event) {
-    hooks.open();
+    hooks.open(false);
     setSearchQuery((event.target as HTMLInputElement).value as Q);
   }
 

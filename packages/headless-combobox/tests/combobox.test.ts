@@ -13,7 +13,7 @@ interface User {
 
 type SlotProps = HeadlessComboboxSlotProps<User, User>;
 
-type MountConfig = Partial<Pick<HeadlessComboboxProps<User, User>, 'modelValue' | 'multiple' | 'minLength' | 'maxLength' | 'required' | 'disabled' | 'readonly' | 'errorMessages' | 'optionFilter' | 'alignSelected' | 'closeOnSelect' | 'closeOnClickOutside' | 'clickOutsideFilter' | 'selectOnTab'>>;
+type MountConfig = Partial<Pick<HeadlessComboboxProps<User, User>, 'modelValue' | 'multiple' | 'minLength' | 'maxLength' | 'required' | 'disabled' | 'readonly' | 'errorMessages' | 'optionFilter' | 'alignSelected' | 'closeOnSelect' | 'closeOnClickOutside' | 'clickOutsideFilter' | 'selectOnTab' | 'inputOnOpen'>>;
 
 function createUsers(): User[] {
   return [
@@ -43,6 +43,7 @@ function buildProps(options: User[], config: MountConfig = {}) {
     ...(config.closeOnClickOutside !== undefined ? { closeOnClickOutside: config.closeOnClickOutside } : {}),
     ...(config.clickOutsideFilter !== undefined ? { clickOutsideFilter: config.clickOutsideFilter } : {}),
     ...(config.selectOnTab !== undefined ? { selectOnTab: config.selectOnTab } : {}),
+    ...(config.inputOnOpen !== undefined ? { inputOnOpen: config.inputOnOpen } : {}),
   };
 }
 
@@ -178,6 +179,65 @@ function mountWired(optionsArg: User[], config: MountConfig & { wireList?: boole
     wrapper,
     els,
     // Getter (not destructured) so every read returns the latest slot scope.
+    get scope(): SlotProps {
+      return scope;
+    },
+  };
+}
+
+// Typeahead pattern: a single text input acts as both the trigger and the
+// filter input (`setTriggerRef` + `setInputRef` on the same element).
+function mountTypeahead(optionsArg: User[], config: MountConfig = {}) {
+  let scope: SlotProps;
+  const options = reactive(optionsArg);
+  const els = { options: [] as HTMLElement[] } as unknown as WiredElements;
+
+  const wrapper = mount(HeadlessCombobox, {
+    attachTo: document.body,
+    props: buildProps(options, config),
+    slots: {
+      default: (s: unknown) => {
+        const sc = s as SlotProps;
+        scope = sc;
+        return h('div', {
+          ref: (el: unknown) => {
+            sc.setContainerRef(el);
+            els.container = el as HTMLElement;
+          },
+        }, [
+          h('input', {
+            ref: (el: unknown) => {
+              sc.setTriggerRef(el);
+              sc.setInputRef(el);
+              els.input = el as HTMLInputElement;
+            },
+            type: 'text',
+            // The typeahead pattern wires keyboard handling manually.
+            onKeydown: (e: KeyboardEvent) => sc.handleKeydown(e),
+            ...sc.comboboxInputProps,
+          }),
+          h('div', {
+            ref: (el: unknown) => {
+              sc.setDropdownRef(el);
+              els.dropdown = el as HTMLElement;
+            },
+            class: 'dropdown',
+          }, options.map((o, i) => h('div', {
+            ref: (el: unknown) => {
+              sc.setOptionRef(o, el);
+              els.options[ i ] = el as HTMLElement;
+            },
+            class: 'opt',
+            ...sc.getOptionProps(o, i),
+          }))),
+        ]);
+      },
+    },
+  });
+
+  return {
+    wrapper,
+    els,
     get scope(): SlotProps {
       return scope;
     },
@@ -2150,6 +2210,89 @@ describe('headless combobox (backspace/delete)', () => {
     await nextTick();
 
     expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    wired.wrapper.unmount();
+  });
+});
+
+describe('headless combobox (typeahead input on open)', () => {
+  it('keeps the query empty by default so the consumer binding can show the current value', async () => {
+    const users = createUsers();
+    const wired = mountTypeahead(users, { modelValue: users[ 0 ] as User });
+
+    wired.scope.open();
+    await nextTick();
+    await nextTick();
+
+    expect(wired.scope.isOpen).toBe(true);
+    expect(wired.scope.searchQuery).toBeUndefined();
+
+    wired.wrapper.unmount();
+  });
+
+  it('selects the input text when the popup opens (default inputOnOpen="select")', async () => {
+    const users = createUsers();
+    const wired = mountTypeahead(users, { modelValue: users[ 0 ] as User });
+    wired.els.input.value = 'Wade';
+    wired.els.input.setSelectionRange(1, 2);
+
+    wired.scope.open();
+    await nextTick();
+    await nextTick();
+
+    expect(wired.els.input.selectionStart).toBe(0);
+    expect(wired.els.input.selectionEnd).toBe(4);
+
+    wired.wrapper.unmount();
+  });
+
+  it('keeps the text without selecting it with inputOnOpen="keep"', async () => {
+    const users = createUsers();
+    const wired = mountTypeahead(users, { modelValue: users[ 0 ] as User, inputOnOpen: 'keep' });
+    wired.els.input.value = 'Wade';
+    wired.els.input.setSelectionRange(1, 2);
+
+    wired.scope.open();
+    await nextTick();
+    await nextTick();
+
+    expect(wired.els.input.selectionStart).toBe(1);
+    expect(wired.els.input.selectionEnd).toBe(2);
+
+    wired.wrapper.unmount();
+  });
+
+  it('opens with an empty query with inputOnOpen="clear"', async () => {
+    const users = createUsers();
+    const wired = mountTypeahead(users, { modelValue: users[ 0 ] as User, inputOnOpen: 'clear' });
+    wired.els.input.value = 'Wade';
+    wired.els.input.setSelectionRange(1, 2);
+
+    wired.scope.open();
+    await nextTick();
+    await nextTick();
+
+    expect(wired.scope.searchQuery).toBe('');
+    expect(wired.els.input.selectionStart).toBe(1);
+    expect(wired.els.input.selectionEnd).toBe(2);
+
+    wired.wrapper.unmount();
+  });
+
+  it('does not select the input text when the popup reopens by typing', async () => {
+    const users = createUsers();
+    const wired = mountTypeahead(users, { modelValue: users[ 0 ] as User });
+    wired.els.input.value = 'Wa';
+    wired.els.input.setSelectionRange(1, 2);
+
+    wired.els.input.dispatchEvent(new Event('input', { bubbles: true }));
+    await nextTick();
+    await nextTick();
+
+    expect(wired.scope.isOpen).toBe(true);
+    expect(wired.scope.searchQuery).toBe('Wa');
+    expect(wired.els.input.selectionStart).toBe(1);
+    expect(wired.els.input.selectionEnd).toBe(2);
 
     wired.wrapper.unmount();
   });

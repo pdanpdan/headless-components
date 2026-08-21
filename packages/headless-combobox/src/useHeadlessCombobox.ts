@@ -118,6 +118,13 @@ export interface HeadlessComboboxProps<O, V = O, Q = string> {
   id?: string;
   /** Align the dropdown so the selected option covers the trigger */
   alignSelected?: boolean;
+  /**
+   * What happens to the input text when the popup opens (typeahead pattern):
+   * - `select` (default): keep showing the current value and select it, so typing replaces it;
+   * - `keep`: keep showing the current value without selecting it;
+   * - `clear`: open with an empty input.
+   */
+  inputOnOpen?: 'select' | 'keep' | 'clear';
   /** Override default validation messages. */
   errorMessages?: Partial<Record<HeadlessComboboxErrorCode, string>>;
 }

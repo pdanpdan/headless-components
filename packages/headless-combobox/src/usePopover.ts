@@ -59,12 +59,18 @@ export function usePopover<O, V, Q>(
     }
   }
 
-  async function open() {
+  async function open(selectText = true) {
     if (isOpen.value || deps.isLocked.value) {
       return;
     }
     isOpen.value = true;
-    searchQuery.value = undefined;
+    // `clear` opens with an empty input; otherwise the query stays empty and
+    // the input keeps showing the current value (typeahead examples fall back
+    // to the selection) — or has its text selected, per `inputOnOpen`.
+    // `inputOnOpen` defaults to `'select'` (the component applies the same
+    // default; the composable receives the raw prop).
+    const inputOnOpen = props.inputOnOpen ?? 'select';
+    searchQuery.value = inputOnOpen === 'clear' ? ('' as Q) : undefined;
 
     const firstSelected = deps.selectedList.value[ 0 ];
     const selectedIndex = firstSelected == null ? -1 : deps.filteredOptions.value.findIndex((o) => toRaw(deps.valueOf(o)) === toRaw(firstSelected));
@@ -79,6 +85,11 @@ export function usePopover<O, V, Q>(
       deps.scrollToHighlight();
     }
     refs.inputRef?.focus({ preventScroll: true });
+    // Select the visible text so typing replaces it (not when the popup
+    // reopens by typing, and not in `keep`/`clear` modes).
+    if (selectText && inputOnOpen === 'select') {
+      refs.inputRef?.select();
+    }
   }
 
   function close(returnFocus = true) {
