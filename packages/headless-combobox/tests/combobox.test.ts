@@ -244,6 +244,69 @@ function mountTypeahead(optionsArg: User[], config: MountConfig = {}) {
   };
 }
 
+// Trigger that holds text natively (contentEditable div / textarea) — drives
+// hasTextValue's non-input paths.
+function mountTextTrigger(optionsArg: User[], config: MountConfig = {}, kind: 'contenteditable' | 'textarea') {
+  let scope: SlotProps;
+  const options = reactive(optionsArg);
+  const els = { options: [] as HTMLElement[] } as unknown as WiredElements;
+
+  const wrapper = mount(HeadlessCombobox, {
+    attachTo: document.body,
+    props: buildProps(options, config),
+    slots: {
+      default: (s: unknown) => {
+        const sc = s as SlotProps;
+        scope = sc;
+        return h('div', {
+          ref: (el: unknown) => {
+            sc.setContainerRef(el);
+            els.container = el as HTMLElement;
+          },
+        }, [
+          kind === 'textarea'
+            ? h('textarea', {
+              ref: (el: unknown) => {
+                sc.setTriggerRef(el);
+                els.trigger = el as HTMLButtonElement;
+              },
+              ...sc.triggerProps,
+            })
+            : h('div', {
+              ref: (el: unknown) => {
+                sc.setTriggerRef(el);
+                els.trigger = el as HTMLButtonElement;
+              },
+              contenteditable: 'true',
+              ...sc.triggerProps,
+            }),
+          h('div', {
+            ref: (el: unknown) => {
+              sc.setDropdownRef(el);
+              els.dropdown = el as HTMLElement;
+            },
+          }, options.map((o, i) => h('div', {
+            ref: (el: unknown) => {
+              sc.setOptionRef(o, el);
+              els.options[ i ] = el as HTMLElement;
+            },
+            class: 'opt',
+            ...sc.getOptionProps(o, i),
+          }))),
+        ]);
+      },
+    },
+  });
+
+  return {
+    wrapper,
+    els,
+    get scope(): SlotProps {
+      return scope;
+    },
+  };
+}
+
 describe('headless combobox (single)', () => {
   it('starts closed and exposes all options', () => {
     const users = createUsers();
@@ -2279,6 +2342,61 @@ describe('headless combobox (backspace/delete)', () => {
     wired.scope.setSearchQuery('Wa');
     wired.els.input.value = 'Wa';
     wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    wired.wrapper.unmount();
+  });
+
+  it('leaves Backspace to a textarea trigger that holds text, and removes when empty', async () => {
+    const users = createUsers();
+    const wired = mountTextTrigger(users, { modelValue: users[ 0 ] as User }, 'textarea');
+    const trigger = wired.els.trigger as unknown as HTMLTextAreaElement;
+
+    trigger.value = 'Wade';
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    trigger.value = '';
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ null ] ]);
+
+    wired.wrapper.unmount();
+  });
+
+  it('leaves Backspace to a contentEditable trigger that holds text, and removes when empty', async () => {
+    // jsdom does not implement isContentEditable; polyfill it from the attribute.
+    Object.defineProperty(HTMLElement.prototype, 'isContentEditable', {
+      configurable: true,
+      get(this: HTMLElement) {
+        return this.getAttribute('contenteditable') === 'true';
+      },
+    });
+    const users = createUsers();
+    const wired = mountTextTrigger(users, { modelValue: users[ 0 ] as User }, 'contenteditable');
+
+    wired.els.trigger.textContent = 'Wade';
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    wired.els.trigger.textContent = '';
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ null ] ]);
+
+    wired.wrapper.unmount();
+    delete (HTMLElement.prototype as { isContentEditable?: unknown; }).isContentEditable;
+  });
+
+  it('does not emit when Backspace removes with an empty selection', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, { modelValue: null as User | null });
+
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
     await nextTick();
 
     expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();

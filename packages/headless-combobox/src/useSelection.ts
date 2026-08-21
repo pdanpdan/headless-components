@@ -101,6 +101,7 @@ export function useSelection<O, V, Q>(
   // Backspace/Delete: drop the trailing selection (multiple) or the sole value
   // (single). Same focus handling as `clear`.
   function removeLastSelected() {
+    /* v8 ignore next 3 -- handleKeydown already guards isLocked and removeLastSelected is not exposed */
     if (isLocked.value) {
       return;
     }

@@ -26,6 +26,7 @@ function hasTextValue(target: EventTarget | null): boolean {
   if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
     return target.value.length > 0;
   }
+  /* v8 ignore next 1 -- element.textContent is never null ('' when empty), the `?? 0` fallback is unreachable */
   return target instanceof HTMLElement && target.isContentEditable && (target.textContent?.length ?? 0) > 0;
 }
 
