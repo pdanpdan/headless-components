@@ -1,5 +1,23 @@
 # Changelog
 
+# [2.0.0](https://github.com/pdanpdan/headless-components/compare/v1.1.0...v2.0.0) (2026-08-21)
+
+* feat!: add inputOnOpen prop to control the input text on open ([ad33b27](https://github.com/pdanpdan/headless-components/commit/ad33b276686e2e4bece014306e43a4921f8cdf3b))
+
+### Bug Fixes
+
+* edit the typeahead text on backspace before removing the selection ([2e37a80](https://github.com/pdanpdan/headless-components/commit/2e37a802dd15099c0a48584574860ff95d081a9c))
+* skip negative tabindex elements when tabbing ([849cbb5](https://github.com/pdanpdan/headless-components/commit/849cbb513f48bb1b8714facbeb16129941d09f87))
+
+### Features
+
+* improve combobox examples ([5cc3112](https://github.com/pdanpdan/headless-components/commit/5cc3112e4bcb61c54a3f77882318e290b5047db0))
+* revamp playground docs pages and styling ([f5ee951](https://github.com/pdanpdan/headless-components/commit/f5ee9514cb2d1fdaa0c95f9116122ce141d5e570))
+
+### BREAKING CHANGES
+
+* opening the popup now selects the filter input's text by default; set inputOnOpen="keep" to keep the text unselected.
+
 # [1.1.0](https://github.com/pdanpdan/headless-components/compare/v1.0.0...v1.1.0) (2026-08-20)
 
 ### Bug Fixes
