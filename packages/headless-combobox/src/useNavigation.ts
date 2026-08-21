@@ -189,8 +189,12 @@ export function useNavigation<O, V, Q>(
       case 'Backspace':
       case 'Delete': {
         // Without a filter input there is no text to delete, so Backspace/
-        // Delete drop the last (or only) selected option instead.
-        if (refs.inputRef == null && !hasTextValue(e.target)) {
+        // Delete drop the last (or only) selected option instead. The typeahead
+        // trigger doubles as the filter input: while it holds the selection
+        // label or a query, Backspace edits/deletes the text natively; only an
+        // empty input removes the selection.
+        const typeahead = e.target === refs.triggerRef && refs.triggerRef === refs.inputRef;
+        if ((refs.inputRef == null || typeahead) && !hasTextValue(e.target)) {
           e.preventDefault();
           deps.removeLastSelected();
         }

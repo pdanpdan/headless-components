@@ -2213,6 +2213,53 @@ describe('headless combobox (backspace/delete)', () => {
 
     wired.wrapper.unmount();
   });
+
+  it('removes the selection on Backspace while open on an empty typeahead input', async () => {
+    const users = createUsers();
+    const wired = mountTypeahead(users, { modelValue: users[ 0 ] as User });
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ null ] ]);
+
+    wired.wrapper.unmount();
+  });
+
+  it('keeps the selection when Backspace hits the typeahead input holding the label text', async () => {
+    const users = createUsers();
+    const wired = mountTypeahead(users, { modelValue: users[ 0 ] as User });
+
+    wired.scope.open();
+    await nextTick();
+    // The input shows the selection label (empty query); the first Backspace
+    // deletes the visible text, it must not deselect the option.
+    wired.els.input.value = 'Wade Cooper';
+    wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    wired.wrapper.unmount();
+  });
+
+  it('leaves Backspace to the typeahead input when it holds a query', async () => {
+    const users = createUsers();
+    const wired = mountTypeahead(users, { modelValue: users[ 0 ] as User });
+
+    wired.scope.open();
+    await nextTick();
+    wired.scope.setSearchQuery('Wa');
+    wired.els.input.value = 'Wa';
+    wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
+    await nextTick();
+
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+
+    wired.wrapper.unmount();
+  });
 });
 
 describe('headless combobox (typeahead input on open)', () => {

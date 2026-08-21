@@ -305,7 +305,7 @@ If the dropdown element is a popover (`popover="manual"`), the component drives 
 | Key                     | Behavior                                  |
 |-------------------------|-------------------------------------------|
 | `Enter` / `Space` / `ArrowDown` / `ArrowUp` (closed) | Open the dropdown.           |
-| `Backspace` / `Delete` (closed, or open without a filter input) | Remove the last (or only) selected option. Keys aimed at a text input that still holds text keep their native behavior. |
+| `Backspace` / `Delete` (closed, or open without a filter input, or open on an empty typeahead input) | Remove the last (or only) selected option. Keys aimed at a text input that still holds text (the selection label or a query) keep their native behavior. |
 | `ArrowDown` / `ArrowUp` (open) | Move the highlight.                |
 | `PageDown` / `PageUp`   | Move the highlight a full page (visible options), clamped at the ends. |
 | `Home` / `End`          | Jump to the first/last selectable option (native caret behavior in inputs). |
