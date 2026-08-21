@@ -33,7 +33,7 @@ const labelId = useId();
   <div class="w-full max-w-sm">
     <HeadlessCombobox
       v-slot="{
-        filteredOptions, highlightedIndex, isSelected, canSelectMore,
+        filteredOptions, highlightedIndex, isSelected,
         cssAnchorName, popupStyle, triggerProps, listboxProps,
         getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setListRef, setOptionRef,
       }"
@@ -44,21 +44,20 @@ const labelId = useId();
     >
       <fieldset
         :ref="setContainerRef"
-        class="fieldset w-full"
+        class="fieldset"
       >
-        <legend :id="labelId" class="fieldset-legend font-semibold">Assign user</legend>
+        <legend :id="labelId" class="fieldset-legend">Assign user</legend>
         <button
           :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
-          class="input flex w-full cursor-pointer items-center justify-between shadow-sm"
+          class="input flex w-full cursor-pointer items-center justify-between"
           :style="{ anchorName: cssAnchorName }"
         >
-          <span v-if="selected">{{ selected.name }}</span>
-          <span v-else class="text-base-content/50">Select a user…</span>
+          <span :class="{ 'text-base-content/70': selected == null }">{{ selected?.name ?? 'Select a user…' }}</span>
           <svg
-            class="h-4 w-4 opacity-50"
+            class="size-4 opacity-70"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -77,10 +76,15 @@ const labelId = useId();
         :ref="(el) => { setDropdownRef(el); setListRef(el); }"
         v-bind="listboxProps"
         popover="manual"
-        class="cbx-popup menu max-h-60 flex-nowrap gap-0.5 rounded-box bg-base-200 shadow-xl"
+        class="
+          cbx-popup menu max-h-60 flex-nowrap gap-0.5 rounded-box border
+          border-base-content/5 bg-base-200 shadow-xl
+        "
         :style="[popupStyle, {
-          left: 'calc(anchor(left) - 0.25rem)',
-          width: 'calc(anchor-size(width) + 0.5rem)',
+          // Menu padding (0.5rem) + popup border (1px) per side: the option
+          // content box then covers the field exactly.
+          left: 'calc(anchor(left) - 0.5rem - 1px)',
+          width: 'calc(anchor-size(width) + 1rem + 2px)',
         }]"
       >
         <li
@@ -91,22 +95,16 @@ const labelId = useId();
             :ref="(el) => setOptionRef(user, el)"
             type="button"
             v-bind="getOptionProps(user, index)"
-            class="min-h-10 flex items-center justify-between shadow-none hover:bg-primary/20 hover:text-primary"
+            class="flex min-h-10 items-center justify-between shadow-none"
             :class="{
               'menu-active': isSelected(user),
-              'hover:brightness-95': isSelected(user),
               'menu-focus': index === highlightedIndex,
-
-              'bg-primary/20': index === highlightedIndex,
-
-              'text-primary': index === highlightedIndex,
-              'cursor-pointer': canSelectMore || isSelected(user),
             }"
           >
             <span>{{ user.name }}</span>
             <svg
               v-if="isSelected(user)"
-              class="h-4 w-4"
+              class="size-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -130,12 +128,10 @@ const labelId = useId();
    `scale` composes with the inline `translate` alignment offset. */
 .cbx-popup {
   opacity: 0;
-  scale: 0.8;
   transition:
-    opacity 0.2s ease,
-    scale 0.2s ease,
-    overlay 0.2s ease allow-discrete,
-    display 0.2s ease allow-discrete;
+    opacity 0.3s ease,
+    overlay 0.3s ease allow-discrete,
+    display 0.3s ease allow-discrete;
 
   &:not(:popover-open) {
     display: none;
@@ -143,11 +139,9 @@ const labelId = useId();
 
   &:popover-open {
     opacity: 1;
-    scale: 1;
 
     @starting-style {
       opacity: 0;
-      scale: 0.8;
     }
   }
 }

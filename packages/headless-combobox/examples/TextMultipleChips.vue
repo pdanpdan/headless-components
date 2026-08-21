@@ -32,7 +32,7 @@ const MAX = 3;
       v-slot="{
         filteredOptions, highlightedIndex, searchQuery, select,
         clear, isSelected, canSelectMore, selectedCount,
-        cssAnchorName, triggerProps, inputProps, listboxProps, getOptionProps, setContainerRef,
+        cssAnchorName, popupStyle, triggerProps, inputProps, listboxProps, getOptionProps, setContainerRef,
         setTriggerRef, setDropdownRef, setInputRef, setListRef, setOptionRef,
       }"
       v-model="selected"
@@ -42,14 +42,14 @@ const MAX = 3;
     >
       <fieldset
         :ref="setContainerRef"
-        class="fieldset w-full"
+        class="fieldset"
       >
-        <legend :id="labelId" class="fieldset-legend font-semibold">Frameworks (multiple, max {{ MAX }})</legend>
+        <legend :id="labelId" class="fieldset-legend">Frameworks (multiple, max {{ MAX }})</legend>
         <div v-if="selected.length" class="mb-1.5 flex flex-wrap gap-1">
           <span
             v-for="item in selected"
             :key="item"
-            class="badge badge-soft badge-primary gap-1 pr-1"
+            class="badge gap-1 badge-soft pr-0"
           >
             {{ item }}
             <button
@@ -59,7 +59,7 @@ const MAX = 3;
               @click="select(item)"
             >
               <svg
-                class="h-3 w-3"
+                class="size-3"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -80,25 +80,26 @@ const MAX = 3;
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
-          class="input flex h-auto min-h-10 w-full cursor-pointer items-center justify-between gap-2 py-1.5 shadow-sm"
+          class="input flex w-full cursor-pointer items-center justify-between"
           :style="{ anchorName: cssAnchorName }"
         >
           <span v-if="selected.length" class="text-base-content/70">{{ selected.length }} selected</span>
-          <span v-else class="text-base-content/50">Select frameworks…</span>
-          <span class="text-xs opacity-60">{{ selectedCount }}/{{ MAX }}</span>
+          <span v-else class="text-base-content/70">Select frameworks…</span>
+          <span class="text-xs opacity-70">{{ selectedCount }}/{{ MAX }}</span>
         </button>
       </fieldset>
 
       <div
         :ref="setDropdownRef"
         popover="manual"
-        class="cbx-popup rounded-box bg-base-200 shadow-xl"
-        :style="{
-          positionAnchor: cssAnchorName,
-          top: 'calc(anchor(bottom) + 0.375rem)',
+        class="
+          cbx-popup rounded-box border border-base-content/5 bg-base-200
+          shadow-xl
+        "
+        :style="[popupStyle, {
           left: 'calc(anchor(left) - 0.25rem)',
           width: 'calc(anchor-size(width) + 0.5rem)',
-        }"
+        }]"
       >
         <div class="flex items-center gap-2 border-b border-base-content/10 p-2">
           <input
@@ -106,7 +107,7 @@ const MAX = 3;
             v-bind="inputProps"
             :value="searchQuery"
             type="text"
-            class="input input-sm flex-1"
+            class="input flex-1 input-sm"
             placeholder="Search…"
             aria-label="Search frameworks"
           />
@@ -132,24 +133,17 @@ const MAX = 3;
               :ref="(el) => setOptionRef(framework, el)"
               type="button"
               v-bind="getOptionProps(framework, index)"
-              class="justify-between shadow-none hover:bg-primary/20 hover:text-primary"
+              class="justify-between shadow-none"
               :class="{
                 'menu-active': isSelected(framework),
-                'hover:brightness-95': isSelected(framework),
-                'menu-focus': index === highlightedIndex && (canSelectMore || isSelected(framework)),
-
-                'bg-primary/20': index === highlightedIndex && (canSelectMore || isSelected(framework)),
-
-                'text-primary': index === highlightedIndex && (canSelectMore || isSelected(framework)),
-                'cursor-pointer': canSelectMore || isSelected(framework),
-                'pointer-events-none': !canSelectMore && !isSelected(framework),
-                'opacity-40': !canSelectMore && !isSelected(framework),
+                'menu-focus': index === highlightedIndex,
               }"
+              :disabled="!canSelectMore && !isSelected(framework)"
             >
               <span>{{ framework }}</span>
               <svg
                 v-if="isSelected(framework)"
-                class="h-4 w-4"
+                class="size-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -175,10 +169,10 @@ const MAX = 3;
   inset: auto;
   position-try: flip-block;
   opacity: 0;
-  translate: 0 -0.375rem;
+  margin-block-start: 0;
   transition:
     opacity 0.15s ease,
-    translate 0.15s ease,
+    margin-block-start 0.15s ease,
     overlay 0.15s ease allow-discrete,
     display 0.15s ease allow-discrete;
 
@@ -188,11 +182,11 @@ const MAX = 3;
 
   &:popover-open {
     opacity: 1;
-    translate: 0 0;
+    margin-block-start: 0.5rem;
 
     @starting-style {
       opacity: 0;
-      translate: 0 -0.375rem;
+      margin-block-start: 0;
     }
   }
 }

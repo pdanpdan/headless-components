@@ -46,32 +46,40 @@ watch(selected, () => {
   <div class="w-full max-w-sm">
     <HeadlessCombobox
       v-slot="{
-        isOpen, filteredOptions, highlightedIndex, searchQuery,
-        select, isSelected, canSelectMore, handleKeydown, cssAnchorName,
+        isOpen, filteredOptions, highlightedIndex, searchQuery, open,
+        select, isSelected, canSelectMore, handleKeydown, cssAnchorName, popupStyle,
         comboboxInputProps, listboxProps, getOptionProps, setContainerRef, setTriggerRef,
         setInputRef, setDropdownRef, setListRef, setOptionRef,
       }"
       v-model="selected"
       :options="languages"
       multiple
+      :max-length="3"
     >
       <fieldset
         :ref="setContainerRef"
-        class="fieldset w-full min-w-0"
+        class="fieldset"
       >
-        <legend :id="labelId" class="fieldset-legend font-semibold">Topics (typeahead, removable chips in the field)</legend>
+        <legend :id="labelId" class="fieldset-legend">Topics (typeahead, removable chips in the field)</legend>
+        <!-- eslint-disable-next-line vue-a11y/click-events-have-key-events, vue-a11y/no-static-element-interactions -- the inner input is the keyboard-operable control; this only widens the pointer target -->
         <div
-          class="input flex min-w-0 w-full items-center gap-1"
+          class="
+            input flex h-auto min-h-10 w-full min-w-0 items-center gap-1 py-1.5
+          "
           :style="{ anchorName: cssAnchorName }"
+          @click.self="open"
         >
           <div
             ref="chipsRef"
-            class="flex min-w-0 items-center gap-1 overflow-x-auto"
+            class="
+              flex min-h-10 min-w-0 scrollbar-thin items-center gap-1
+              overflow-x-auto
+            "
           >
             <span
               v-for="item in selected"
               :key="item"
-              class="badge badge-soft badge-primary gap-1 pr-1"
+              class="badge gap-1 badge-soft pr-0"
             >
               {{ item }}
               <button
@@ -82,7 +90,7 @@ watch(selected, () => {
                 @click.stop="select(item)"
               >
                 <svg
-                  class="h-3 w-3"
+                  class="size-3"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -123,13 +131,14 @@ watch(selected, () => {
         :ref="(el) => { setDropdownRef(el); setListRef(el); }"
         v-bind="listboxProps"
         popover="manual"
-        class="cbx-popup menu max-h-60 flex-nowrap gap-0.5 rounded-box bg-base-200 shadow-xl"
-        :style="{
-          positionAnchor: cssAnchorName,
-          top: 'calc(anchor(bottom) + 0.375rem)',
+        class="
+          cbx-popup menu max-h-60 flex-nowrap gap-0.5 rounded-box border
+          border-base-content/5 bg-base-200 shadow-xl
+        "
+        :style="[popupStyle, {
           left: 'calc(anchor(left) - 0.25rem)',
           width: 'calc(anchor-size(width) + 0.5rem)',
-        }"
+        }]"
       >
         <li
           v-for="(language, index) in filteredOptions"
@@ -139,22 +148,18 @@ watch(selected, () => {
             :ref="(el) => setOptionRef(language, el)"
             type="button"
             v-bind="getOptionProps(language, index)"
-            class="justify-between shadow-none hover:bg-primary/20 hover:text-primary"
+            class="justify-between shadow-none"
             :class="{
               'menu-active': isSelected(language),
-              'hover:brightness-95': isSelected(language),
               'menu-focus': index === highlightedIndex,
-
-              'bg-primary/20': index === highlightedIndex,
-
-              'text-primary': index === highlightedIndex,
               'cursor-pointer': canSelectMore || isSelected(language),
             }"
+            :disabled="!canSelectMore && !isSelected(language)"
           >
             <span>{{ language }}</span>
             <svg
               v-if="isSelected(language)"
-              class="h-4 w-4"
+              class="size-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -171,7 +176,9 @@ watch(selected, () => {
 
         <li
           v-if="filteredOptions.length === 0"
-          class="pointer-events-none p-4 text-center text-sm text-base-content/50"
+          class="
+            pointer-events-none p-4 text-center text-sm text-base-content/70
+          "
           role="presentation"
         >
           No matches.
@@ -187,10 +194,10 @@ watch(selected, () => {
   inset: auto;
   position-try: flip-block;
   opacity: 0;
-  translate: 0 -0.375rem;
+  margin-block-start: 0;
   transition:
     opacity 0.15s ease,
-    translate 0.15s ease,
+    margin-block-start 0.15s ease,
     overlay 0.15s ease allow-discrete,
     display 0.15s ease allow-discrete;
 
@@ -200,11 +207,11 @@ watch(selected, () => {
 
   &:popover-open {
     opacity: 1;
-    translate: 0 0;
+    margin-block-start: 0.5rem;
 
     @starting-style {
       opacity: 0;
-      translate: 0 -0.375rem;
+      margin-block-start: 0;
     }
   }
 }

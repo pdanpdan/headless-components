@@ -271,12 +271,12 @@ Merge overrides with an array (`:style="[popupStyle, { top: '…' }]"`). A simpl
   inset: auto;
   position-try: flip-block;
   opacity: 0;
-  translate: 0 -0.375rem;
+  margin-block-start: 0;
 
   @media (prefers-reduced-motion: no-preference) {
     transition:
       opacity 0.15s ease,
-      translate 0.15s ease,
+      margin-block-start 0.15s ease,
       overlay 0.15s ease allow-discrete,
       display 0.15s ease allow-discrete;
   }
@@ -287,11 +287,11 @@ Merge overrides with an array (`:style="[popupStyle, { top: '…' }]"`). A simpl
 
   &:popover-open {
     opacity: 1;
-    translate: 0 0;
+    margin-block-start: 0.5rem;
 
     @starting-style {
       opacity: 0;
-      translate: 0 -0.375rem;
+      margin-block-start: 0;
     }
   }
 }

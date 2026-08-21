@@ -64,7 +64,7 @@ const {
 <template>
   <div class="w-full max-w-sm">
     <div class="flex flex-col gap-3">
-      <p class="text-xs text-base-content/60">Drive it from anywhere:</p>
+      <p class="text-xs text-base-content/80">Drive it from anywhere:</p>
       <div class="cbx-controls flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -96,26 +96,26 @@ const {
         </button>
       </div>
 
-      <p class="text-xs text-base-content/50">
+      <p class="text-xs text-base-content/80">
         Selected: {{ selected?.name ?? 'none' }} · popup {{ isOpen ? 'open' : 'closed' }}
       </p>
 
       <fieldset
         :ref="setContainerRef"
-        class="flex flex-col gap-1"
+        class="fieldset"
       >
-        <legend :id="labelId" class="font-semibold">Member (composable, programmatic)</legend>
+        <legend :id="labelId" class="fieldset-legend">Member (composable, programmatic)</legend>
         <button
           :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
-          class="input flex w-full cursor-pointer items-center justify-between shadow-sm"
+          class="input flex w-full cursor-pointer items-center justify-between"
           :style="{ anchorName: cssAnchorName }"
         >
-          <span :class="{ 'text-base-content/50': selected == null }">{{ selected?.name ?? 'Select a member…' }}</span>
+          <span :class="{ 'text-base-content/70': selected == null }">{{ selected?.name ?? 'Select a member…' }}</span>
           <svg
-            class="h-4 w-4 opacity-50"
+            class="size-4 opacity-70"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -133,7 +133,10 @@ const {
           :ref="(el) => { setDropdownRef(el); setListRef(el); }"
           v-bind="listboxProps"
           popover="manual"
-          class="cbx-popup menu max-h-60 flex-nowrap gap-0.5 rounded-box bg-base-200 shadow-xl"
+          class="
+            cbx-popup menu max-h-60 flex-nowrap gap-0.5 rounded-box border
+            border-base-content/5 bg-base-200 shadow-xl
+          "
           :style="popupStyle"
         >
           <li
@@ -152,7 +155,7 @@ const {
             >
               <span class="flex flex-col items-start">
                 <span>{{ user.name }}</span>
-                <span class="text-xs opacity-60">{{ user.role }}</span>
+                <span class="text-xs opacity-70">{{ user.role }}</span>
               </span>
             </button>
           </li>
@@ -168,10 +171,10 @@ const {
   inset: auto;
   position-try: flip-block;
   opacity: 0;
-  translate: 0 -0.375rem;
+  margin-block-start: 0;
   transition:
     opacity 0.15s ease,
-    translate 0.15s ease,
+    margin-block-start 0.15s ease,
     overlay 0.15s ease allow-discrete,
     display 0.15s ease allow-discrete;
 
@@ -181,11 +184,11 @@ const {
 
   &:popover-open {
     opacity: 1;
-    translate: 0 0;
+    margin-block-start: 0.5rem;
 
     @starting-style {
       opacity: 0;
-      translate: 0 -0.375rem;
+      margin-block-start: 0;
     }
   }
 }

@@ -29,8 +29,8 @@ const labelId = useId();
   <div class="w-full max-w-sm">
     <HeadlessCombobox
       v-slot="{
-        filteredOptions, highlightedIndex, isSelected, canSelectMore,
-        cssAnchorName, triggerProps, listboxProps,
+        filteredOptions, highlightedIndex, isSelected,
+        cssAnchorName, popupStyle, triggerProps, listboxProps,
         getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setListRef, setOptionRef,
       }"
       v-model="selected"
@@ -39,20 +39,20 @@ const labelId = useId();
     >
       <fieldset
         :ref="setContainerRef"
-        class="fieldset w-full"
+        class="fieldset"
       >
-        <legend :id="labelId" class="fieldset-legend font-semibold">Framework (single, select on tab)</legend>
+        <legend :id="labelId" class="fieldset-legend">Framework (single, select on tab)</legend>
         <button
           :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
-          class="input flex w-full cursor-pointer items-center justify-between shadow-sm"
+          class="input flex w-full cursor-pointer items-center justify-between"
           :style="{ anchorName: cssAnchorName }"
         >
-          <span :class="{ 'text-base-content/50': selected == null }">{{ selected ?? 'Select a framework…' }}</span>
+          <span :class="{ 'text-base-content/70': selected == null }">{{ selected ?? 'Select a framework…' }}</span>
           <svg
-            class="h-4 w-4 opacity-50"
+            class="size-4 opacity-70"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -71,13 +71,14 @@ const labelId = useId();
         :ref="(el) => { setDropdownRef(el); setListRef(el); }"
         v-bind="listboxProps"
         popover="manual"
-        class="cbx-popup menu max-h-60 flex-nowrap gap-0.5 rounded-box bg-base-200 shadow-xl"
-        :style="{
-          positionAnchor: cssAnchorName,
-          top: 'calc(anchor(bottom) + 0.375rem)',
+        class="
+          cbx-popup menu max-h-60 flex-nowrap gap-0.5 rounded-box border
+          border-base-content/5 bg-base-200 shadow-xl
+        "
+        :style="[popupStyle, {
           left: 'calc(anchor(left) - 0.25rem)',
           width: 'calc(anchor-size(width) + 0.5rem)',
-        }"
+        }]"
       >
         <li
           v-for="(framework, index) in filteredOptions"
@@ -87,22 +88,16 @@ const labelId = useId();
             :ref="(el) => setOptionRef(framework, el)"
             type="button"
             v-bind="getOptionProps(framework, index)"
-            class="justify-between shadow-none hover:bg-primary/20 hover:text-primary"
+            class="justify-between shadow-none"
             :class="{
               'menu-active': isSelected(framework),
-              'hover:brightness-95': isSelected(framework),
               'menu-focus': index === highlightedIndex,
-
-              'bg-primary/20': index === highlightedIndex,
-
-              'text-primary': index === highlightedIndex,
-              'cursor-pointer': canSelectMore || isSelected(framework),
             }"
           >
             <span>{{ framework }}</span>
             <svg
               v-if="isSelected(framework)"
-              class="h-4 w-4"
+              class="size-4"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -124,17 +119,15 @@ const labelId = useId();
 <style scoped>
 /* Popup opens below the control: slide + fade via the Popover API. */
 .cbx-popup {
-  /* The popover UA pins the element with `inset: 0`, so reset it and let
-     `flip-block` flip the anchored position when there is no space. */
   inset: auto;
   position-try: flip-block;
   opacity: 0;
-  translate: 0 -0.375rem;
+  margin-block-start: 0;
 
   @media (prefers-reduced-motion: no-preference) {
     transition:
       opacity 0.15s ease,
-      translate 0.15s ease,
+      margin-block-start 0.15s ease,
       overlay 0.15s ease allow-discrete,
       display 0.15s ease allow-discrete;
   }
@@ -145,11 +138,11 @@ const labelId = useId();
 
   &:popover-open {
     opacity: 1;
-    translate: 0 0;
+    margin-block-start: 0.5rem;
 
     @starting-style {
       opacity: 0;
-      translate: 0 -0.375rem;
+      margin-block-start: 0;
     }
   }
 }

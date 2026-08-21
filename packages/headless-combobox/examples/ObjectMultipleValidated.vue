@@ -34,8 +34,8 @@ const labelId = useId();
     <HeadlessCombobox
       v-slot="{
         filteredOptions, highlightedIndex, searchQuery,
-        isSelected, canSelectMore, selectedCount, valid, validationMessage,
-        cssAnchorName, triggerProps, inputProps, listboxProps, getOptionProps,
+        clear, isSelected, canSelectMore, selectedCount, valid, validationMessage,
+        cssAnchorName, popupStyle, triggerProps, inputProps, listboxProps, getOptionProps,
         setContainerRef, setTriggerRef, setDropdownRef, setInputRef, setListRef, setOptionRef,
       }"
       v-model="selected"
@@ -48,23 +48,23 @@ const labelId = useId();
     >
       <fieldset
         :ref="setContainerRef"
-        class="fieldset w-full"
+        class="fieldset"
       >
-        <legend :id="labelId" class="fieldset-legend font-semibold">Reviewers (multiple, 2–4 required)</legend>
+        <legend :id="labelId" class="fieldset-legend">Reviewers (multiple, 2–4 required)</legend>
         <button
           :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
-          class="input flex w-full cursor-pointer items-center justify-between shadow-sm"
+          class="input flex w-full cursor-pointer items-center justify-between"
           :class="valid ? '' : 'input-error'"
           :style="{ anchorName: cssAnchorName }"
         >
-          <span :class="{ 'text-base-content/50': selectedCount === 0 }">
+          <span :class="{ 'text-base-content/70': selectedCount === 0 }">
             {{ selectedCount ? `${ selectedCount } selected` : 'Select reviewers…' }}
           </span>
           <svg
-            class="h-4 w-4 opacity-50"
+            class="size-4 opacity-70"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -88,24 +88,32 @@ const labelId = useId();
       <div
         :ref="setDropdownRef"
         popover="manual"
-        class="cbx-popup rounded-box bg-base-200 shadow-xl"
-        :style="{
-          positionAnchor: cssAnchorName,
-          top: 'calc(anchor(bottom) + 0.375rem)',
+        class="
+          cbx-popup rounded-box border border-base-content/5 bg-base-200
+          shadow-xl
+        "
+        :style="[popupStyle, {
           left: 'calc(anchor(left) - 0.25rem)',
           width: 'calc(anchor-size(width) + 0.5rem)',
-        }"
+        }]"
       >
-        <div class="border-b border-base-content/10 p-2">
+        <div class="flex items-center gap-2 border-b border-base-content/10 p-2">
           <input
             :ref="setInputRef"
             v-bind="inputProps"
             :value="searchQuery"
             type="text"
-            class="input input-sm w-full"
+            class="input flex-1 input-sm"
             placeholder="Search reviewers…"
             aria-label="Search reviewers"
           />
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm"
+            @click="clear"
+          >
+            Clear
+          </button>
         </div>
 
         <ul
@@ -121,27 +129,20 @@ const labelId = useId();
               :ref="(el) => setOptionRef(user, el)"
               type="button"
               v-bind="getOptionProps(user, index)"
-              class="justify-between shadow-none hover:bg-primary/20 hover:text-primary"
+              class="justify-between shadow-none"
               :class="{
                 'menu-active': isSelected(user),
-                'hover:brightness-95': isSelected(user),
-                'menu-focus': index === highlightedIndex && (canSelectMore || isSelected(user)),
-
-                'bg-primary/20': index === highlightedIndex && (canSelectMore || isSelected(user)),
-
-                'text-primary': index === highlightedIndex && (canSelectMore || isSelected(user)),
-                'cursor-pointer': canSelectMore || isSelected(user),
-                'pointer-events-none': !canSelectMore && !isSelected(user),
-                'opacity-40': !canSelectMore && !isSelected(user),
+                'menu-focus': index === highlightedIndex,
               }"
+              :disabled="!canSelectMore && !isSelected(user)"
             >
               <span class="flex flex-col items-start gap-0.5">
                 <span>{{ user.name }}</span>
-                <span class="text-xs opacity-60">{{ user.role }}</span>
+                <span class="text-xs opacity-70">{{ user.role }}</span>
               </span>
               <svg
                 v-if="isSelected(user)"
-                class="h-4 w-4"
+                class="size-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -167,10 +168,10 @@ const labelId = useId();
   inset: auto;
   position-try: flip-block;
   opacity: 0;
-  translate: 0 -0.375rem;
+  margin-block-start: 0;
   transition:
     opacity 0.15s ease,
-    translate 0.15s ease,
+    margin-block-start 0.15s ease,
     overlay 0.15s ease allow-discrete,
     display 0.15s ease allow-discrete;
 
@@ -180,11 +181,11 @@ const labelId = useId();
 
   &:popover-open {
     opacity: 1;
-    translate: 0 0;
+    margin-block-start: 0.5rem;
 
     @starting-style {
       opacity: 0;
-      translate: 0 -0.375rem;
+      margin-block-start: 0;
     }
   }
 }
