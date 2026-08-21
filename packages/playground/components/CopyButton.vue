@@ -25,7 +25,7 @@ async function copy() {
 <template>
   <button
     type="button"
-    class="btn btn-square btn-xs tooltip tooltip-left"
+    class="tooltip btn tooltip-left btn-square btn-xs"
     :data-tip="copied ? 'Copied!' : 'Copy'"
     aria-label="Copy to clipboard"
     @click="copy"

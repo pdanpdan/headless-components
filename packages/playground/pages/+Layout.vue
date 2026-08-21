@@ -53,9 +53,19 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="min-h-screen bg-base-100 text-base-content xl:grid xl:grid-cols-[16rem_minmax(0,1fr)] 2xl:grid-cols-[16rem_minmax(0,1fr)_minmax(16rem,28rem)]"
+    class="
+      min-h-screen bg-base-100 text-base-content
+      xl:grid xl:grid-cols-[18rem_minmax(0,1fr)]
+      2xl:grid-cols-[16rem_minmax(0,1fr)_minmax(18rem,28rem)]
+    "
   >
-    <aside class="border-b border-base-300 xl:sticky xl:top-0 xl:h-screen xl:overflow-y-auto xl:border-r xl:border-b-0">
+    <aside
+      class="
+        border-base-300
+        max-xl:border-b
+        xl:sticky xl:top-0 xl:h-screen xl:overflow-y-auto xl:border-r
+      "
+    >
       <div class="flex items-center justify-between gap-2 p-4">
         <a :href="normalizeHref('/')" class="flex items-center gap-2 px-2 py-3">
           <span class="text-lg font-bold">Headless Components</span>
@@ -64,32 +74,66 @@ onUnmounted(() => {
         <ThemeToggle />
       </div>
 
-      <nav class="flex flex-col gap-1 p-4 pt-0">
-        <AppLink href="/">Overview</AppLink>
+      <nav>
+        <ul class="menu w-full flex-nowrap gap-1 p-4 pt-0">
+          <li>
+            <AppLink v-slot="{ active, href }" href="/">
+              <a
+                :href
+                class="docs-menu-focusable py-2 tracking-wider"
+                :class="{ 'docs-menu-active': active }"
+              >
+                Overview
+              </a>
+            </AppLink>
+          </li>
 
-        <p class="px-3 pt-4 pb-1 text-xs font-semibold tracking-wide text-base-content/50 uppercase">
-          Components
-        </p>
-        <AppLink
-          v-for="item in components"
-          :key="item.href"
-          :href="item.href"
-        >
-          {{ item.label }}
-        </AppLink>
+          <li>
+            <p
+              class="
+                menu-title font-semibold tracking-widest
+                [font-variant:small-caps]
+              "
+            >
+              Components
+            </p>
+          </li>
 
-        <p class="px-3 pt-4 pb-1 text-xs font-semibold tracking-wide text-base-content/50 uppercase">
-          Links
-        </p>
-        <a
-          :href="repoUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-primary/10 hover:text-primary"
-        >
-          <MdiIcon :path="mdiGithub" class="size-5" />
-          GitHub
-        </a>
+          <li v-for="item in components" :key="item.href">
+            <AppLink v-slot="{ active, href }" :href="item.href">
+              <a
+                :href
+                class="docs-menu-focusable py-2 tracking-wider"
+                :class="{ 'docs-menu-active': active }"
+              >
+                {{ item.label }}
+              </a>
+            </AppLink>
+          </li>
+
+          <li>
+            <p
+              class="
+                menu-title font-semibold tracking-widest
+                [font-variant:small-caps]
+              "
+            >
+              Links
+            </p>
+          </li>
+
+          <li>
+            <a
+              class="docs-menu-focusable py-2 tracking-wider"
+              :href="repoUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <MdiIcon :path="mdiGithub" class="size-5" />
+              GitHub
+            </a>
+          </li>
+        </ul>
       </nav>
     </aside>
 
@@ -99,11 +143,17 @@ onUnmounted(() => {
     >
       <div
         v-if="tocItems.length > 0"
-        class="toc-dropdown sticky top-0 z-20 mb-4 2xl:hidden"
+        class="
+          toc-dropdown sticky top-0 z-20 mb-4
+          2xl:hidden
+        "
       >
         <details
           ref="tocDropdownRef"
-          class="collapse collapse-arrow rounded-box border border-base-300 bg-base-100/95 shadow-sm backdrop-blur"
+          class="
+            collapse-arrow collapse rounded-box border border-base-300
+            bg-base-200/95 shadow-md backdrop-blur-sm
+          "
         >
           <summary class="collapse-title text-sm font-semibold">
             On this page
@@ -122,15 +172,26 @@ onUnmounted(() => {
       <slot />
     </main>
 
-    <aside class="hidden border-l border-base-300 2xl:block">
+    <aside
+      v-if="tocItems.length > 0"
+      class="
+        hidden border-l border-base-300
+        2xl:block
+      "
+    >
       <!-- The column is always present at 2xl so the grid never shifts when
            the headings are injected after mount. -->
-      <div v-if="tocItems.length > 0" class="2xl:sticky 2xl:top-0 2xl:h-screen">
+      <div class="2xl:sticky 2xl:top-0 2xl:h-screen">
         <nav
           aria-label="On this page"
-          class="flex flex-col gap-2 p-4"
+          class="flex flex-col flex-nowrap gap-2 p-4"
         >
-          <p class="px-3 text-xs font-semibold tracking-wide text-base-content/50 uppercase">
+          <p
+            class="
+              px-3 text-xs font-semibold tracking-wide text-base-content/50
+              uppercase
+            "
+          >
             On this page
           </p>
           <TocMenu :items="tocItems" />
@@ -140,7 +201,7 @@ onUnmounted(() => {
   </div>
 </template>
 
-<style>
+<style scoped>
 /* Square the dropdown's top corners while it is pinned to the scrollport top.
    The sticky wrapper is the scroll-state container; the query styles its
    child (Chrome 133+ — rounded elsewhere). */

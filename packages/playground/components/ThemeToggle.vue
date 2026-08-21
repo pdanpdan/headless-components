@@ -56,7 +56,7 @@ onMounted(() => {
 <template>
   <label
     ref="labelEl"
-    class="swap swap-rotate toggle-theme"
+    class="toggle-theme swap swap-rotate"
     title="Toggle light/dark theme"
   >
     <input
@@ -65,8 +65,8 @@ onMounted(() => {
       aria-label="Toggle light/dark theme"
       @change="toggleTheme"
     />
-    <MdiIcon :path="mdiWhiteBalanceSunny" class="swap-off size-6" />
-    <MdiIcon :path="mdiWeatherNight" class="swap-on size-6" />
+    <MdiIcon :path="mdiWhiteBalanceSunny" class="size-6 swap-off" />
+    <MdiIcon :path="mdiWeatherNight" class="size-6 swap-on" />
   </label>
 </template>
 

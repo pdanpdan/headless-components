@@ -86,6 +86,10 @@ main :is(h1, h2, h3, h4, h5, h6) {
   &:not(:has(.heading-link)) {
     padding-inline-end: 0.2em;
   }
+
+  &:hover .heading-hash {
+    opacity: 0.5;
+  }
 }
 .heading-link {
   color: inherit;
@@ -93,15 +97,35 @@ main :is(h1, h2, h3, h4, h5, h6) {
   padding-inline-start: 0.75em;
   padding-inline-end: 0.2em;
   margin-inline-start: -0.75em;
+
+  &:focus-visible .heading-hash {
+    opacity: 0.5;
+  }
 }
 .heading-hash {
   position: absolute;
-  inset-inline-start: -0.65em;
+  inset-inline-start: -0.7em;
   opacity: 0;
-  color: var(--color-base-content);
-}
-main :is(h1, h2, h3, h4, h5, h6):hover .heading-hash,
-.heading-link:focus-visible .heading-hash {
-  opacity: 0.5;
 }
 
+.menu-focus.menu-active {
+  @apply outline-2 -outline-offset-4 outline-neutral-content/70 outline-solid;
+}
+
+@utility docs-menu-focusable {
+  @apply border-s-4 border-e-4 border-transparent;
+
+  &:hover,
+  &:focus-visible {
+    @apply bg-primary/5 text-primary
+  }
+}
+
+@utility docs-menu-active {
+  @apply bg-primary text-primary-content shadow-none;
+
+  &:hover,
+  &:focus-visible {
+    @apply border-primary;
+  }
+}

@@ -17,16 +17,24 @@ const components = [
       <p class="max-w-2xl text-base-content/70">A collection of headless (unstyled) Vue 3 components. Each component ships zero styles and exposes state, actions, and ARIA attributes through scoped slots &mdash; style them with daisyUI 5 / Tailwind 4, or any CSS you like.</p>
     </header>
 
-    <div class="grid gap-4 sm:grid-cols-2">
+    <div
+      class="
+        grid gap-4
+        sm:grid-cols-2
+      "
+    >
       <a
         v-for="c in components"
         :key="c.href"
         :href="normalizeHref(c.href)"
-        class="card border border-base-content/10 bg-base-content/2 transition-shadow hover:bg-base-content/3 hover:shadow-md"
+        class="
+          card border border-base-content/10 bg-base-200
+          hover:bg-base-300
+        "
       >
         <div class="card-body">
-          <h2 class="card-title">{{ c.name }}</h2>
-          <p class="text-sm text-base-content/70">{{ c.description }}</p>
+          <h2 class="card-title" data-skip-toc>{{ c.name }}</h2>
+          <p class="text-base-content/80">{{ c.description }}</p>
         </div>
       </a>
     </div>

@@ -26,7 +26,7 @@ export function injectHeadingLinks(root: HTMLElement): HeadingLink[] {
   const headings = root.querySelectorAll<HTMLHeadingElement>('h1, h2, h3, h4, h5, h6');
 
   for (const heading of headings) {
-    if (heading.hasAttribute(LINKED_MARKER)) {
+    if (heading.hasAttribute(LINKED_MARKER) || heading.dataset.skipToc !== undefined) {
       continue;
     }
     const text = heading.textContent?.trim() ?? '';

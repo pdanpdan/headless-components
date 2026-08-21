@@ -172,15 +172,15 @@ const structureRows = [
         href="https://github.com/pdanpdan/headless-components/tree/main/packages/headless-combobox"
         target="_blank"
         rel="noopener noreferrer"
-        class="link link-primary inline-flex items-center gap-1.5 text-sm"
+        class="flex link items-center gap-1.5 text-sm link-primary"
       >
         <MdiIcon :path="mdiGithub" class="size-5" />
         github.com/pdanpdan/headless-components/packages/headless-combobox
       </a>
-      <p class="text-base-content/70">An accessible, renderless combobox. It renders nothing on its own &mdash; the default scoped slot exposes state, ARIA prop bags, and actions so you own 100% of the markup and styling. The same state machine is also available as the <code>useHeadlessCombobox</code> composable. Supports single or multiple selection (with min/max counts) and reactive validation.</p>
+      <p class="text-base-content/80">An accessible, renderless combobox. It renders nothing on its own &mdash; the default scoped slot exposes state, ARIA prop bags, and actions so you own 100% of the markup and styling. The same state machine is also available as the <code>useHeadlessCombobox</code> composable. Supports single or multiple selection (with min/max counts) and reactive validation.</p>
     </header>
 
-    <section class="flex flex-col gap-2">
+    <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">Installation</h2>
       <CodeBlock
         :code="SnippetInstallSource.html"
@@ -191,10 +191,15 @@ const structureRows = [
 
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">Structure</h2>
-      <p class="text-sm text-base-content/70">The component renders nothing on its own — you build the markup and bind the slot scope to it. The markup follows the ARIA combobox pattern: a <strong>trigger</strong> that opens a <strong>popup</strong> listing the <strong>options</strong>, optionally with a search input. This is where each slot prop is designed to be used:</p>
+      <p class="text-sm text-base-content/80">The component renders nothing on its own — you build the markup and bind the slot scope to it. The markup follows the ARIA combobox pattern: a <strong>trigger</strong> that opens a <strong>popup</strong> listing the <strong>options</strong>, optionally with a search input. This is where each slot prop is designed to be used:</p>
 
       <p class="text-sm font-semibold">Trigger + popup — a button opens a list below it; most examples use this layout.</p>
-      <div class="overflow-x-auto rounded-box bg-[#0d1117] p-5 font-mono text-sm leading-6 text-[#e6edf3]">
+      <div
+        class="
+          overflow-x-auto rounded-box bg-neutral p-5 font-mono text-sm/6
+          text-neutral-content
+        "
+      >
         <pre class="min-w-0"><code>HeadlessCombobox (default slot scope)
 └─ div :ref="setContainerRef"                       widget boundary (optional)
    ├─ button :ref="setTriggerRef"                   the trigger
@@ -210,7 +215,12 @@ const structureRows = [
            v-bind="inputProps"</code></pre>
       </div>
       <p class="text-sm font-semibold">Typeahead — the text input itself is the combobox; typing reopens the popup and filters.</p>
-      <div class="overflow-x-auto rounded-box bg-[#0d1117] p-5 font-mono text-sm leading-6 text-[#e6edf3]">
+      <div
+        class="
+          overflow-x-auto rounded-box bg-neutral p-5 font-mono text-sm/6
+          text-neutral-content
+        "
+      >
         <pre class="min-w-0"><code>HeadlessCombobox (default slot scope)
 └─ div :ref="setContainerRef"                       widget boundary (optional)
    ├─ input :ref="setTriggerRef"                    the combobox input
@@ -223,18 +233,22 @@ const structureRows = [
                  v-bind="getOptionProps(option, i)"</code></pre>
       </div>
 
-      <div class="card border border-base-content/10 bg-base-content/2 overflow-x-auto">
+      <div
+        class="
+          card overflow-x-auto border border-base-content/5 bg-base-content/2
+        "
+      >
         <div class="card-body gap-3">
           <h3 class="card-title text-base">Markup &rarr; slot props</h3>
           <PropTable :rows="structureRows" />
         </div>
       </div>
 
-      <p class="text-sm text-base-content/70">Ref setters are wired with <code>:ref</code> and are optional; <code>setOptionRef</code> enables <code>alignSelected</code> and scroll-into-view, and <code>setContainerRef</code> extends the click-outside boundary (e.g. to external chips).</p>
+      <p class="text-sm text-base-content/80">Ref setters are wired with <code>:ref</code> and are optional; <code>setOptionRef</code> enables <code>alignSelected</code> and scroll-into-view, and <code>setContainerRef</code> extends the click-outside boundary (e.g. to external chips).</p>
 
-      <p class="text-sm text-base-content/70">The popup is positioned with CSS anchor positioning: the trigger needs <code>:style="{ anchorName: cssAnchorName }"</code>, and the popup gets <code>:style="popupStyle"</code> plus <code>popover="manual"</code> — the component then drives it with the native Popover API (top-layer rendering, no <code>v-if</code>). Animate the open state with CSS transitions on <code>:popover-open</code>, like the examples do.</p>
+      <p class="text-sm text-base-content/80">The popup is positioned with CSS anchor positioning: the trigger needs <code>:style="{ anchorName: cssAnchorName }"</code>, and the popup gets <code>:style="popupStyle"</code> plus <code>popover="manual"</code> — the component then drives it with the native Popover API (top-layer rendering, no <code>v-if</code>). Animate the open state with CSS transitions on <code>:popover-open</code>, like the examples do.</p>
 
-      <p class="text-sm text-base-content/70">A simple popup style: hidden unless open, with a slide + fade entry animation (the <code>@starting-style</code> block plays the entry; the <code>overlay</code>/<code>display</code> transitions make the top-layer appearance and the <code>display: none</code> switch animatable):</p>
+      <p class="text-sm text-base-content/80">A simple popup style: hidden unless open, with a slide + fade entry animation (the <code>@starting-style</code> block plays the entry; the <code>overlay</code>/<code>display</code> transitions make the top-layer appearance and the <code>display: none</code> switch animatable):</p>
       <CodeBlock
         :code="SnippetPopupCssSource.html"
         :raw="SnippetPopupCssSource.raw"
@@ -245,12 +259,12 @@ const structureRows = [
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">Keyboard</h2>
       <PropTable :rows="interactionRows" />
-      <p class="text-sm text-base-content/70">Mouse interactions: clicking the trigger toggles the dropdown, hovering or focusing an option highlights it (the same highlight the keyboard drives), clicking an option selects it, and clicking outside the widget closes the dropdown. <code>Escape</code> works from anywhere inside the widget.</p>
+      <p class="text-sm text-base-content/80">Mouse interactions: clicking the trigger toggles the dropdown, hovering or focusing an option highlights it (the same highlight the keyboard drives), clicking an option selects it, and clicking outside the widget closes the dropdown. <code>Escape</code> works from anywhere inside the widget.</p>
     </section>
 
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">Examples</h2>
-      <p class="text-sm text-base-content/70">Each popup uses the native <strong>Popover API</strong> (top-layer, via <code>popover="manual"</code>) with the exposed <code>popupStyle</code> for anchor positioning. The keyboard-active and mouse-hovered option share the same highlight (via <code>setHighlightedIndex</code> on hover); the selection is shown separately with a check.</p>
+      <p class="text-sm text-base-content/80">Each popup uses the native <strong>Popover API</strong> (top-layer, via <code>popover="manual"</code>) with the exposed <code>popupStyle</code> for anchor positioning. The keyboard-active and mouse-hovered option share the same highlight (via <code>setHighlightedIndex</code> on hover); the selection is shown separately with a check.</p>
 
       <ExampleShowcase
         :title="textSingleTitle"
@@ -367,34 +381,49 @@ const structureRows = [
 
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">Composable</h2>
-      <p class="text-sm text-base-content/70">Two APIs, one state machine: the component renders its default slot with the scope below, and <code>useHeadlessCombobox</code> exposes the exact same state, ARIA prop bags, actions, and ref setters directly — the component is a thin wrapper around it. Use the component for slot-driven templates; use the composable for programmatic control, wrapper components, or non-slot layouts. Call it from <code>setup()</code>.</p>
-      <p class="text-sm text-base-content/70">Props accept plain values, refs, or a getter — pass your <code>modelValue</code> ref directly (unwrapped and tracked internally). The second argument receives every <code>update:modelValue</code> payload; write it back to your state.</p>
+      <p class="text-sm text-base-content/80">Two APIs, one state machine: the component renders its default slot with the scope below, and <code>useHeadlessCombobox</code> exposes the exact same state, ARIA prop bags, actions, and ref setters directly — the component is a thin wrapper around it. Use the component for slot-driven templates; use the composable for programmatic control, wrapper components, or non-slot layouts. Call it from <code>setup()</code>.</p>
+      <p class="text-sm text-base-content/80">Props accept plain values, refs, or a getter — pass your <code>modelValue</code> ref directly (unwrapped and tracked internally). The second argument receives every <code>update:modelValue</code> payload; write it back to your state.</p>
       <CodeBlock
         :code="SnippetComposableSource.html"
         :raw="SnippetComposableSource.raw"
         lang="vue"
       />
-      <p class="text-sm text-base-content/70">The <em>Composable · single · typeahead</em> and <em>Composable · programmatic control</em> examples above show full usage. The returned <code>HeadlessComboboxScope&lt;O, V, Q&gt;</code> mirrors the slot scope — refs for state, plain functions for actions and ref setters.</p>
+      <p class="text-sm text-base-content/80">The <em>Composable · single · typeahead</em> and <em>Composable · programmatic control</em> examples above show full usage. The returned <code>HeadlessComboboxScope&lt;O, V, Q&gt;</code> mirrors the slot scope — refs for state, plain functions for actions and ref setters.</p>
     </section>
 
     <section class="flex flex-col gap-4">
       <h2 class="text-xl font-semibold">API</h2>
 
-      <div v-if="props.length" class="card border border-base-content/10 bg-base-content/2 overflow-x-auto">
+      <div
+        v-if="props.length"
+        class="
+          card overflow-x-auto border border-base-content/5 bg-base-content/2
+        "
+      >
         <div class="card-body gap-3">
           <h3 class="card-title text-base">Props</h3>
           <PropTable :rows="props" show-default />
         </div>
       </div>
 
-      <div v-if="emits.length" class="card border border-base-content/10 bg-base-content/2 overflow-x-auto">
+      <div
+        v-if="emits.length"
+        class="
+          card overflow-x-auto border border-base-content/5 bg-base-content/2
+        "
+      >
         <div class="card-body gap-3">
           <h3 class="card-title text-base">Emits</h3>
           <PropTable :rows="emits" />
         </div>
       </div>
 
-      <div v-if="methods.length" class="card border border-base-content/10 bg-base-content/2 overflow-x-auto">
+      <div
+        v-if="methods.length"
+        class="
+          card overflow-x-auto border border-base-content/5 bg-base-content/2
+        "
+      >
         <div class="card-body gap-3">
           <h3 class="card-title text-base">Methods</h3>
           <PropTable :rows="methods" />
@@ -404,13 +433,20 @@ const structureRows = [
       <div
         v-for="slot in slots"
         :key="slot.name"
-        class="card border border-base-content/10 bg-base-content/2 overflow-x-auto"
+        class="
+          card overflow-x-auto border border-base-content/5 bg-base-content/2
+        "
       >
         <div class="card-body gap-4">
           <div class="flex flex-col gap-1">
             <h3 class="card-title text-base">
               Slot
-              <code class="rounded bg-base-200 px-1.5 py-0.5 font-mono text-sm font-normal">{{ slot.name }}</code>
+              <code
+                class="
+                  rounded-sm bg-base-200 px-1.5 py-0.5 font-mono text-sm
+                  font-normal
+                "
+              >{{ slot.name }}</code>
             </h3>
             <p class="text-xs text-base-content/60">{{ slot.description }}</p>
           </div>

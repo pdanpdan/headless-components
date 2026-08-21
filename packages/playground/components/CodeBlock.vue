@@ -13,13 +13,18 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-  <div class="code-block relative overflow-hidden rounded-box text-sm">
+  <div
+    class="
+      code-block relative overflow-hidden rounded-box bg-neutral text-sm
+      text-neutral-content
+    "
+  >
     <CopyButton
       :text="raw"
-      class="btn-neutral absolute top-2 right-4 z-10 outline-neutral-content"
+      class="absolute top-3.5 right-4 z-10 outline-neutral-content btn-neutral"
     />
 
-    <div class="max-h-[80vh] overflow-auto">
+    <div class="max-h-[60vh] overflow-auto">
       <!-- eslint-disable-next-line vue/no-v-html -->
       <div class="shiki-container" v-html="code" />
     </div>
@@ -28,8 +33,6 @@ withDefaults(defineProps<{
 
 <style scoped>
 .code-block {
-  background-color: #0d1117;
-
   :deep(pre.shiki) {
     margin: 0;
     padding: 1rem 1.25rem;

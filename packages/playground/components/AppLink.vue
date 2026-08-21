@@ -16,11 +16,5 @@ const active = computed(() => matchHref(props.href, pageContext.urlPathname));
 </script>
 
 <template>
-  <a
-    :href="normalizedHref"
-    class="block rounded-lg px-3 py-2 text-sm font-medium transition-colors"
-    :class="active ? 'bg-primary text-primary-content' : 'hover:bg-primary/10 hover:text-primary'"
-  >
-    <slot />
-  </a>
+  <slot :href="normalizedHref" :active />
 </template>

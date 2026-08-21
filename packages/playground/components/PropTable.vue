@@ -16,12 +16,17 @@ withDefaults(defineProps<{
 
 <template>
   <div class="overflow-x-auto">
-    <table class="table table-sm">
+    <table
+      class="
+        table
+        max-xl:table-sm
+      "
+    >
       <colgroup>
-        <col width="10%" />
-        <col width="20%" />
+        <col width="5%" />
+        <col width="25%" />
         <col v-if="showDefault" width="10%" />
-        <col width="60%" />
+        <col width="50%" />
       </colgroup>
       <thead>
         <tr>
@@ -33,10 +38,10 @@ withDefaults(defineProps<{
       </thead>
       <tbody>
         <tr v-for="row in rows" :key="row.name">
-          <td class="font-mono text-sm font-medium whitespace-nowrap">{{ row.name }}</td>
-          <td class="font-mono text-xs text-base-content/70">{{ row.type }}</td>
-          <td v-if="showDefault" class="font-mono text-xs">{{ row.default }}</td>
-          <td class="text-sm">{{ row.description }}</td>
+          <td class="font-mono font-semibold whitespace-nowrap">{{ row.name }}</td>
+          <td class="font-mono text-base-content/80">{{ row.type }}</td>
+          <td v-if="showDefault" class="font-mono">{{ row.default }}</td>
+          <td class="min-w-48">{{ row.description }}</td>
         </tr>
       </tbody>
     </table>

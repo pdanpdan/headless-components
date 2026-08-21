@@ -52,7 +52,7 @@ onUnmounted(() => {
 <template>
   <ul
     ref="listRef"
-    class="toc-list flex flex-col gap-0.5"
+    class="toc-list menu w-full flex-nowrap"
   >
     <li
       v-for="item in items"
@@ -60,10 +60,10 @@ onUnmounted(() => {
     >
       <a
         :href="`#${ item.id }`"
-        class="block rounded-lg px-3 py-1.5 text-sm text-base-content/70 transition-colors hover:bg-primary/10 hover:text-primary"
+        class="docs-menu-focusable text-base-content/90"
         :class="{
-          'pl-7': item.level === 3,
-          'pl-10': item.level === 4,
+          'ps-7': item.level === 3,
+          'ps-10': item.level === 4,
         }"
         @click="emit('select')"
       >

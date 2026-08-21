@@ -19,14 +19,22 @@ const tab = ref<'preview' | 'code'>('preview');
 </script>
 
 <template>
-  <section class="card border border-base-content/10 bg-base-content/2 shadow-sm">
+  <section
+    class="card border border-base-content/10 bg-base-content/2 shadow-xs"
+  >
     <div class="card-body gap-4">
       <header class="flex flex-col gap-1">
-        <h3 class="card-title text-lg">{{ title }}</h3>
-        <p v-if="description" class="text-sm text-base-content/70">{{ description }}</p>
+        <h3 class="card-title">{{ title }}</h3>
+        <p v-if="description" class="text-base-content/80">{{ description }}</p>
       </header>
 
-      <div role="tablist" class="tabs tabs-box w-fit">
+      <div
+        role="tablist"
+        class="
+          tabs tabs-box w-fit
+          max-xl:tabs-sm
+        "
+      >
         <button
           type="button"
           role="tab"
@@ -47,7 +55,13 @@ const tab = ref<'preview' | 'code'>('preview');
         </button>
       </div>
 
-      <div v-show="tab === 'preview'" class="flex min-h-40 items-start justify-center rounded-box border border-base-200 bg-base-100 p-8">
+      <div
+        v-show="tab === 'preview'"
+        class="
+          flex min-h-40 items-start justify-center rounded-box border
+          border-base-300 bg-base-100 p-8
+        "
+      >
         <slot />
       </div>
 
