@@ -21,16 +21,25 @@ function toggleTheme(event: Event) {
   }
 
   // Circle reveal geometry: the smallest circle centered on the toggle that
-  // covers the whole viewport.
+  // covers the whole viewport. The root view-transition snapshot is a
+  // viewport-sized box anchored at the top-left of the PAGE (not the
+  // viewport), so the clip-path coordinates must be page-relative. The rect
+  // is viewport-relative, hence the scroll offsets: without them the circle
+  // starts above the screen once the page is scrolled (e.g. on phones).
   const label = labelEl.value;
   if (!label) {
     applyTheme(isDark);
     return;
   }
   const rect = label.getBoundingClientRect();
-  const x = rect.left + rect.width / 2;
-  const y = rect.top + rect.height / 2;
-  const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+  const scrollX = window.scrollX;
+  const scrollY = window.scrollY;
+  const x = rect.left + rect.width / 2 + scrollX;
+  const y = rect.top + rect.height / 2 + scrollY;
+  const radius = Math.hypot(
+    Math.max(x - scrollX, scrollX + window.innerWidth - x),
+    Math.max(y - scrollY, scrollY + window.innerHeight - y),
+  );
 
   const root = document.documentElement;
   root.style.setProperty('--theme-reveal-x', `${ x }px`);
