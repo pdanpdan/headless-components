@@ -21,24 +21,37 @@ function toggleTheme(event: Event) {
   }
 
   // Circle reveal geometry: the smallest circle centered on the toggle that
-  // covers the whole viewport. The root view-transition snapshot is a
-  // viewport-sized box anchored at the top-left of the PAGE (not the
-  // viewport), so the clip-path coordinates must be page-relative. The rect
-  // is viewport-relative, hence the scroll offsets: without them the circle
-  // starts above the screen once the page is scrolled (e.g. on phones).
+  // covers the whole viewport. The clip-path is applied to the root
+  // view-transition snapshot, whose coordinate space ("snapshot root") is
+  // page-relative: its origin sits at the top-left of the PAGE, and on
+  // Chrome for Android underneath the URL bar, whose height insets the
+  // visible viewport (the browser shrinks the viewport to fit below the
+  // bar). getBoundingClientRect is relative to the visible viewport, so
+  // translate with scrollX/scrollY plus the URL bar height. Without the
+  // translation the circle starts above the screen once the page is scrolled
+  // or the URL bar is visible — on phones its center hides behind the bar and
+  // only the left part of the arc is ever on screen.
   const label = labelEl.value;
   if (!label) {
     applyTheme(isDark);
     return;
   }
   const rect = label.getBoundingClientRect();
-  const scrollX = window.scrollX;
-  const scrollY = window.scrollY;
-  const x = rect.left + rect.width / 2 + scrollX;
-  const y = rect.top + rect.height / 2 + scrollY;
+  // Chrome for Android only: the visible viewport is inset by the URL bar,
+  // so the snapshot root extends above it by that height. iOS Safari keeps
+  // the viewport full-height and overlays the bar, so the difference is 0.
+  const userAgentData = (navigator as Navigator & { userAgentData?: { mobile: boolean; }; }).userAgentData;
+  const isMobile = userAgentData
+    ? userAgentData.mobile
+    : /Mobi|Android/i.test(navigator.userAgent);
+  const urlBarHeight = isMobile ? Math.max(0, window.outerHeight - window.innerHeight) : 0;
+  const originX = window.scrollX;
+  const originY = window.scrollY + urlBarHeight;
+  const x = rect.left + rect.width / 2 + originX;
+  const y = rect.top + rect.height / 2 + originY;
   const radius = Math.hypot(
-    Math.max(x - scrollX, scrollX + window.innerWidth - x),
-    Math.max(y - scrollY, scrollY + window.innerHeight - y),
+    Math.max(x - originX, originX + window.innerWidth - x),
+    Math.max(y - originY, originY + window.innerHeight - y),
   );
 
   const root = document.documentElement;
