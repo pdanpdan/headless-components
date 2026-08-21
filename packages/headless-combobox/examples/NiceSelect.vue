@@ -81,10 +81,11 @@ const labelId = useId();
           border-base-content/5 bg-base-200 shadow-xl
         "
         :style="[popupStyle, {
-          // Menu padding (0.5rem) + popup border (1px) per side: the option
-          // content box then covers the field exactly.
-          left: 'calc(anchor(left) - 0.5rem - 1px)',
-          width: 'calc(anchor-size(width) + 1rem + 2px)',
+          // Menu padding (0.5rem) + popup border (1px) per side, minus the
+          // field's own border (1px per side): the option content box then
+          // covers the field's content box exactly.
+          left: 'calc(anchor(left) - 0.5rem)',
+          width: 'calc(anchor-size(width) + 1rem)',
         }]"
       >
         <li
