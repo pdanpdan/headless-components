@@ -1921,6 +1921,31 @@ describe('headless combobox (keyboard paging, home/end, tab)', () => {
     wired.wrapper.unmount();
   });
 
+  it('skips elements with a negative tabindex on Tab', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+    const rectSpy = mockVisibleRects();
+    // The toggle chevron in the examples is a tabindex="-1" button inside the
+    // widget; any negative tabindex must be skipped like the browser would.
+    const hidden = document.createElement('button');
+    hidden.type = 'button';
+    hidden.tabIndex = -2;
+    hidden.textContent = 'Hidden';
+    wired.els.container.appendChild(hidden);
+
+    wired.scope.open();
+    await nextTick();
+    wired.els.searchbox.focus();
+    wired.els.searchbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    await nextTick();
+
+    expect(document.activeElement).toBe(wired.els.outside);
+    expect(document.activeElement).not.toBe(hidden);
+
+    rectSpy.mockRestore();
+    wired.wrapper.unmount();
+  });
+
   it('goes backward on Shift+Tab from an option', async () => {
     const users = createUsers();
     const wired = mountWired(users);
