@@ -1,6 +1,7 @@
 import { env } from 'node:process';
 
 import antfu from '@antfu/eslint-config';
+import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss';
 
 export default antfu(
   {
@@ -144,6 +145,12 @@ export default antfu(
 
   {
     files: [ '**/*.vue' ],
+    extends: [ eslintPluginBetterTailwindcss.configs.recommended ],
+    settings: {
+      'better-tailwindcss': {
+        entryPoint: 'packages/playground/assets/style.css',
+      },
+    },
     languageOptions: {
       globals: {
         defineModel: 'readonly',
@@ -197,6 +204,24 @@ export default antfu(
         allowChildren: true,
       } ],
       'vue-a11y/media-has-caption': 'off',
+
+      // Classes defined in `<style>` blocks (or used as JS hooks) are not
+      // visible to the plugin: it only parses template attributes and the
+      // tailwind entry css (`@layer components` with `detectComponentClasses`).
+      'better-tailwindcss/no-unknown-classes': [
+        'error',
+        {
+          ignore: [
+            '^cbx-popup$',
+            '^cbx-controls$', // click-outside hook, no css
+            '^code-block$',
+            '^shiki-container$',
+            '^toggle-theme$',
+            '^toc-list$',
+            '^toc-dropdown$',
+          ],
+        },
+      ],
     },
   },
 );

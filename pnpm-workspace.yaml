@@ -23,6 +23,7 @@ catalogs:
     '@vue/test-utils': ^2.4.11
     daisyui: ^5.7.19
     eslint: ^10.8.1
+    eslint-plugin-better-tailwindcss: ^4.7.0
     eslint-plugin-vuejs-accessibility: ^2.6.0
     jsdom: ^30.0.1
     release-it: ^21.0.2
