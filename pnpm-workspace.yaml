@@ -17,12 +17,12 @@ catalogs:
     '@mdi/js': ^7.4.47
     '@release-it/conventional-changelog': ^12.0.0
     '@tailwindcss/vite': ^4.3.3
-    '@types/node': ^26.2.0
+    '@types/node': ^26.4.0
     '@vitejs/plugin-vue': ^6.0.8
     '@vitest/coverage-v8': ^4.1.11
-    '@vue/test-utils': ^2.4.11
-    daisyui: ^5.7.19
-    eslint: ^10.8.1
+    '@vue/test-utils': ^2.5.0
+    daisyui: ^5.7.22
+    eslint: ^10.9.1
     eslint-plugin-better-tailwindcss: ^4.7.0
     eslint-plugin-vuejs-accessibility: ^2.6.0
     jsdom: ^30.0.1
@@ -30,13 +30,13 @@ catalogs:
     shiki: ^4.4.3
     tailwindcss: ^4.3.3
     typescript: ^6.0.3
-    vike: ^0.4.260
+    vike: ^0.4.264
     vike-vue: ^0.9.13
     vite: ^8.2.2
     vite-plugin-dts: ^5.0.3
     vitest: ^4.1.11
-    vue: ^3.5.41
-    vue-tsc: ^3.3.10
+    vue: ^3.5.42
+    vue-tsc: ^3.3.11
 onlyBuiltDependencies:
   - esbuild
 allowBuilds:
