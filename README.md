@@ -6,7 +6,7 @@ Monorepo of headless (unstyled) Vue 3 components. Each component is a standalone
 
 | Package | Description |
 |---------|-------------|
-| `@pdanpdan/headless-combobox` | Accessible, renderless combobox with filtering and keyboard navigation |
+| [`@pdanpdan/headless-combobox`](packages/headless-combobox/README.md) | Accessible, renderless combobox with filtering and keyboard navigation |
 
 ## Development
 
