@@ -1,0 +1,53 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const PAGES_DIR = path.resolve(__dirname, '../pages');
+const OUTPUT_FILE = path.resolve(__dirname, '../public/sitemap.xml');
+const BASE_URL = 'https://pdanpdan.github.io/headless-components';
+
+function getPages(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const pages = [];
+
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const fullPath = path.join(dir, entry.name);
+      const hasPage = fs.existsSync(path.join(fullPath, '+Page.vue'));
+
+      if (hasPage) {
+        const route = entry.name === 'index' ? '' : entry.name;
+        pages.push(route ? `${ route }/` : '');
+      }
+    }
+  }
+
+  return pages;
+}
+
+const routes = getPages(PAGES_DIR);
+const lastmod = new Date().toISOString();
+
+const urls = routes
+  .map((route) => {
+    const priority = route === '' ? 1.0 : 0.8;
+
+    return `  <url>
+    <loc>${ BASE_URL }/${ route }</loc>
+    <lastmod>${ lastmod }</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>${ priority }</priority>
+  </url>`;
+  })
+  .join('\n');
+
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+${ urls }
+</urlset>`;
+
+fs.writeFileSync(OUTPUT_FILE, sitemap);
+console.log(`Sitemap generated with ${ routes.length } routes at ${ OUTPUT_FILE }`);

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "vike dev --host",
-    "build": "vike build",
+    "build": "node scripts/generate-sitemap.js && vike build",
     "preview": "vike preview",
     "lint": "pnpm --dir ../.. lint",
     "typecheck": "vue-tsc --noEmit",
