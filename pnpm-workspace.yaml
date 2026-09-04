@@ -1,29 +1,42 @@
+minimumReleaseAgeExcludePrune: true
 minimumReleaseAgeExclude:
-  - daisyui@5.7.19 || 5.7.24
+  - daisyui@5.7.19 || 5.7.24 || 5.7.28
   - vite@8.2.2
   - unplugin-dts@1.1.0
   - vite-plugin-dts@5.1.0
-shellEmulator: true
+  - '@vitest/coverage-v8@5.0.0'
+  - '@vitest/mocker@5.0.0'
+  - '@vitest/spy@5.0.0'
+  - vitest@5.0.0
 
 trustPolicy: no-downgrade
-
 trustPolicyExclude:
   - semver@6.3.1
   - undici@6.22.0
   - undici-types@6.21.0
+
+shellEmulator: true
+
 packages:
   - packages/*
+
+allowBuilds:
+  esbuild: true
+
+onlyBuiltDependencies:
+  - esbuild
+
 catalogs:
   default:
-    '@antfu/eslint-config': ^9.3.0
+    '@antfu/eslint-config': ^9.5.1
     '@mdi/js': ^7.4.47
     '@release-it/conventional-changelog': ^12.0.0
     '@tailwindcss/vite': ^4.3.3
-    '@types/node': ^26.4.0
+    '@types/node': ^26.4.1
     '@vitejs/plugin-vue': ^6.0.8
-    '@vitest/coverage-v8': ^4.1.11
+    '@vitest/coverage-v8': ^5.0.0
     '@vue/test-utils': ^2.5.0
-    daisyui: ^5.7.24
+    daisyui: ^5.7.28
     eslint: ^10.9.1
     eslint-plugin-better-tailwindcss: ^4.7.0
     eslint-plugin-vuejs-accessibility: ^2.6.0
@@ -32,14 +45,10 @@ catalogs:
     shiki: ^4.4.3
     tailwindcss: ^4.3.3
     typescript: ^6.0.3
-    vike: ^0.4.264
+    vike: ^0.4.266
     vike-vue: ^0.9.13
     vite: ^8.2.2
     vite-plugin-dts: ^5.1.0
-    vitest: ^4.1.11
+    vitest: ^5.0.0
     vue: ^3.5.42
     vue-tsc: ^3.3.11
-onlyBuiltDependencies:
-  - esbuild
-allowBuilds:
-  esbuild: true
