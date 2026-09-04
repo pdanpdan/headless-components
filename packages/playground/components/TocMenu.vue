@@ -1,35 +1,47 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 
 import type { HeadingLink } from '#/lib/heading-links';
 
-defineProps<{
+const props = defineProps<{
   items: HeadingLink[];
 }>();
 
 const emit = defineEmits<{
   (e: 'select'): void;
+  (e: 'current', id?: string): void;
 }>();
 
 // The browser matches the active link with :target-current but does not (yet)
 // expose it to assistive tech; mirror it as aria-current (see Sara Soueidan's
-// article on the WCAG 1.3.1 implication).
+// article on the WCAG 1.3.1 implication). The same match also reports the
+// current heading id to the layout, which renders it as breadcrumbs in the
+// collapsed dropdown. Only the displayed menu reports (dropdown and rail are
+// never visible together), keeping a single source for the id. A collapsed
+// <details> keeps its layout, so the dropdown keeps matching while closed.
 const listRef = ref<HTMLUListElement>();
 let raf = 0;
+let lastCurrentId: string | undefined;
 
 function syncAriaCurrent() {
   const list = listRef.value;
   if (!list) {
     return;
   }
+  const visible = list.offsetParent !== null;
   const links = [ ...list.querySelectorAll('a') ];
-  const active = links.find((link) => link.matches(':target-current'));
+  const active = visible ? links.find((link) => link.matches(':target-current')) : undefined;
+  const currentId = active?.getAttribute('href')?.slice(1);
   for (const link of links) {
     if (link === active) {
       link.setAttribute('aria-current', 'true');
     } else {
       link.removeAttribute('aria-current');
     }
+  }
+  if (visible && currentId !== lastCurrentId) {
+    lastCurrentId = currentId;
+    emit('current', currentId);
   }
 }
 
@@ -38,15 +50,34 @@ function onScroll() {
   raf = requestAnimationFrame(syncAriaCurrent);
 }
 
+// Chrome finalizes the scroll-target currentness after momentum/anchor
+// scrolling settles (scrollend), so re-sync once movement stops.
+function onScrollEnd() {
+  cancelAnimationFrame(raf);
+  syncAriaCurrent();
+}
+
 onMounted(() => {
   syncAriaCurrent();
   window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('scrollend', onScrollEnd, { passive: true });
+  window.addEventListener('resize', syncAriaCurrent);
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll);
+  window.removeEventListener('scrollend', onScrollEnd);
+  window.removeEventListener('resize', syncAriaCurrent);
   cancelAnimationFrame(raf);
 });
+
+watch(
+  () => props.items,
+  () => {
+    syncAriaCurrent();
+  },
+  { flush: 'post' },
+);
 </script>
 
 <template>

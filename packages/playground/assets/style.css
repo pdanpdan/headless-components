@@ -77,6 +77,10 @@
 @source "../components/**/*.vue";
 @source "../../headless-combobox/examples/**/*.vue";
 
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Heading anchors: the whole title becomes a link (lib/heading-links.ts); the
    `#` span is revealed on heading hover or link focus-visible. */
 main :is(h1, h2, h3, h4, h5, h6) {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { mdiGithub } from '@mdi/js';
-import { onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 import type { HeadingLink } from '#/lib/heading-links';
 
@@ -22,6 +22,7 @@ const components = [
 const mainRef = ref<HTMLElement>();
 const tocDropdownRef = ref<HTMLDetailsElement>();
 const tocItems = ref<HeadingLink[]>([]);
+const tocActiveId = ref<string>();
 let headingsObserver: MutationObserver | undefined;
 
 function closeTocDropdown() {
@@ -29,6 +30,35 @@ function closeTocDropdown() {
     tocDropdownRef.value.open = false;
   }
 }
+
+function onTocCurrent(currentId: string | undefined) {
+  tocActiveId.value = currentId;
+}
+
+/** Trail of the current section for the collapsed dropdown summary: the h2
+ * chapter, then the section itself (h2, or the h3 under its chapter). */
+const tocBreadcrumb = computed<HeadingLink[]>(() => {
+  const items = tocItems.value;
+  const activeId = tocActiveId.value;
+  if (!activeId) {
+    return [];
+  }
+  const activeIndex = items.findIndex((item) => item.id === activeId);
+  if (activeIndex === -1) {
+    return [];
+  }
+  const active = items[ activeIndex ]!;
+  if (active.level === 2) {
+    return [ active ];
+  }
+  for (let index = activeIndex - 1; index >= 0; index -= 1) {
+    const item = items[ index ]!;
+    if (item.level === 2) {
+      return [ item, active ];
+    }
+  }
+  return [ active ];
+});
 
 function refreshHeadings() {
   const main = mainRef.value;
@@ -155,13 +185,44 @@ onUnmounted(() => {
             bg-base-200/95 shadow-md backdrop-blur-sm
           "
         >
-          <summary class="collapse-title text-sm font-semibold">
-            On this page
+          <summary class="collapse-title min-h-0 px-4 py-2 pe-12">
+            <!-- Collapsed, the summary keeps the reading position visible:
+                 the current section as a breadcrumb trail under a fixed
+                 label, with each ancestor linking back to its heading. -->
+            <div
+              class="
+                breadcrumbs min-w-0 overflow-x-auto text-xs
+                md:text-sm
+              "
+            >
+              <ul class="flex-nowrap items-center">
+                <li>
+                  <span
+                    class="font-semibold whitespace-nowrap text-base-content/70"
+                  >On this page</span>
+                </li>
+                <li v-for="(crumb, index) in tocBreadcrumb" :key="crumb.id">
+                  <a
+                    v-if="index < tocBreadcrumb.length - 1"
+                    :href="`#${ crumb.id }`"
+                    class="link font-medium whitespace-nowrap link-primary"
+                    :title="crumb.text"
+                    @click="closeTocDropdown()"
+                  >{{ crumb.text }}</a>
+                  <span
+                    v-else
+                    class="font-semibold whitespace-nowrap text-base-content"
+                    aria-current="page"
+                  >{{ crumb.text }}</span>
+                </li>
+              </ul>
+            </div>
           </summary>
           <div class="collapse-content">
             <nav aria-label="On this page">
               <TocMenu
                 :items="tocItems"
+                @current="onTocCurrent"
                 @select="closeTocDropdown"
               />
             </nav>
@@ -194,7 +255,10 @@ onUnmounted(() => {
           >
             On this page
           </p>
-          <TocMenu :items="tocItems" />
+          <TocMenu
+            :items="tocItems"
+            @current="onTocCurrent"
+          />
         </nav>
       </div>
     </aside>
