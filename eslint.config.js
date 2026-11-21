@@ -24,35 +24,53 @@ export default antfu(
     rules: {
       'style/array-bracket-spacing': [ 'error', 'always' ],
       'style/arrow-parens': [ 'error', 'always' ],
-      'style/brace-style': [ 'error', '1tbs', {
-        allowSingleLine: true,
-      } ],
+      'style/brace-style': [
+        'error',
+        '1tbs',
+        {
+          allowSingleLine: true,
+        },
+      ],
       'style/comma-dangle': [ 'error', 'always-multiline' ],
       'style/computed-property-spacing': [ 'error', 'always' ],
-      'style/indent': [ 'error', 2, { SwitchCase: 1 } ],
-      'style/key-spacing': [ 'error', {
-        beforeColon: false,
-        afterColon: true,
-        mode: 'strict',
-      } ],
+      'style/indent': [
+        'error',
+        2,
+        { SwitchCase: 1 },
+      ],
+      'style/key-spacing': [
+        'error',
+        {
+          beforeColon: false,
+          afterColon: true,
+          mode: 'strict',
+        },
+      ],
       'style/keyword-spacing': 'error',
       'style/linebreak-style': [ 'error', 'unix' ],
-      'style/member-delimiter-style': [ 'error', {
-        multiline: {
-          delimiter: 'semi',
-          requireLast: true,
+      'style/member-delimiter-style': [
+        'error',
+        {
+          multiline: {
+            delimiter: 'semi',
+            requireLast: true,
+          },
+          multilineDetection: 'brackets',
+          singleline: {
+            delimiter: 'semi',
+            requireLast: true,
+          },
         },
-        multilineDetection: 'brackets',
-        singleline: {
-          delimiter: 'semi',
-          requireLast: true,
-        },
-      } ],
+      ],
       'style/no-extra-semi': [ 'error' ],
-      'style/object-curly-spacing': [ 'error', 'always', {
-        arraysInObjects: true,
-        objectsInObjects: true,
-      } ],
+      'style/object-curly-spacing': [
+        'error',
+        'always',
+        {
+          arraysInObjects: true,
+          objectsInObjects: true,
+        },
+      ],
       'style/quote-props': [ 'error', 'as-needed' ],
       'style/quotes': [
         'error',
@@ -71,8 +89,17 @@ export default antfu(
       curly: [ 'error', 'all' ],
       eqeqeq: [ 'error', 'smart' ],
       'id-match': 'error',
-      'no-console': env.NODE_ENV === 'production' ? [ 'error', { allow: [ 'info', 'warn', 'error' ] } ] : 'off',
-      'no-debugger': env.NODE_ENV === 'production' ? 'error' : 'off',
+      'no-console': env.NODE_ENV === 'production'
+        ? [
+          'error',
+          {
+            allow: [ 'info', 'warn', 'error' ],
+          },
+        ]
+        : 'off',
+      'no-debugger': env.NODE_ENV === 'production'
+        ? 'error'
+        : 'off',
       'no-undef': 'error',
       'no-void': 'error',
 
@@ -83,48 +110,57 @@ export default antfu(
           ignoreRestArgs: true,
         },
       ],
-      'ts/no-namespace': [ 'error', { allowDeclarations: true } ],
+      'ts/no-namespace': [
+        'error',
+        { allowDeclarations: true },
+      ],
 
-      'perfectionist/sort-imports': [ 'error', {
-        type: 'natural',
-        order: 'asc',
-        ignoreCase: true,
-        newlinesBetween: 1,
-        groups: [
-          'type',
-          'builtin',
-          'external',
-          'internal-type',
-          'internal',
-          [ 'type-parent', 'type-sibling', 'type-index' ],
-          [ 'parent', 'sibling', 'index' ],
-          'side-effect',
-          'style',
-          'unknown',
-        ],
-        customGroups: [
-          {
-            groupName: 'style',
-            elementNamePattern: '.*\\.css$',
-          },
-          {
-            groupName: 'internal-type',
-            elementNamePattern: '^#\/.*|^\\$dev/.*|^\\$lib/.*',
-            modifiers: [ 'type' ],
-          },
-          {
-            groupName: 'internal',
-            elementNamePattern: '^#\/.*|^\\$dev/.*|^\\$lib/.*',
-          },
-        ],
-      } ],
+      'perfectionist/sort-imports': [
+        'error',
+        {
+          type: 'natural',
+          order: 'asc',
+          ignoreCase: true,
+          newlinesBetween: 1,
+          groups: [
+            'type',
+            'builtin',
+            'external',
+            'internal-type',
+            'internal',
+            [ 'type-parent', 'type-sibling', 'type-index' ],
+            [ 'parent', 'sibling', 'index' ],
+            'side-effect',
+            'style',
+            'unknown',
+          ],
+          customGroups: [
+            {
+              groupName: 'style',
+              elementNamePattern: '.*\\.css$',
+            },
+            {
+              groupName: 'internal-type',
+              elementNamePattern: '^#\/.*|^\\$dev/.*|^\\$lib/.*',
+              modifiers: [ 'type' ],
+            },
+            {
+              groupName: 'internal',
+              elementNamePattern: '^#\/.*|^\\$dev/.*|^\\$lib/.*',
+            },
+          ],
+        },
+      ],
 
       'perfectionist/sort-exports': 'off',
 
-      'unused-imports/no-unused-vars': [ 'error', {
-        caughtErrorsIgnorePattern: '^ignore',
-        argsIgnorePattern: '^_',
-      } ],
+      'unused-imports/no-unused-vars': [
+        'error',
+        {
+          caughtErrorsIgnorePattern: '^ignore',
+          argsIgnorePattern: '^_',
+        },
+      ],
 
       'prefer-promise-reject-errors': 'off',
     },
@@ -137,9 +173,18 @@ export default antfu(
   },
 
   {
-    files: [ '**/*.js', '**/*.ts', '**/*.mjs', '**/*.cjs', '**/*.vue' ],
+    files: [
+      '**/*.js',
+      '**/*.ts',
+      '**/*.mjs',
+      '**/*.cjs',
+      '**/*.vue',
+    ],
     rules: {
-      'unicorn/consistent-function-scoping': [ 'error', { checkArrowFunctions: false } ],
+      'unicorn/consistent-function-scoping': [
+        'error',
+        { checkArrowFunctions: false },
+      ],
     },
   },
 
@@ -179,7 +224,9 @@ export default antfu(
       ],
       'vue/multi-word-component-names': [
         'error',
-        { ignores: [ '+Head', '+Page', '+Layout' ] },
+        {
+          ignores: [ '+Head', '+Page', '+Layout' ],
+        },
       ],
       'vue/mustache-interpolation-spacing': [ 'error', 'always' ],
       'vue/no-multi-spaces': 'error',
@@ -195,30 +242,44 @@ export default antfu(
       'vue/singleline-html-element-content-newline': 'off',
       'vue/no-unused-refs': 'off', // TODO: remove when fixed for useTemplateRef
       'vue/template-curly-spacing': [ 'error', 'always' ],
-      'vue-a11y/label-has-for': [ 'error', {
-        components: [ 'label' ],
-        controlComponents: [ 'input', 'meter', 'progress', 'select', 'textarea' ],
-        required: {
-          some: [ 'nesting', 'id' ],
+      'vue-a11y/label-has-for': [
+        'error',
+        {
+          components: [ 'label' ],
+          controlComponents: [
+            'input',
+            'meter',
+            'progress',
+            'select',
+            'textarea',
+          ],
+          required: {
+            some: [ 'nesting', 'id' ],
+          },
+          allowChildren: true,
         },
-        allowChildren: true,
-      } ],
+      ],
       'vue-a11y/media-has-caption': 'off',
 
-      // Classes defined in `<style>` blocks (or used as JS hooks) are not
-      // visible to the plugin: it only parses template attributes and the
-      // tailwind entry css (`@layer components` with `detectComponentClasses`).
+      // Classes defined in `<style>` blocks, plain CSS selectors in the entry
+      // stylesheet, and classes used only as JS hooks are not standalone
+      // Tailwind candidates, so the plugin cannot resolve them.
       'better-tailwindcss/no-unknown-classes': [
         'error',
         {
           ignore: [
             '^cbx-popup$',
             '^cbx-controls$', // click-outside hook, no css
+            '^menu-focus$', // only styled as `.menu-focus.menu-active`
             '^code-block$',
             '^shiki-container$',
             '^toggle-theme$',
             '^toc-list$',
             '^toc-dropdown$',
+            // daisyUI 5.8 defines these only inside `.swap` (`& .swap-on`),
+            // so Tailwind cannot generate them as standalone candidates.
+            '^swap-on$',
+            '^swap-off$',
           ],
         },
       ],

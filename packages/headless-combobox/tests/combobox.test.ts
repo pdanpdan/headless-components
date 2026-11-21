@@ -27,23 +27,47 @@ function buildProps(options: User[], config: MountConfig = {}) {
   return {
     // `??` would swallow an explicit null into the default; null is a valid
     // contract value (treated as an empty selection in multiple mode).
-    modelValue: config.modelValue !== undefined ? config.modelValue : (config.multiple ? [] : null),
+    modelValue: config.modelValue !== undefined
+      ? config.modelValue
+      : (config.multiple
+        ? []
+        : null),
     options,
     multiple: config.multiple ?? false,
     required: config.required ?? false,
     disabled: config.disabled ?? false,
     readonly: config.readonly ?? false,
     optionLabel: (option: unknown) => (option as User).name,
-    ...(config.minLength !== undefined ? { minLength: config.minLength } : {}),
-    ...(config.maxLength !== undefined ? { maxLength: config.maxLength } : {}),
-    ...(config.errorMessages !== undefined ? { errorMessages: config.errorMessages } : {}),
-    ...(config.optionFilter !== undefined ? { optionFilter: config.optionFilter as (option: unknown, query: unknown) => boolean } : {}),
-    ...(config.alignSelected !== undefined ? { alignSelected: config.alignSelected } : {}),
-    ...(config.closeOnSelect !== undefined ? { closeOnSelect: config.closeOnSelect } : {}),
-    ...(config.closeOnClickOutside !== undefined ? { closeOnClickOutside: config.closeOnClickOutside } : {}),
-    ...(config.clickOutsideFilter !== undefined ? { clickOutsideFilter: config.clickOutsideFilter } : {}),
-    ...(config.selectOnTab !== undefined ? { selectOnTab: config.selectOnTab } : {}),
-    ...(config.inputOnOpen !== undefined ? { inputOnOpen: config.inputOnOpen } : {}),
+    ...(config.minLength !== undefined
+      ? { minLength: config.minLength }
+      : {}),
+    ...(config.maxLength !== undefined
+      ? { maxLength: config.maxLength }
+      : {}),
+    ...(config.errorMessages !== undefined
+      ? { errorMessages: config.errorMessages }
+      : {}),
+    ...(config.optionFilter !== undefined
+      ? { optionFilter: config.optionFilter as (option: unknown, query: unknown) => boolean }
+      : {}),
+    ...(config.alignSelected !== undefined
+      ? { alignSelected: config.alignSelected }
+      : {}),
+    ...(config.closeOnSelect !== undefined
+      ? { closeOnSelect: config.closeOnSelect }
+      : {}),
+    ...(config.closeOnClickOutside !== undefined
+      ? { closeOnClickOutside: config.closeOnClickOutside }
+      : {}),
+    ...(config.clickOutsideFilter !== undefined
+      ? { clickOutsideFilter: config.clickOutsideFilter }
+      : {}),
+    ...(config.selectOnTab !== undefined
+      ? { selectOnTab: config.selectOnTab }
+      : {}),
+    ...(config.inputOnOpen !== undefined
+      ? { inputOnOpen: config.inputOnOpen }
+      : {}),
   };
 }
 
@@ -357,7 +381,9 @@ describe('headless combobox (single)', () => {
     cb.scope.select(target as User);
     await nextTick();
 
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ target ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [ target ],
+    ]);
   });
 
   it('closes the dropdown after selecting', async () => {
@@ -379,7 +405,9 @@ describe('headless combobox (single)', () => {
     cb.scope.clear();
     await nextTick();
 
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ null ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [ null ],
+    ]);
   });
 
   it('setHighlightedIndex moves the highlight', async () => {
@@ -414,7 +442,11 @@ describe('headless combobox (multiple)', () => {
     cb.scope.select(users[ 0 ] as User);
     await nextTick();
 
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 0 ] ] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [
+        [ users[ 0 ] ],
+      ],
+    ]);
   });
 
   it('keeps the dropdown open after selecting', async () => {
@@ -431,17 +463,26 @@ describe('headless combobox (multiple)', () => {
 
   it('removes an already-selected option', async () => {
     const users = createUsers();
-    const cb = mountComboBox(users, { multiple: true, modelValue: [ users[ 0 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      modelValue: [ users[ 0 ] as User ],
+    });
 
     cb.scope.select(users[ 0 ] as User);
     await nextTick();
 
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [ [] ],
+    ]);
   });
 
   it('blocks adding beyond maxLength', async () => {
     const users = createUsers();
-    const cb = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 0 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      maxLength: 1,
+      modelValue: [ users[ 0 ] as User ],
+    });
 
     expect(cb.scope.canSelectMore).toBe(false);
 
@@ -453,7 +494,10 @@ describe('headless combobox (multiple)', () => {
 
   it('reports selection membership and count', () => {
     const users = createUsers();
-    const cb = mountComboBox(users, { multiple: true, modelValue: [ users[ 0 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      modelValue: [ users[ 0 ] as User ],
+    });
 
     expect(cb.scope.selectedCount).toBe(1);
     expect(cb.scope.selectedList).toEqual([ users[ 0 ] ]);
@@ -463,12 +507,17 @@ describe('headless combobox (multiple)', () => {
 
   it('clears the selection to an empty array', async () => {
     const users = createUsers();
-    const cb = mountComboBox(users, { multiple: true, modelValue: [ users[ 0 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      modelValue: [ users[ 0 ] as User ],
+    });
 
     cb.scope.clear();
     await nextTick();
 
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [ [] ],
+    ]);
   });
 
   it('closes after selecting when closeOnSelect is true', async () => {
@@ -486,7 +535,10 @@ describe('headless combobox (multiple)', () => {
   it('handles Vue reactive options and selections', async () => {
     const users = reactive(createUsers());
     const selected = reactive(users[ 0 ] as User);
-    const cb = mountComboBox(users, { multiple: true, modelValue: [ selected ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      modelValue: [ selected ],
+    });
 
     expect(cb.scope.selectedCount).toBe(1);
     expect(cb.scope.isSelected(users[ 0 ] as User)).toBe(true);
@@ -494,13 +546,17 @@ describe('headless combobox (multiple)', () => {
     // Toggling the selected reactive option removes it.
     cb.scope.select(users[ 0 ] as User);
     await nextTick();
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [ [] ],
+    ]);
 
     // No v-model feedback in the harness, but the internal model state
     // carries the toggle, so the next select appends to the empty list.
     cb.scope.select(users[ 1 ] as User);
     await nextTick();
-    expect(cb.wrapper.emitted('update:modelValue')?.[ 1 ]).toEqual([ [ users[ 1 ] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')?.[ 1 ]).toEqual([
+      [ users[ 1 ] ],
+    ]);
   });
 });
 
@@ -524,7 +580,11 @@ describe('headless combobox (validation)', () => {
 
   it('flags fewer than minLength selected', () => {
     const users = createUsers();
-    const cb = mountComboBox(users, { multiple: true, minLength: 2, modelValue: [ users[ 0 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      minLength: 2,
+      modelValue: [ users[ 0 ] as User ],
+    });
 
     expect(cb.scope.valid).toBe(false);
     expect(cb.scope.errors).toEqual([ 'minlength' ]);
@@ -532,7 +592,11 @@ describe('headless combobox (validation)', () => {
 
   it('flags more than maxLength selected', () => {
     const users = createUsers();
-    const cb = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 0 ] as User, users[ 1 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      maxLength: 1,
+      modelValue: [ users[ 0 ] as User, users[ 1 ] as User ],
+    });
 
     expect(cb.scope.valid).toBe(false);
     expect(cb.scope.errors).toEqual([ 'maxlength' ]);
@@ -543,16 +607,28 @@ describe('headless combobox (validation)', () => {
     const min = mountComboBox(users, { multiple: true, minLength: 1, modelValue: [] });
     expect(min.scope.validationMessage).toBe('Select at least 1 option.');
 
-    const max = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 0 ] as User, users[ 1 ] as User ] });
+    const max = mountComboBox(users, {
+      multiple: true,
+      maxLength: 1,
+      modelValue: [ users[ 0 ] as User, users[ 1 ] as User ],
+    });
     expect(max.scope.validationMessage).toBe('Select at most 1 option.');
   });
 
   it('uses plural wording for a min or max above one', () => {
     const users = createUsers();
-    const min = mountComboBox(users, { multiple: true, minLength: 2, modelValue: [ users[ 0 ] as User ] });
+    const min = mountComboBox(users, {
+      multiple: true,
+      minLength: 2,
+      modelValue: [ users[ 0 ] as User ],
+    });
     expect(min.scope.validationMessage).toBe('Select at least 2 options.');
 
-    const max = mountComboBox(users, { multiple: true, maxLength: 2, modelValue: [ users[ 0 ] as User, users[ 1 ] as User, users[ 2 ] as User ] });
+    const max = mountComboBox(users, {
+      multiple: true,
+      maxLength: 2,
+      modelValue: [ users[ 0 ] as User, users[ 1 ] as User, users[ 2 ] as User ],
+    });
     expect(max.scope.validationMessage).toBe('Select at most 2 options.');
   });
 
@@ -670,7 +746,11 @@ describe('headless combobox (keyboard wrap-around)', () => {
 describe('headless combobox (keyboard + disabled options)', () => {
   it('stays on the selected option when all others are blocked by maxLength', async () => {
     const users = createUsers();
-    const cb = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 0 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      maxLength: 1,
+      modelValue: [ users[ 0 ] as User ],
+    });
 
     cb.scope.open();
     await nextTick();
@@ -689,7 +769,11 @@ describe('headless combobox (keyboard + disabled options)', () => {
   it('jumps over blocked options to the next actionable one', async () => {
     const users = createUsers();
     // users[0] and users[2] are selected; users[1] is blocked by maxLength.
-    const cb = mountComboBox(users, { multiple: true, maxLength: 2, modelValue: [ users[ 0 ] as User, users[ 2 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      maxLength: 2,
+      modelValue: [ users[ 0 ] as User, users[ 2 ] as User ],
+    });
 
     cb.scope.open();
     await nextTick();
@@ -809,7 +893,11 @@ describe('headless combobox (prop bag handlers)', () => {
 
   it('never highlights maxLength-blocked options via focus or mousemove', async () => {
     const users = createUsers();
-    const cb = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 0 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      maxLength: 1,
+      modelValue: [ users[ 0 ] as User ],
+    });
     cb.scope.open();
     await nextTick();
 
@@ -966,7 +1054,11 @@ describe('headless combobox (null handling in multiple)', () => {
     cb.scope.select(users[ 0 ] as User);
     await nextTick();
 
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 0 ] ] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [
+        [ users[ 0 ] ],
+      ],
+    ]);
   });
 
   it('clear from null emits an empty array', async () => {
@@ -976,7 +1068,9 @@ describe('headless combobox (null handling in multiple)', () => {
     cb.scope.clear();
     await nextTick();
 
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [ [] ],
+    ]);
   });
 
   it('required validation fires when modelValue is null', () => {
@@ -1033,7 +1127,9 @@ describe('headless combobox (trigger interactions)', () => {
 
     wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await nextTick();
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ users[ 1 ] ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [ users[ 1 ] ],
+    ]);
     expect(wired.scope.isOpen).toBe(false);
 
     wired.wrapper.unmount();
@@ -1284,7 +1380,11 @@ describe('headless combobox (focus retention)', () => {
     wired.scope.select(users[ 0 ] as User);
     await nextTick();
 
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 0 ] ] ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [
+        [ users[ 0 ] ],
+      ],
+    ]);
     expect(document.activeElement).toBe(wired.els.input);
 
     wired.wrapper.unmount();
@@ -1382,7 +1482,10 @@ describe('headless combobox (focus retention)', () => {
 
   it('clear keeps the popup open and keeps the filter focused', async () => {
     const users = createUsers();
-    const wired = mountWired(users, { multiple: true, modelValue: [ users[ 0 ] as User ] });
+    const wired = mountWired(users, {
+      multiple: true,
+      modelValue: [ users[ 0 ] as User ],
+    });
 
     await wired.els.trigger.click();
     await nextTick();
@@ -1391,7 +1494,9 @@ describe('headless combobox (focus retention)', () => {
     wired.scope.clear();
     await nextTick();
 
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [ [] ],
+    ]);
     expect(wired.scope.isOpen).toBe(true);
     expect(document.activeElement).toBe(wired.els.input);
 
@@ -1553,8 +1658,12 @@ function mountComposable(config: MountConfig = {}) {
         reactive({
           modelValue: selected,
           options: users,
-          ...(config.multiple !== undefined ? { multiple: config.multiple } : {}),
-          ...(config.maxLength !== undefined ? { maxLength: config.maxLength } : {}),
+          ...(config.multiple !== undefined
+            ? { multiple: config.multiple }
+            : {}),
+          ...(config.maxLength !== undefined
+            ? { maxLength: config.maxLength }
+            : {}),
           optionLabel: (option: unknown) => (option as User).name,
         }),
         (value) => {
@@ -1685,8 +1794,12 @@ describe('headless combobox (optionValue)', () => {
         options,
         optionLabel: (o: unknown) => (o as LabeledValue).label,
         optionValue: (o: unknown) => (o as LabeledValue).value,
-        ...(config.multiple !== undefined ? { multiple: config.multiple } : {}),
-        ...(config.alignSelected !== undefined ? { alignSelected: config.alignSelected } : {}),
+        ...(config.multiple !== undefined
+          ? { multiple: config.multiple }
+          : {}),
+        ...(config.alignSelected !== undefined
+          ? { alignSelected: config.alignSelected }
+          : {}),
       },
       slots: {
         default: (s: unknown) => {
@@ -1734,7 +1847,9 @@ describe('headless combobox (optionValue)', () => {
     cb.scope.select(options[ 1 ]!);
     await nextTick();
 
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ 2 ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [ 2 ],
+    ]);
   });
 
   it('shows the option selected when the model holds its value', () => {
@@ -1753,7 +1868,11 @@ describe('headless combobox (optionValue)', () => {
     cb.scope.select(options[ 1 ]!);
     await nextTick();
 
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [ 1 ] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [
+        [ 1 ],
+      ],
+    ]);
 
     cb.wrapper.unmount();
   });
@@ -1765,7 +1884,11 @@ describe('headless combobox (optionValue)', () => {
     cb.scope.select(options[ 2 ]!);
     await nextTick();
 
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ [ 1, 2, 3 ] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [
+        [ 1, 2, 3 ],
+      ],
+    ]);
 
     cb.wrapper.unmount();
   });
@@ -1847,7 +1970,9 @@ describe('headless combobox (internal state)', () => {
     expect(cb.scope.isSelected(users[ 1 ] as User)).toBe(true);
     expect(cb.scope.selectedCount).toBe(1);
     // The value is still emitted (a no-op without a listener).
-    expect(cb.wrapper.emitted('update:modelValue')).toEqual([ [ users[ 1 ] ] ]);
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [ users[ 1 ] ],
+    ]);
   });
 
   it('toggles the internal selection in multiple mode', async () => {
@@ -1868,12 +1993,18 @@ describe('headless combobox (internal state)', () => {
   });
 });
 function mockVisibleRects() {
-  return vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([ { width: 1 } ] as unknown as DOMRectList);
+  return vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([
+    { width: 1 },
+  ] as unknown as DOMRectList);
 }
 
 describe('headless combobox (keyboard paging, home/end, tab)', () => {
   it('jumps a full page on PageDown/PageUp', async () => {
-    const users = [ ...createUsers(), { id: 4, name: 'Quinn Kirk' }, { id: 5, name: 'Sage Moss' } ];
+    const users = [
+      ...createUsers(),
+      { id: 4, name: 'Quinn Kirk' },
+      { id: 5, name: 'Sage Moss' },
+    ];
     const wired = mountWired(users);
     // 60px list / 20px options = 3 visible steps.
     Object.defineProperty(wired.els.list, 'clientHeight', { configurable: true, value: 60 });
@@ -2018,7 +2149,12 @@ describe('headless combobox (keyboard paging, home/end, tab)', () => {
     await nextTick();
     // Shift+Tab from the searchbox moves back to the filter input (both inside).
     wired.els.searchbox.focus();
-    wired.els.searchbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
+    wired.els.searchbox.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'Tab',
+      shiftKey: true,
+      bubbles: true,
+      cancelable: true,
+    }));
     await nextTick();
 
     expect(document.activeElement).toBe(wired.els.input);
@@ -2039,7 +2175,9 @@ describe('headless combobox (keyboard paging, home/end, tab)', () => {
     wired.els.searchbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
     await nextTick();
 
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ users[ 0 ] ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [ users[ 0 ] ],
+    ]);
     expect(wired.scope.isSelected(users[ 0 ] as User)).toBe(true);
     // The focus continues to the next focusable element, like a normal Tab.
     // (In this harness the filter input sits outside the popup, so its
@@ -2062,7 +2200,11 @@ describe('headless combobox (keyboard paging, home/end, tab)', () => {
     wired.els.searchbox.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
     await nextTick();
 
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 0 ] ] ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [
+        [ users[ 0 ] ],
+      ],
+    ]);
     expect(wired.scope.isOpen).toBe(false);
 
     rectSpy.mockRestore();
@@ -2082,7 +2224,11 @@ describe('headless combobox (keyboard paging, home/end, tab)', () => {
   it('stops without wrapping when the page target is blocked', async () => {
     const users = createUsers();
     // Only the selected option is actionable; 1 and 2 are blocked by maxLength.
-    const cb = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 0 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      maxLength: 1,
+      modelValue: [ users[ 0 ] as User ],
+    });
 
     cb.scope.open();
     await nextTick();
@@ -2113,7 +2259,11 @@ describe('headless combobox (keyboard paging, home/end, tab)', () => {
   });
   it('stops without wrapping on PageUp when the target is blocked', async () => {
     const users = createUsers();
-    const cb = mountComboBox(users, { multiple: true, maxLength: 1, modelValue: [ users[ 2 ] as User ] });
+    const cb = mountComboBox(users, {
+      multiple: true,
+      maxLength: 1,
+      modelValue: [ users[ 2 ] as User ],
+    });
 
     cb.scope.open();
     await nextTick();
@@ -2129,7 +2279,9 @@ describe('headless combobox (container keydown)', () => {
   it('skips the options list on Tab from a non-wired element inside the widget', async () => {
     const users = createUsers();
     const wired = mountWired(users);
-    const rectSpy = vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([ { width: 1 } ] as unknown as DOMRectList);
+    const rectSpy = vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([
+      { width: 1 },
+    ] as unknown as DOMRectList);
     // A custom control (like a clear button) with no keyboard wiring.
     const clear = document.createElement('button');
     clear.type = 'button';
@@ -2228,7 +2380,10 @@ describe('headless combobox (container keydown)', () => {
 describe('headless combobox (backspace/delete)', () => {
   it('removes the last selected option on Backspace while closed (multiple)', async () => {
     const users = createUsers();
-    const wired = mountWired(users, { multiple: true, modelValue: [ users[ 0 ], users[ 1 ] ] as User[] });
+    const wired = mountWired(users, {
+      multiple: true,
+      modelValue: [ users[ 0 ], users[ 1 ] ] as User[],
+    });
 
     wired.els.trigger.focus();
     const backspace = new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true });
@@ -2236,7 +2391,11 @@ describe('headless combobox (backspace/delete)', () => {
     await nextTick();
 
     expect(backspace.defaultPrevented).toBe(true);
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 0 ] ] ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [
+        [ users[ 0 ] ],
+      ],
+    ]);
     expect(wired.scope.isOpen).toBe(false);
 
     wired.wrapper.unmount();
@@ -2249,14 +2408,20 @@ describe('headless combobox (backspace/delete)', () => {
     wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
     await nextTick();
 
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ null ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [ null ],
+    ]);
 
     wired.wrapper.unmount();
   });
 
   it('removes the last selected option on Delete while open without a filter input', async () => {
     const users = createUsers();
-    const wired = mountWired(users, { multiple: true, modelValue: [ users[ 0 ], users[ 1 ] ] as User[], wireInput: false });
+    const wired = mountWired(users, {
+      multiple: true,
+      modelValue: [ users[ 0 ], users[ 1 ] ] as User[],
+      wireInput: false,
+    });
 
     wired.scope.open();
     await nextTick();
@@ -2264,7 +2429,11 @@ describe('headless combobox (backspace/delete)', () => {
     wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, cancelable: true }));
     await nextTick();
 
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 0 ] ] ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [
+        [ users[ 0 ] ],
+      ],
+    ]);
     expect(wired.scope.isOpen).toBe(true);
 
     wired.wrapper.unmount();
@@ -2272,7 +2441,10 @@ describe('headless combobox (backspace/delete)', () => {
 
   it('leaves Backspace to the input when it holds text, and removes only when empty', async () => {
     const users = createUsers();
-    const wired = mountWired(users, { multiple: true, modelValue: [ users[ 0 ] ] as User[] });
+    const wired = mountWired(users, {
+      multiple: true,
+      modelValue: [ users[ 0 ] ] as User[],
+    });
 
     wired.els.input.value = 'Wade';
     wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
@@ -2282,14 +2454,19 @@ describe('headless combobox (backspace/delete)', () => {
     wired.els.input.value = '';
     wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
     await nextTick();
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [] ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [ [] ],
+    ]);
 
     wired.wrapper.unmount();
   });
 
   it('does not remove while open with a filter input', async () => {
     const users = createUsers();
-    const wired = mountWired(users, { multiple: true, modelValue: [ users[ 0 ] ] as User[] });
+    const wired = mountWired(users, {
+      multiple: true,
+      modelValue: [ users[ 0 ] ] as User[],
+    });
 
     wired.scope.open();
     await nextTick();
@@ -2311,7 +2488,9 @@ describe('headless combobox (backspace/delete)', () => {
     wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
     await nextTick();
 
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ null ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [ null ],
+    ]);
 
     wired.wrapper.unmount();
   });
@@ -2362,7 +2541,9 @@ describe('headless combobox (backspace/delete)', () => {
     trigger.value = '';
     trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
     await nextTick();
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ null ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [ null ],
+    ]);
 
     wired.wrapper.unmount();
   });
@@ -2386,7 +2567,9 @@ describe('headless combobox (backspace/delete)', () => {
     wired.els.trigger.textContent = '';
     wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true, cancelable: true }));
     await nextTick();
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ null ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [ null ],
+    ]);
 
     wired.wrapper.unmount();
     delete (HTMLElement.prototype as { isContentEditable?: unknown; }).isContentEditable;
@@ -2528,7 +2711,11 @@ describe('headless combobox (space key)', () => {
     wired.els.options[ 1 ]!.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', bubbles: true }));
     wired.els.options[ 1 ]!.click();
     await nextTick();
-    expect(wired.wrapper.emitted('update:modelValue')).toEqual([ [ [ users[ 1 ] ] ] ]);
+    expect(wired.wrapper.emitted('update:modelValue')).toEqual([
+      [
+        [ users[ 1 ] ],
+      ],
+    ]);
 
     wired.wrapper.unmount();
   });

@@ -17,7 +17,9 @@ export default defineConfig({
     lib: {
       entry: resolve(import.meta.dirname, 'src/index.ts'),
       name: 'HeadlessCombobox',
-      fileName: (format) => `index.${ format === 'es' ? 'mjs' : 'cjs' }`,
+      fileName: (format) => `index.${ format === 'es'
+        ? 'mjs'
+        : 'cjs' }`,
       formats: [ 'es', 'cjs' ],
     },
     rollupOptions: {

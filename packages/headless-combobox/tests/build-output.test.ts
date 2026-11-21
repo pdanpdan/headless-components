@@ -45,7 +45,9 @@ describe('build output', () => {
 
     for (const source of sources) {
       // SFC declarations keep the `.vue` extension; module declarations drop `.ts`.
-      const declaration = source.endsWith('.vue') ? `${ source }.d.ts` : `${ source.replace(/\.ts$/, '') }.d.ts`;
+      const declaration = source.endsWith('.vue')
+        ? `${ source }.d.ts`
+        : `${ source.replace(/\.ts$/, '') }.d.ts`;
       expect(existsSync(resolve(distDir, declaration)), declaration).toBe(true);
       expect(existsSync(resolve(distDir, `${ declaration }.map`)), `${ declaration }.map`).toBe(true);
     }
@@ -55,7 +57,9 @@ describe('build output', () => {
     const entry = readFileSync(resolve(distDir, 'index.d.ts'), 'utf8');
     const source = readFileSync(resolve(packageRoot, 'src/index.ts'), 'utf8');
 
-    const sourceExports = [ ...source.matchAll(/export\s+(?:type\s+)?\{([^}]*)\}/g) ]
+    const sourceExports = [
+      ...source.matchAll(/export\s+(?:type\s+)?\{([^}]*)\}/g),
+    ]
       .flatMap((match) => match[ 1 ]!.split(','))
       .map((name) => name.trim().replace(/^default as\s+/, ''))
       .filter(Boolean);

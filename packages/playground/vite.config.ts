@@ -23,7 +23,10 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: /^#\/(.*)$/, replacement: `${ resolve(currentDir) }/$1` },
-      { find: /^@pdanpdan\/headless-combobox$/, replacement: resolve(currentDir, '../headless-combobox/src/index.ts') },
+      {
+        find: /^@pdanpdan\/headless-combobox$/,
+        replacement: resolve(currentDir, '../headless-combobox/src/index.ts'),
+      },
     ],
   },
   server: {

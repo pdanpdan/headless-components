@@ -101,8 +101,12 @@ export function useAccessibility<O, V, Q>(
       id: getOptionId(index),
       role: 'option',
       'aria-selected': deps.isSelected(option),
-      'aria-disabled': deps.isOptionDisabled(option) ? true : undefined,
-      'data-highlighted': index === highlightedIndex.value ? true : undefined,
+      'aria-disabled': deps.isOptionDisabled(option)
+        ? true
+        : undefined,
+      'data-highlighted': index === highlightedIndex.value
+        ? true
+        : undefined,
       onClick: () => deps.select(option),
       // Keep the filter input focused when the option is clicked.
       onMousedown: (event: MouseEvent) => event.preventDefault(),

@@ -23,7 +23,16 @@ function isTextEntryElement(el: Element | null): boolean {
     return true;
   }
   if (el instanceof HTMLInputElement) {
-    return ![ 'button', 'submit', 'reset', 'checkbox', 'radio', 'range', 'color', 'file' ].includes(el.type);
+    return ![
+      'button',
+      'submit',
+      'reset',
+      'checkbox',
+      'radio',
+      'range',
+      'color',
+      'file',
+    ].includes(el.type);
   }
   return false;
 }
@@ -70,12 +79,18 @@ export function usePopover<O, V, Q>(
     // `inputOnOpen` defaults to `'select'` (the component applies the same
     // default; the composable receives the raw prop).
     const inputOnOpen = props.inputOnOpen ?? 'select';
-    searchQuery.value = inputOnOpen === 'clear' ? ('' as Q) : undefined;
+    searchQuery.value = inputOnOpen === 'clear'
+      ? ('' as Q)
+      : undefined;
 
     const firstSelected = deps.selectedList.value[ 0 ];
-    const selectedIndex = firstSelected == null ? -1 : deps.filteredOptions.value.findIndex((o) => toRaw(deps.valueOf(o)) === toRaw(firstSelected));
+    const selectedIndex = firstSelected == null
+      ? -1
+      : deps.filteredOptions.value.findIndex((o) => toRaw(deps.valueOf(o)) === toRaw(firstSelected));
     // A selected option is always actionable; otherwise start on the first one that can be selected.
-    highlightedIndex.value = selectedIndex >= 0 ? selectedIndex : deps.firstActionableIndex();
+    highlightedIndex.value = selectedIndex >= 0
+      ? selectedIndex
+      : deps.firstActionableIndex();
 
     await nextTick();
     showPopoverIfAny();

@@ -32,7 +32,9 @@ export function injectHeadingLinks(root: HTMLElement): HeadingLink[] {
     const text = heading.textContent?.trim() ?? '';
     const base = heading.id || slugify(text) || 'section';
     const count = seen.get(base) ?? 0;
-    const id = count === 0 ? base : `${ base }-${ count + 1 }`;
+    const id = count === 0
+      ? base
+      : `${ base }-${ count + 1 }`;
     seen.set(base, count + 1);
     heading.id = id;
     heading.dataset.headingText = text;
@@ -59,7 +61,9 @@ export function injectHeadingLinks(root: HTMLElement): HeadingLink[] {
 
 /** Collects `h2`–`h3` headings for the table of contents. */
 export function collectHeadings(root: HTMLElement): HeadingLink[] {
-  return [ ...root.querySelectorAll<HTMLHeadingElement>('h2, h3') ]
+  return [
+    ...root.querySelectorAll<HTMLHeadingElement>('h2, h3'),
+  ]
     .map((heading) => ({
       id: heading.id,
       // The injected anchor wraps the title; use the text stashed at injection.

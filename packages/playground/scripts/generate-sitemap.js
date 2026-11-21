@@ -19,8 +19,12 @@ function getPages(dir) {
       const hasPage = fs.existsSync(path.join(fullPath, '+Page.vue'));
 
       if (hasPage) {
-        const route = entry.name === 'index' ? '' : entry.name;
-        pages.push(route ? `${ route }/` : '');
+        const route = entry.name === 'index'
+          ? ''
+          : entry.name;
+        pages.push(route
+          ? `${ route }/`
+          : '');
       }
     }
   }
@@ -33,7 +37,9 @@ const lastmod = new Date().toISOString();
 
 const urls = routes
   .map((route) => {
-    const priority = route === '' ? 1.0 : 0.8;
+    const priority = route === ''
+      ? 1.0
+      : 0.8;
 
     return `  <url>
     <loc>${ BASE_URL }/${ route }</loc>

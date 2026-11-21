@@ -19,7 +19,9 @@ function scrollElementIntoContainer(el: HTMLElement, container: HTMLElement | nu
   const elRect = el.getBoundingClientRect();
   // Compensate for any CSS scale applied by the open animation: getBoundingClientRect
   // is scaled, but scrollTop is in unscaled content units.
-  const scale = container.offsetWidth > 0 ? containerRect.width / container.offsetWidth : 1;
+  const scale = container.offsetWidth > 0
+    ? containerRect.width / container.offsetWidth
+    : 1;
   const s = scale || 1;
 
   if (elRect.top < containerRect.top) {
@@ -62,7 +64,9 @@ export function usePositioning<O, V, Q>(
 
     const dropdownEl = refs.dropdownRef;
     const selectedOption = deps.findOptionByValue(firstSelected);
-    const selectedEl = selectedOption == null ? undefined : refs.optionRefs.get(toRaw(selectedOption));
+    const selectedEl = selectedOption == null
+      ? undefined
+      : refs.optionRefs.get(toRaw(selectedOption));
     if (selectedEl && refs.listRef) {
       scrollElementIntoContainer(selectedEl, refs.listRef);
 
@@ -71,7 +75,9 @@ export function usePositioning<O, V, Q>(
       // The popup settles at scale 1, so divide out the current scale to get the
       // final (unscaled) offset. Both rects share the popup's scale, so the vector
       // difference scales by the same factor regardless of transform-origin.
-      const scale = dropdownEl.offsetWidth > 0 ? dropdownRect.width / dropdownEl.offsetWidth : 1;
+      const scale = dropdownEl.offsetWidth > 0
+        ? dropdownRect.width / dropdownEl.offsetWidth
+        : 1;
       alignmentOffset.value = (selectedRect.top - dropdownRect.top) / (scale || 1);
     } else {
       alignmentOffset.value = 0;

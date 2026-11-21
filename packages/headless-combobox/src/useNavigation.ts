@@ -15,9 +15,11 @@ export interface NavigationDeps<O> {
 }
 
 function getFocusableElements(): HTMLElement[] {
-  return [ ...document.querySelectorAll<HTMLElement>(
-    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]',
-  ) ].filter((el) => el.tabIndex >= 0 && el.getClientRects().length > 0);
+  return [
+    ...document.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]',
+    ),
+  ].filter((el) => el.tabIndex >= 0 && el.getClientRects().length > 0);
 }
 
 // Backspace/Delete fall through to native behavior when the key is meant to
@@ -116,8 +118,12 @@ export function useNavigation<O, V, Q>(
     const active = document.activeElement as HTMLElement | null;
     // document.activeElement is never null per the DOM spec.
     /* v8 ignore next 3 */
-    const index = active == null ? -1 : focusables.indexOf(active);
-    const step = backward ? -1 : 1;
+    const index = active == null
+      ? -1
+      : focusables.indexOf(active);
+    const step = backward
+      ? -1
+      : 1;
     for (let i = 1; i <= focusables.length; i++) {
       const el = focusables[ (index + i * step + focusables.length) % focusables.length ]!;
       // The list ref is always set while the popup is open.
@@ -204,7 +210,9 @@ export function useNavigation<O, V, Q>(
       case 'PageDown':
       case 'PageUp': {
         e.preventDefault();
-        stepHighlight(e.key === 'PageDown' ? 1 : -1, pageSize(), false);
+        stepHighlight(e.key === 'PageDown'
+          ? 1
+          : -1, pageSize(), false);
         deps.scrollToHighlight();
         break;
       }
@@ -215,7 +223,9 @@ export function useNavigation<O, V, Q>(
           break;
         }
         e.preventDefault();
-        highlightedIndex.value = e.key === 'Home' ? firstActionableIndex() : lastActionableIndex();
+        highlightedIndex.value = e.key === 'Home'
+          ? firstActionableIndex()
+          : lastActionableIndex();
         deps.scrollToHighlight();
         break;
       }

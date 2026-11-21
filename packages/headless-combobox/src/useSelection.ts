@@ -21,7 +21,9 @@ export function useSelection<O, V, Q>(
 ) {
   /** The value stored / emitted for an option; defaults to the option itself. */
   function valueOf(option: O): V {
-    return props.optionValue ? props.optionValue(option) : option as unknown as V;
+    return props.optionValue
+      ? props.optionValue(option)
+      : option as unknown as V;
   }
 
   /** The option whose value equals `value` (used to resolve the model back to an option). */
@@ -31,9 +33,13 @@ export function useSelection<O, V, Q>(
 
   const selectedList = computed<V[]>(() => {
     if (props.multiple) {
-      return Array.isArray(props.modelValue) ? props.modelValue : [];
+      return Array.isArray(props.modelValue)
+        ? props.modelValue
+        : [];
     }
-    return props.modelValue == null ? [] : [ props.modelValue as V ];
+    return props.modelValue == null
+      ? []
+      : [ props.modelValue as V ];
   });
 
   const selectedCount = computed(() => selectedList.value.length);
@@ -92,7 +98,9 @@ export function useSelection<O, V, Q>(
     if (isLocked.value) {
       return;
     }
-    emit(props.multiple ? [] : null);
+    emit(props.multiple
+      ? []
+      : null);
     if (isOpen.value) {
       nextTick(hooks.maybeRefocusInput);
     }
@@ -109,7 +117,9 @@ export function useSelection<O, V, Q>(
     if (current.length === 0) {
       return;
     }
-    emit(props.multiple ? current.slice(0, -1) : null);
+    emit(props.multiple
+      ? current.slice(0, -1)
+      : null);
     if (isOpen.value) {
       nextTick(hooks.maybeRefocusInput);
     }

@@ -31,7 +31,7 @@ const tab = ref<'preview' | 'code'>('preview');
       <div
         role="tablist"
         class="
-          tabs tabs-box w-fit
+          tabs-box tabs w-fit
           max-xl:tabs-sm
         "
       >
@@ -39,7 +39,7 @@ const tab = ref<'preview' | 'code'>('preview');
           type="button"
           role="tab"
           class="tab"
-          :class="{ 'tab-active': tab === 'preview' }"
+          :aria-selected="tab === 'preview'"
           @click="tab = 'preview'"
         >
           Preview
@@ -48,7 +48,7 @@ const tab = ref<'preview' | 'code'>('preview');
           type="button"
           role="tab"
           class="tab"
-          :class="{ 'tab-active': tab === 'code' }"
+          :aria-selected="tab === 'code'"
           @click="tab = 'code'"
         >
           Code

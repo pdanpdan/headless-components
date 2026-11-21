@@ -329,10 +329,15 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
   // The hook objects below start as placeholder no-ops and are replaced by the
   // late binding after all composables exist (they form a dependency cycle).
   /* v8 ignore start */
-  const selectionHooks: SelectionHooks = { close: () => {}, maybeRefocusInput: () => {} };
+  const selectionHooks: SelectionHooks = {
+    close: () => {},
+    maybeRefocusInput: () => {},
+  };
   const selection = useSelection(props, emit, isOpen, selectionHooks);
 
-  const filteringHooks: FilteringHooks = { open: async () => {} };
+  const filteringHooks: FilteringHooks = {
+    open: async () => {},
+  };
   const filtering = useFiltering(props, searchQuery as unknown as Ref<Q | undefined>, filteringHooks);
 
   const validation = useValidation(props, selection.selectedCount);

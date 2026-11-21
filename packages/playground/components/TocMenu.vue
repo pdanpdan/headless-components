@@ -29,8 +29,12 @@ function syncAriaCurrent() {
     return;
   }
   const visible = list.offsetParent !== null;
-  const links = [ ...list.querySelectorAll('a') ];
-  const active = visible ? links.find((link) => link.matches(':target-current')) : undefined;
+  const links = [
+    ...list.querySelectorAll('a'),
+  ];
+  const active = visible
+    ? links.find((link) => link.matches(':target-current'))
+    : undefined;
   const currentId = active?.getAttribute('href')?.slice(1);
   for (const link of links) {
     if (link === active) {

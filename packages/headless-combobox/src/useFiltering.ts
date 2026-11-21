@@ -16,7 +16,9 @@ export function useFiltering<O, V, Q>(
   hooks: FilteringHooks,
 ) {
   function getOptionLabel(option: O): string {
-    return props.optionLabel ? props.optionLabel(option) : String(option);
+    return props.optionLabel
+      ? props.optionLabel(option)
+      : String(option);
   }
 
   function defaultFilter(option: O, q: string): boolean {

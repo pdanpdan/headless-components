@@ -41,9 +41,13 @@ export function useValidation<O, V, Q>(
       case 'required':
         return 'Selection is required.';
       case 'minlength':
-        return `Select at least ${ props.minLength } option${ props.minLength === 1 ? '' : 's' }.`;
+        return `Select at least ${ props.minLength } option${ props.minLength === 1
+          ? ''
+          : 's' }.`;
       case 'maxlength':
-        return `Select at most ${ props.maxLength } option${ props.maxLength === 1 ? '' : 's' }.`;
+        return `Select at most ${ props.maxLength } option${ props.maxLength === 1
+          ? ''
+          : 's' }.`;
     }
     // Unreachable: the switch above is exhaustive over HeadlessComboboxErrorCode.
     /* v8 ignore next 1 */
