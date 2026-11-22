@@ -9,6 +9,7 @@ export default antfu(
     ignores: [
       'docs/**',
       'packages/playground/pages/combobox/snippets/**',
+      'packages/playground/public/combobox-llm.md',
     ],
     stylistic: {
       indent: 2,
