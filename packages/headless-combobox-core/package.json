@@ -1,7 +1,7 @@
 {
   "name": "@pdanpdan/headless-combobox-core",
   "type": "module",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Framework-independent combobox state machine used by the Vue, React, Svelte, Solid, and Angular adapters",
   "author": "Dan Popescu",
   "license": "MIT",

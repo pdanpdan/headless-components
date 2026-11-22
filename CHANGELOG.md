@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.1.1](https://github.com/pdanpdan/headless-components/compare/v3.1.0...v3.1.1) (2026-11-22)
+
+### Bug Fixes
+
+* **combobox:** discover popup search inputs outside the container ([d6d4fe4](https://github.com/pdanpdan/headless-components/commit/d6d4fe498847be040d9251a24291241b0b5be50b))
+
 # [3.1.0](https://github.com/pdanpdan/headless-components/compare/v3.0.1...v3.1.0) (2026-11-22)
 
 ### Bug Fixes
