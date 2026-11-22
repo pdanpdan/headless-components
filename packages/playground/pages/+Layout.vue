@@ -15,7 +15,7 @@ import '#/assets/style.css';
 
 const repoUrl = 'https://github.com/pdanpdan/headless-components';
 
-const components = [
+const components: Array<{ href: string; label: string; newTab?: boolean; }> = [
   { href: '/combobox', label: 'Overview' },
   { href: '/combobox/styling', label: 'Styling' },
   { href: '/combobox/core', label: 'Core' },
@@ -24,6 +24,7 @@ const components = [
   { href: '/combobox/svelte', label: 'Svelte' },
   { href: '/combobox/solid', label: 'Solid' },
   { href: '/combobox/angular', label: 'Angular' },
+  { href: '/combobox-llm.md', label: 'LLM reference', newTab: true },
 ];
 
 const mainRef = ref<HTMLElement>();
@@ -142,6 +143,8 @@ onUnmounted(() => {
                 :href
                 class="docs-menu-focusable py-2 ps-5 tracking-wider"
                 :class="{ 'docs-menu-active': active }"
+                :target="item.newTab ? '_blank' : undefined"
+                :rel="item.newTab ? 'noopener noreferrer' : undefined"
               >
                 {{ item.label }}
               </a>

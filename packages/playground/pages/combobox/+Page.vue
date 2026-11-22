@@ -81,5 +81,19 @@ const adapters = Object.values(ADAPTER_DOCS);
         for popup positioning and CSS state hooks.
       </p>
     </section>
+
+    <section class="flex max-w-3xl flex-col gap-3">
+      <h2 class="text-xl font-semibold">For LLMs</h2>
+      <p class="text-sm text-base-content/80">
+        <a
+          :href="normalizeHref('/combobox-llm.md')"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="link link-primary"
+        >combobox-llm.md</a>
+        has the props, the scope fields and one working example per framework,
+        so an assistant can write a combobox without reading the playground.
+      </p>
+    </section>
   </div>
 </template>
