@@ -1,3 +1,4 @@
+import type { Highlighter } from 'shiki';
 import type { Plugin } from 'vite';
 
 import fs from 'node:fs';
@@ -6,17 +7,48 @@ import path from 'node:path';
 import { createHighlighter } from 'shiki';
 
 const QUERY = '?highlight';
+const THEME = 'github-dark';
+// Shiki's Vue grammar only enters template mode inside an SFC block, so a bare
+// template fragment is treated as plain text after its first tag.
+const VUE_SFC_BLOCK = /^\s*<(?:template|script|style)\b/;
 // Virtual ids keep Vite's dependency scanner from trying to read the
 // highlighted module from disk (it does not run plugin `load` hooks).
 const VIRTUAL_PREFIX = '\0highlight:';
 const VIRTUAL_SUFFIX = '.highlight.js';
 
-let highlighterPromise: ReturnType<typeof createHighlighter> | null = null;
+let highlighterPromise: Promise<Highlighter> | null = null;
+
+async function highlightVue(highlighter: Highlighter, code: string) {
+  if (VUE_SFC_BLOCK.test(code)) {
+    return highlighter.codeToHtml(code, { lang: 'vue', theme: THEME });
+  }
+
+  const wrapped = `<template>\n${ code }${ code.endsWith('\n')
+    ? ''
+    : '\n' }</template>`;
+  const html = highlighter.codeToHtml(wrapped, { lang: 'vue', theme: THEME });
+  const lines = html.split('\n');
+  const first = lines[ 0 ];
+  const last = lines[ lines.length - 1 ];
+  const openSpan = '<span class="line">';
+  const closeSuffix = '</span></code></pre>';
+
+  // Unexpected renderer output: highlight the fragment as HTML instead of
+  // risking a corrupt code block.
+  if (!first.includes(openSpan) || !last.endsWith(closeSuffix)) {
+    return highlighter.codeToHtml(code, { lang: 'html', theme: THEME });
+  }
+
+  // Drop the `<template>` wrapper lines, keeping the rendered fragment.
+  return first.slice(0, first.indexOf(openSpan))
+    + lines.slice(1, -1).join('\n')
+    + last.slice(last.lastIndexOf('</span>') + '</span>'.length);
+}
 
 export async function highlight(code: string, lang: string) {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
-      themes: [ 'github-dark' ],
+      themes: [ THEME ],
       langs: [
         'vue',
         'bash',
@@ -31,10 +63,9 @@ export async function highlight(code: string, lang: string) {
   }
 
   const highlighter = await highlighterPromise;
-  return highlighter.codeToHtml(code, {
-    lang,
-    theme: 'github-dark',
-  });
+  return lang === 'vue'
+    ? highlightVue(highlighter, code)
+    : highlighter.codeToHtml(code, { lang, theme: THEME });
 }
 
 /**
