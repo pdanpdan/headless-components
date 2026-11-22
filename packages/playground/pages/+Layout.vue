@@ -268,7 +268,7 @@ onUnmounted(() => {
 <style scoped>
 /* Square the dropdown's top corners while it is pinned to the scrollport top.
    The sticky wrapper is the scroll-state container; the query styles its
-   child (Chrome 133+ — rounded elsewhere). */
+   child (Chrome 133+, rounded elsewhere). */
 .toc-dropdown {
   container-type: scroll-state;
 

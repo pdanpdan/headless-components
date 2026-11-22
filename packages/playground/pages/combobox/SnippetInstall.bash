@@ -1,1 +1,1 @@
-pnpm add @pdanpdan/headless-combobox
+pnpm add @pdanpdan/headless-combobox-vue

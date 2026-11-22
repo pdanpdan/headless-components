@@ -10,3 +10,10 @@ declare module '*?highlight' {
   };
   export default content;
 }
+
+declare module 'virtual:adapter-examples' {
+  import type { AdapterId } from './lib/adapter-examples';
+
+  const examples: Record<string, Record<AdapterId, { raw: string; html: string; }>>;
+  export default examples;
+}

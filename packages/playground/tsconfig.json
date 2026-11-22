@@ -16,8 +16,8 @@
       "#/*": [
         "./*"
       ],
-      "@pdanpdan/headless-combobox": [
-        "../headless-combobox/src/index.ts"
+      "@pdanpdan/headless-combobox-vue": [
+        "../headless-combobox-vue/src/index.ts"
       ]
     },
     "types": [
@@ -32,9 +32,9 @@
     "**/*.ts",
     "**/*.vue",
     "env.d.ts",
-    "../headless-combobox/src/**/*.ts",
-    "../headless-combobox/src/**/*.vue",
-    "../headless-combobox/examples/**/*.vue"
+    "../headless-combobox-vue/src/**/*.ts",
+    "../headless-combobox-vue/src/**/*.vue",
+    "../headless-combobox-vue/examples/**/*.vue"
   ],
   "exclude": [
     "node_modules",

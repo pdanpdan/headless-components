@@ -22,6 +22,20 @@ const emit = defineEmits<{
 const listRef = ref<HTMLUListElement>();
 let raf = 0;
 let lastCurrentId: string | undefined;
+let targetCurrentSupported: boolean | undefined;
+
+function matchesTargetCurrent(link: HTMLAnchorElement): boolean {
+  if (targetCurrentSupported == null) {
+    try {
+      document.createDocumentFragment().querySelector(':target-current');
+      targetCurrentSupported = true;
+    } catch {
+      // Older browsers do not know the pseudo-class yet; skip the mirror.
+      targetCurrentSupported = false;
+    }
+  }
+  return targetCurrentSupported && link.matches(':target-current');
+}
 
 function syncAriaCurrent() {
   const list = listRef.value;
@@ -33,7 +47,7 @@ function syncAriaCurrent() {
     ...list.querySelectorAll('a'),
   ];
   const active = visible
-    ? links.find((link) => link.matches(':target-current'))
+    ? links.find(matchesTargetCurrent)
     : undefined;
   const currentId = active?.getAttribute('href')?.slice(1);
   for (const link of links) {

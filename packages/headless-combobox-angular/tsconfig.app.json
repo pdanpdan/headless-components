@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "composite": false,
+    "target": "esnext",
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "rootDir": "../..",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@pdanpdan/headless-combobox-core": [
+        "../headless-combobox-core/src/index.ts"
+      ]
+    },
+    "types": [],
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist",
+    "sourceMap": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

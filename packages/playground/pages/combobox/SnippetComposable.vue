@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useHeadlessCombobox } from '@pdanpdan/headless-combobox';
+import { useHeadlessCombobox } from '@pdanpdan/headless-combobox-vue';
 import { ref } from 'vue';
 
 interface User {

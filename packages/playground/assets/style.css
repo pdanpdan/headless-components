@@ -75,7 +75,7 @@
 
 @source "../pages/**/*.{vue,ts}";
 @source "../components/**/*.vue";
-@source "../../headless-combobox/examples/**/*.vue";
+@source "../../headless-combobox-vue/examples/**/*.vue";
 
 html {
   scrollbar-gutter: stable;

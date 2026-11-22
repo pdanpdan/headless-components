@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@mdi/js": "catalog:",
-    "@pdanpdan/headless-combobox": "workspace:*",
+    "@pdanpdan/headless-combobox-vue": "workspace:*",
     "shiki": "catalog:",
     "vike": "catalog:",
     "vike-vue": "catalog:",

@@ -14,7 +14,7 @@
   "plugins": {
     "@release-it/conventional-changelog": {
       "preset": "angular",
-      "infile": "packages/headless-combobox/CHANGELOG.md"
+      "infile": "CHANGELOG.md"
     }
   },
   "hooks": {
@@ -22,8 +22,8 @@
       "pnpm test:all"
     ],
     "after:bump": [
-      "npm version ${version} --no-git-tag-version --prefix packages/headless-combobox",
-      "git add package.json packages/headless-combobox/package.json"
+      "node scripts/set-version.js ${version}",
+      "git add package.json packages/*/package.json CHANGELOG.md"
     ]
   }
 }

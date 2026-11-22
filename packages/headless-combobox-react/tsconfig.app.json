@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "composite": false,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "target": "esnext",
+    "jsx": "react-jsx",
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "rootDir": "../..",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@pdanpdan/headless-combobox-core": [
+        "../headless-combobox-core/src/index.ts"
+      ]
+    },
+    "types": [
+      "react"
+    ],
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "./dist",
+    "sourceMap": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx"
+  ]
+}
