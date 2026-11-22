@@ -1,5 +1,12 @@
 # Changelog
 
+# [null](https://github.com/pdanpdan/headless-components/compare/v3.0.0...vnull) (2026-11-22)
+
+### Bug Fixes
+
+* **core:** keep the typeahead popup closed after a selection ([b148f0e](https://github.com/pdanpdan/headless-components/commit/b148f0ed2449912f7d297658654703825bb31d2f))
+* **svelte:** keep the snapshot out of deep state ([9094bae](https://github.com/pdanpdan/headless-components/commit/9094baeb17985285de7db6cae6b24383365bcfc7))
+
 All packages in this repository share this changelog and release version.
 
 ## Unreleased
