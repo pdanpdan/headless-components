@@ -16,7 +16,7 @@
     onChange: (value) => props.onChange?.(value),
   });
 
-  let snapshot = $state(store.getSnapshot());
+  let snapshot = $state.raw(store.getSnapshot());
 
   $effect(() => store.subscribe((value) => {
     snapshot = value;
