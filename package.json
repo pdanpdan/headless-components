@@ -23,6 +23,7 @@
     "test:all": "pnpm -r run test:all",
     "typecheck": "pnpm -r run typecheck",
     "release": "release-it",
+    "release:ci": "release-it --ci",
     "release:npm": "pnpm -r --filter './packages/headless-*' publish --access public",
     "install:packages": "pnpm install",
     "update:packages": "pnpm update --interactive --latest --recursive --include-workspace-root"
