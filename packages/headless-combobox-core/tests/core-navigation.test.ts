@@ -175,13 +175,35 @@ describe('core navigation', () => {
     expect(store.getSnapshot().highlightedIndex).toBe(0);
   });
 
-  it('selects the highlighted option with Enter', async () => {
-    const { store, trigger, onChange } = fixture();
+  it('selects the highlighted option with Enter from the filter input', async () => {
+    const { store, input, onChange } = fixture();
     await store.getSnapshot().open();
-    press(trigger, 'ArrowDown');
-    press(trigger, 'Enter');
+    press(input, 'ArrowDown');
+    press(input, 'Enter');
 
     expect(onChange).toHaveBeenCalledWith(users[ 1 ]);
+    expect(store.getSnapshot().isOpen).toBe(false);
+  });
+
+  it('closes on Enter from a trigger with a separate filter input', async () => {
+    const { store, trigger, onChange } = fixture();
+    await store.getSnapshot().open();
+
+    const event = press(trigger, 'Enter');
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(store.getSnapshot().isOpen).toBe(false);
+  });
+
+  it('selects with Enter on a trigger that is also the combobox', async () => {
+    const { store, trigger, onChange } = fixture();
+    store.getSnapshot().setInputRef(null);
+    await store.getSnapshot().open();
+
+    press(trigger, 'Enter');
+
+    expect(onChange).toHaveBeenCalledWith(users[ 0 ]);
     expect(store.getSnapshot().isOpen).toBe(false);
   });
 

@@ -310,7 +310,7 @@ If the dropdown element is a popover (`popover="manual"`), the component drives 
 | `ArrowDown` / `ArrowUp` (open) | Move the highlight.                |
 | `PageDown` / `PageUp`   | Move the highlight a full page (visible options), clamped at the ends. |
 | `Home` / `End`          | Jump to the first/last selectable option (native caret behavior in inputs). |
-| `Enter` (open)          | Select the highlighted option, or create the typed query when `canCreate`. |
+| `Enter` (open)          | On a trigger with a separate filter input, close the popup. Otherwise select the highlighted option, or create the typed query when `canCreate`. |
 | `Space` (open)          | Does nothing on the trigger (the native click that would toggle the popup closed is suppressed); options and text entries keep their native behavior. |
 | `Tab` / `Shift+Tab`     | Skip the options list to the next focusable element; closes when focus leaves the widget (`selectOnTab` selects the highlighted option first). |
 | `Escape`                | Close and return focus to the trigger.    |

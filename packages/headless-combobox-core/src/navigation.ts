@@ -191,6 +191,13 @@ export function createNavigation<O, V, Q>(
       }
       case 'Enter': {
         e.preventDefault();
+        // A trigger button paired with a separate filter input is not the
+        // combobox editor. Enter on it closes the popup instead of toggling
+        // whichever option happens to be highlighted.
+        if (e.target === refs.triggerRef && refs.inputRef != null && refs.triggerRef !== refs.inputRef) {
+          deps.close();
+          break;
+        }
         const option = deps.getFilteredOptions()[ ctx.state.highlightedIndex ];
         if (ctx.state.highlightedIndex >= 0 && option != null) {
           deps.select(option);

@@ -1184,12 +1184,37 @@ describe('headless combobox (trigger interactions)', () => {
     expect(wired.scope.highlightedIndex).toBe(1);
     expect(wired.els.trigger.getAttribute('aria-activedescendant')).toMatch(/-opt-1$/);
 
-    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    wired.els.input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await nextTick();
     expect(wired.wrapper.emitted('update:modelValue')).toEqual([
       [ users[ 1 ] ],
     ]);
     expect(wired.scope.isOpen).toBe(false);
+
+    wired.wrapper.unmount();
+  });
+
+  it('closes on Enter from the trigger without changing the selection', async () => {
+    const users = createUsers();
+    const wired = mountWired(users, {
+      multiple: true,
+      modelValue: [ users[ 0 ] as User ],
+    });
+
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+    await nextTick();
+    await nextTick();
+    wired.els.trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, cancelable: true }));
+    await nextTick();
+
+    const enter = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+    wired.els.trigger.dispatchEvent(enter);
+    await nextTick();
+
+    expect(enter.defaultPrevented).toBe(true);
+    expect(wired.wrapper.emitted('update:modelValue')).toBeUndefined();
+    expect(wired.scope.isOpen).toBe(false);
+    expect(wired.els.trigger.getAttribute('aria-expanded')).toBe('false');
 
     wired.wrapper.unmount();
   });

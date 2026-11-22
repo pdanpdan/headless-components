@@ -1152,7 +1152,7 @@ Validation is headless and reactive. The widget computes the result, you render 
 | `ArrowDown`, `ArrowUp` | open | Move the highlight. Wraps and skips disabled options. |
 | `PageDown`, `PageUp` | open | Move the highlight one visible page, clamped at the ends. |
 | `Home`, `End` | open | Jump to the first or last selectable option. Native caret behavior inside text inputs. |
-| `Enter` | open | Select the highlighted option, or create the typed query when `canCreate`. |
+| `Enter` | open | On a trigger with a separate filter input, close the popup. Otherwise select the highlighted option, or create the typed query when `canCreate`. |
 | `Space` | open | Does nothing on the trigger. Options and text inputs keep native behavior. |
 | `Tab`, `Shift+Tab` | open | Move focus past the list. The popup closes when focus leaves the widget; `selectOnTab` selects the highlighted option first. |
 | `Escape` | open | Close and return focus to the trigger. |
