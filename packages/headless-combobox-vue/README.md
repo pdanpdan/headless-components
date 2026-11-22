@@ -37,8 +37,8 @@ HeadlessCombobox (default slot scope)
 ```text
 HeadlessCombobox (default slot scope)
 └─ div :ref="setContainerRef"                       widget boundary (optional)
-   ├─ input :ref="setTriggerRef"                    the combobox input
-   │  │       v-bind="comboboxInputProps"
+   ├─ input :ref="(el) => { setTriggerRef(el); setInputRef(el) }"
+   │  │       v-bind="comboboxInputProps"           the combobox input
    └─ ul :ref="setDropdownRef"                      the popup
       │      v-bind="listboxProps" :style="popupStyle"
       │      popover="manual"                       optional: native Popover API
@@ -57,7 +57,7 @@ This is where each slot prop is designed to be used:
 | search input in the popup | `inputProps`, `setInputRef` | `role="searchbox"`. Filters while the popup stays open. |
 | popup element | `popupStyle`, `setDropdownRef` | Positioning; add `popover="manual"` to use the native Popover API. |
 | list element | `listboxProps`, `setListRef` | `role="listbox"`. The options container. |
-| each option element | `getOptionProps(option)`, `setOptionRef(option, el)` | Option semantics + select/highlight handlers. The index is the option's position in `filteredOptions`; omit it to derive that position (safe for grouped and virtualized lists). |
+| each option element | `getOptionProps(option, index?)`, `setOptionRef(option, el)` | Option semantics + select/highlight handlers. `index` defaults to the option's position in `filteredOptions`; pass it only as that flat position. |
 
 Ref setters are wired with `:ref="..."` and are optional. Bind only the elements your markup uses. `setOptionRef` enables `alignSelected` and scroll-into-view; `setContainerRef` extends the click-outside boundary (e.g. to external chips).
 
@@ -77,18 +77,18 @@ const selected = ref<User | null>(null);
 
 <template>
   <HeadlessCombobox
-    v-slot="{ isOpen, filteredOptions, toggle, select, triggerProps, setContainerRef, setTriggerRef, getOptionProps }"
+    v-slot="{ isOpen, filteredOptions, triggerProps, listboxProps, setContainerRef, setTriggerRef, setDropdownRef, getOptionProps }"
     v-model="selected"
     :options="users"
     :option-label="(u) => u.name"
   >
     <div :ref="setContainerRef">
-      <button :ref="setTriggerRef" v-bind="triggerProps" type="button" @click="toggle">
+      <button :ref="setTriggerRef" v-bind="triggerProps" type="button">
         {{ selected?.name ?? 'Select…' }}
       </button>
-      <ul v-if="isOpen">
+      <ul v-if="isOpen" :ref="setDropdownRef" v-bind="listboxProps">
         <li v-for="(u, i) in filteredOptions" :key="u.id">
-          <button type="button" v-bind="getOptionProps(u, i)" @click="select(u)">
+          <button type="button" v-bind="getOptionProps(u, i)">
             {{ u.name }}
           </button>
         </li>
@@ -98,7 +98,7 @@ const selected = ref<User | null>(null);
 </template>
 ```
 
-See the [`examples/`](./examples) folder for full daisyUI-styled demos: `TextTypeahead.vue` (editable combobox), `NiceSelect.vue` (selected-option alignment), and `ComposableSingle.vue` / `ComposableProgrammatic.vue` (composable API).
+See the [`examples/`](./examples) folder for full daisyUI-styled demos: `TextTypeahead.vue` (editable combobox), `GroupedOptions.vue` (labelled option groups), `NiceSelect.vue` (selected-option alignment), and `ComposableSingle.vue` / `ComposableProgrammatic.vue` (composable API).
 
 Prefer to skip the slot indirection? The same state machine is available as the [`useHeadlessCombobox`](#composable) composable.
 
@@ -129,7 +129,6 @@ const {
   comboboxInputProps,
   listboxProps,
   getOptionProps,
-  select,
   setContainerRef,
   setTriggerRef,
   setInputRef,
@@ -167,7 +166,6 @@ const {
           :ref="(el) => setOptionRef(user, el)"
           type="button"
           v-bind="getOptionProps(user, index)"
-          @click="select(user)"
         >
           {{ user.name }}
         </button>
@@ -179,7 +177,7 @@ const {
 
 - **`props` accept plain values, refs, or a getter**. Every field is unwrapped and tracked internally, so you can pass your `modelValue` ref directly without a `reactive()` wrapper.
 - The second argument receives every `update:modelValue` payload. Write it back to your state. Note that a ref deep-converts object values (`selected.value` is a reactive proxy of the option); use `isSelected(option)` for identity-based checks, as with the component.
-- Returns a `HeadlessComboboxScope<T, Q>`: `Ref`s for state, plain functions for actions and ref setters. Destructure like any composable; refs unwrap in templates.
+- Returns a `HeadlessComboboxScope<O, V, Q>`: `Ref`s for state, plain functions for actions and ref setters. Destructure like any composable; refs unwrap in templates.
 
 ## Props
 
@@ -225,7 +223,7 @@ State: `isOpen`, `multiple`, `disabled`, `readonly`, `searchQuery` (`Q | undefin
 ARIA prop bags (spread with `v-bind`). Each bag also carries its interaction handlers, so options, triggers, and inputs need no hand-written event wiring:
 - `triggerProps`: `HeadlessComboboxTriggerProps` (trigger as `role="combobox"`, plus `onClick` → toggle and `onKeydown` → `handleKeydown`)
 - `inputProps`: `HeadlessComboboxInputProps` (in-popup filter input as `role="searchbox"`, plus `onInput` → `setSearchQuery` and `onKeydown` → `handleKeydown`)
-- `comboboxInputProps`: `HeadlessComboboxComboboxInputProps` (typeahead input as `role="combobox"`, plus `onClick`/`onFocus` → open, `onInput` → `setSearchQuery`, and a Space-safe `onKeydown`)
+- `comboboxInputProps`: `HeadlessComboboxComboboxInputProps` (typeahead input as `role="combobox"`, plus `onClick`/`onFocus` → open, `onInput` → open and set the query, and a Space-safe `onKeydown`)
 - `listboxProps`: `HeadlessComboboxListboxProps`
 - `statusProps`: `HeadlessComboboxStatusProps` (`role="status"`, `aria-live="polite"`, `aria-atomic`; bind to `statusMessage`)
 - `getOptionProps(option, index?)` → `HeadlessComboboxOptionProps` (option semantics, `aria-posinset`/`aria-setsize`, plus `onClick` → select, `onMousedown` → `preventDefault` to keep the filter focused, and `onMousemove`/`onFocus` → `setHighlightedIndex`; blocked options are skipped). The index is derived from `filteredOptions` when omitted.
@@ -307,12 +305,12 @@ If the dropdown element is a popover (`popover="manual"`), the component drives 
 
 | Key                     | Behavior                                  |
 |-------------------------|-------------------------------------------|
-| `Enter` / `Space` / `ArrowDown` / `ArrowUp` (closed) | Open the dropdown.           |
+| `Enter` / `Space` / `ArrowDown` / `ArrowUp` (closed) | Open the dropdown from the trigger. In a typeahead input, Enter and the arrows open it; Space and printable keys edit the query. |
 | `Backspace` / `Delete` (closed, or open without a filter input, or open on an empty typeahead input) | Remove the last (or only) selected option. Keys aimed at a text input that still holds text (the selection label or a query) keep their native behavior. |
 | `ArrowDown` / `ArrowUp` (open) | Move the highlight.                |
 | `PageDown` / `PageUp`   | Move the highlight a full page (visible options), clamped at the ends. |
 | `Home` / `End`          | Jump to the first/last selectable option (native caret behavior in inputs). |
-| `Enter` (open)          | Select the highlighted option.            |
+| `Enter` (open)          | Select the highlighted option, or create the typed query when `canCreate`. |
 | `Space` (open)          | Does nothing on the trigger (the native click that would toggle the popup closed is suppressed); options and text entries keep their native behavior. |
 | `Tab` / `Shift+Tab`     | Skip the options list to the next focusable element; closes when focus leaves the widget (`selectOnTab` selects the highlighted option first). |
 | `Escape`                | Close and return focus to the trigger.    |

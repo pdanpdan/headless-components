@@ -46,7 +46,7 @@ subscribe();
 store.destroy();
 ```
 
-Adapters pass a runtime for the three framework-specific concerns:
+Adapters pass a runtime for the framework-specific concerns:
 
 ```ts
 import { createCombobox } from '@pdanpdan/headless-combobox-core';
@@ -64,6 +64,7 @@ createCombobox({
     nextTick: () => Promise.resolve(), // resolve after the framework commits the DOM
     unwrap: (value) => value, // Vue passes toRaw; others keep identity
     createId: () => 'combobox', // optional stable id source
+    getDocument: () => document, // defaults to the global document when available
   },
 });
 ```

@@ -33,12 +33,12 @@ export function Example() {
       {scope.isOpen && (
         <ul {...toReactProps(scope.listboxProps)}>
           {scope.filteredOptions.map((user, index) => (
-            <li
-              key={user.id}
-              ref={(el) => scope.setOptionRef(user, el)}
-              {...toReactProps(scope.getOptionProps(user, index))}
-            >
-              <button type="button" onClick={() => scope.select(user)}>
+            <li key={user.id}>
+              <button
+                type="button"
+                ref={(el) => scope.setOptionRef(user, el)}
+                {...toReactProps(scope.getOptionProps(user, index))}
+              >
                 {user.name}
               </button>
             </li>

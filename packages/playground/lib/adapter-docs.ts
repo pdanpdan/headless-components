@@ -324,7 +324,7 @@ export const STATE_ROWS: PropRow[] = [
 ];
 
 export const KEYBOARD_ROWS: PropRow[] = [
-  { name: 'Enter / Space / ArrowDown / ArrowUp', type: 'popup closed', description: 'Open the dropdown.' },
+  { name: 'Enter / Space / ArrowDown / ArrowUp', type: 'popup closed', description: 'Open the dropdown from the trigger. In a typeahead input, Enter and the arrows open it; Space and printable keys edit the query.' },
   { name: 'Backspace / Delete', type: 'popup closed, or open without a filter input', description: 'Remove the last (or only) selected option. Text inputs keep their native editing behavior.' },
   { name: 'ArrowDown / ArrowUp', type: 'popup open', description: 'Move the highlight; wraps around and skips disabled options.' },
   { name: 'PageDown / PageUp', type: 'popup open', description: 'Move the highlight a full page (visible options), clamped at the ends.' },
@@ -337,7 +337,7 @@ export const KEYBOARD_ROWS: PropRow[] = [
 
 export const ACTION_ROWS: PropRow[] = [
   { name: 'toggle', type: '() => void', description: 'Toggle the dropdown open or closed.' },
-  { name: 'open', type: '() => void', description: 'Open the dropdown.' },
+  { name: 'open', type: '() => Promise<void>', description: 'Open the dropdown.' },
   { name: 'close', type: '(returnFocus?: boolean) => void', description: 'Close the dropdown.' },
   { name: 'select', type: '(option: T) => void', description: 'Select (single) or toggle (multiple) an option.' },
   { name: 'createSelection', type: '() => void', description: 'Commit the typed query as a new value. No-op unless `canCreate`.' },
@@ -364,7 +364,7 @@ export const ARIA_ROWS: PropRow[] = [
   { name: 'comboboxInputProps', type: 'HeadlessComboboxComboboxInputProps', description: 'Typeahead input attributes, open, focus, input, and Space-safe keydown handlers.' },
   { name: 'listboxProps', type: 'HeadlessComboboxListboxProps', description: 'role=listbox and aria-multiselectable.' },
   { name: 'statusProps', type: 'HeadlessComboboxStatusProps', description: 'role=status, aria-live=polite, aria-atomic; spread on the status message element.' },
-  { name: 'getOptionProps', type: '(option, index?) => HeadlessComboboxOptionProps', description: 'role=option, aria-selected, aria-disabled, and select and highlight handlers. The index is derived from filteredOptions when omitted.' },
+  { name: 'getOptionProps', type: '(option, index?) => HeadlessComboboxOptionProps', description: 'role=option, aria-selected, aria-disabled, aria-posinset, aria-setsize, and select and highlight handlers. The index is derived from filteredOptions when omitted.' },
 ];
 
 export function scopeGroups(adapter: AdapterId): ScopeGroup[] {

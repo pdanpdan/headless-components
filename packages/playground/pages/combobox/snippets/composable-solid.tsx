@@ -34,11 +34,12 @@ export function Example() {
         <ul {...toSolidProps(scope().listboxProps)}>
           <For each={scope().filteredOptions}>
             {(user, index) => (
-              <li
-                ref={(el) => scope().setOptionRef(user, el)}
-                {...toSolidProps(scope().getOptionProps(user, index()))}
-              >
-                <button type="button" onClick={() => scope().select(user)}>
+              <li>
+                <button
+                  type="button"
+                  ref={(el) => scope().setOptionRef(user, el)}
+                  {...toSolidProps(scope().getOptionProps(user, index()))}
+                >
                   {user.name}
                 </button>
               </li>

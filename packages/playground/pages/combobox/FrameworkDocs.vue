@@ -42,6 +42,7 @@ const EXAMPLE_ORDER = [
   'TextInternal',
   'TextSelectOnTab',
   'ObjectSingle',
+  'GroupedOptions',
   'ObjectValueSingle',
   'TextMultiple',
   'TextMultipleChips',

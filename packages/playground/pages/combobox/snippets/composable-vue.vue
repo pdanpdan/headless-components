@@ -20,7 +20,6 @@ const {
   comboboxInputProps,
   listboxProps,
   getOptionProps,
-  select,
   setContainerRef,
   setTriggerRef,
   setInputRef,
@@ -60,7 +59,6 @@ const {
           :ref="(el) => setOptionRef(user, el)"
           type="button"
           v-bind="getOptionProps(user, index)"
-          @click="select(user)"
         >
           {{ user.name }}
         </button>

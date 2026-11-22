@@ -74,9 +74,9 @@ const adapters = Object.values(ADAPTER_DOCS);
         changes.
       </p>
       <p class="text-sm text-base-content/80">
-        The examples cover text and object options, internal and controlled
-        state, removable chips, validation, select-on-tab, typeahead, and
-        programmatic control. See
+        The examples cover text and object options, grouped options, internal
+        and controlled state, removable chips, validation, select-on-tab,
+        typeahead, and programmatic control. See
         <a :href="normalizeHref('/combobox/styling')" class="link link-primary">Styling</a>
         for popup positioning and CSS state hooks.
       </p>

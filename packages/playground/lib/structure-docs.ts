@@ -130,7 +130,8 @@ export const STRUCTURE_TREES: Record<AdapterId, StructureTrees> = {
    │     │      id, role, aria-multiselectable from s.listboxProps
    │     └─ @for (option of s.filteredOptions; track option; let i = $index) {
    │        li
-   │           id, role, aria-selected, aria-disabled, data-highlighted
+   │           id, role, aria-selected, aria-disabled,
+   │           aria-posinset, aria-setsize, data-highlighted
    │           from s.getOptionProps(option, i)
    │           (click)="s.getOptionProps(option, i).onClick()"
    │           (mousedown)="s.getOptionProps(option, i).onMousedown($event)"
@@ -157,7 +158,8 @@ export const STRUCTURE_TREES: Record<AdapterId, StructureTrees> = {
          │      id, role, aria-multiselectable from s.listboxProps
          └─ @for (option of s.filteredOptions; track option; let i = $index) {
             li
-               id, role, aria-selected, aria-disabled, data-highlighted
+               id, role, aria-selected, aria-disabled,
+               aria-posinset, aria-setsize, data-highlighted
                from s.getOptionProps(option, i)
                (click)="s.getOptionProps(option, i).onClick()"
                (mousedown)="s.getOptionProps(option, i).onMousedown($event)"

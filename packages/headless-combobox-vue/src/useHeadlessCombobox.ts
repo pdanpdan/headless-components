@@ -26,6 +26,7 @@ export type {
   HeadlessComboboxOptionProps,
   HeadlessComboboxPopupStyle,
   HeadlessComboboxProps,
+  HeadlessComboboxStatusProps,
   HeadlessComboboxTriggerProps,
 } from '@pdanpdan/headless-combobox-core';
 

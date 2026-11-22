@@ -23,6 +23,7 @@ export interface ExampleMeta {
   composable?: boolean;
   customOptions?: boolean;
   internal?: boolean;
+  grouped?: boolean;
   maxLength?: number;
   status?: boolean;
 }
@@ -30,6 +31,7 @@ export interface ExampleMeta {
 export const EXAMPLE_META: Record<string, ExampleMeta> = {
   ComposableProgrammatic: { object: true, programmatic: true, composable: true },
   ComposableSingle: { typeahead: true, composable: true },
+  GroupedOptions: { grouped: true, filterInput: true },
   NiceSelect: { object: true, alignSelected: true },
   ObjectMultipleValidated: {
     object: true,
@@ -97,9 +99,31 @@ const users: User[] = [
   { id: 3, name: 'Devon Webb' },
 ];`;
 
+const GROUPED = `const groups: Record<string, string[]> = {
+  Frontend: ['Vue', 'React', 'Svelte', 'Solid', 'Angular'],
+  Backend: ['Node.js', 'Deno', 'Bun', 'Go', 'Rust'],
+  Database: ['PostgreSQL', 'SQLite', 'MySQL', 'MongoDB'],
+};
+
+const options = Object.values(groups).flat();
+
+// Group order mirrors the flat options order, which is what keyboard
+// navigation and aria-activedescendant follow.
+function groupedOptions(visible: string[]) {
+  return Object.entries(groups)
+    .map(([ label, items ]) => ({
+      label,
+      items: items.filter((item) => visible.includes(item)),
+    }))
+    .filter((group) => group.items.length > 0);
+}`;
+
 function dataFor(meta: ExampleMeta): string {
   if (meta.object) {
     return USERS;
+  }
+  if (meta.grouped) {
+    return GROUPED;
   }
   return meta.typeahead
     ? LANGUAGES
@@ -109,6 +133,9 @@ function dataFor(meta: ExampleMeta): string {
 function optionsFor(meta: ExampleMeta): string {
   if (meta.object) {
     return 'users';
+  }
+  if (meta.grouped) {
+    return 'options';
   }
   return meta.typeahead
     ? 'languages'
@@ -139,6 +166,9 @@ function initialValue(meta: ExampleMeta): string {
     return meta.optionValue
       ? '1'
       : 'users[0]!';
+  }
+  if (meta.grouped) {
+    return "'Vue'";
   }
   return meta.typeahead
     ? "'TypeScript'"
@@ -344,6 +374,26 @@ function reactList(meta: ExampleMeta): string {
 </div>
 `
     : '';
+  if (meta.grouped) {
+    return `${ filter }<ul {...toReactProps(scope.listboxProps)}>
+  {groupedOptions(scope.filteredOptions).map((group) => (
+    <li key={group.label} role="group" aria-label={group.label}>
+      <span aria-hidden="true">{group.label}</span>
+      {group.items.map((option) => (
+        <button
+          key={option}
+          type="button"
+          ref={(el) => scope.setOptionRef(option, el)}
+          {...toReactProps(scope.getOptionProps(option))}
+        >
+          {scope.isSelected(option) ? '✓ ' : ''}
+          {option}
+        </button>
+      ))}
+    </li>
+  ))}
+</ul>`;
+  }
   const optionRef = meta.alignSelected
     ? ` ref={(el) => scope.setOptionRef(option, el)}`
     : '';
@@ -542,6 +592,24 @@ function svelteList(meta: ExampleMeta): string {
 </div>
 `
     : '';
+  if (meta.grouped) {
+    return `${ filter }<ul {...toSvelteProps(scope.listboxProps)}>
+  {#each groupedOptions(scope.filteredOptions) as group (group.label)}
+    <li role="group" aria-label={group.label}>
+      <span aria-hidden="true">{group.label}</span>
+      {#each group.items as option (option)}
+        <button
+          type="button"
+          {...toSvelteProps(scope.getOptionProps(option))}
+          {@attach (el) => scope.setOptionRef(option, el)}
+        >
+          {scope.isSelected(option) ? '✓ ' : ''}{option}
+        </button>
+      {/each}
+    </li>
+  {/each}
+</ul>`;
+  }
   const optionRef = meta.alignSelected
     ? ` {@attach (el) => scope.setOptionRef(option, el)}`
     : '';
@@ -736,6 +804,28 @@ function solidList(meta: ExampleMeta): string {
 </div>
 `
     : '';
+  if (meta.grouped) {
+    return `${ filter }<ul {...toSolidProps(scope().listboxProps)}>
+  <For each={groupedOptions(scope().filteredOptions)}>
+    {(group) => (
+      <li role="group" aria-label={group.label}>
+        <span aria-hidden="true">{group.label}</span>
+        <For each={group.items}>
+          {(option) => (
+            <button
+              type="button"
+              ref={(el) => scope().setOptionRef(option, el)}
+              {...toSolidProps(scope().getOptionProps(option))}
+            >
+              {scope().isSelected(option) ? '✓ ' : ''}{option}
+            </button>
+          )}
+        </For>
+      </li>
+    )}
+  </For>
+</ul>`;
+  }
   const optionRef = meta.alignSelected
     ? ` ref={(el) => scope().setOptionRef(option, el)}`
     : '';
@@ -906,11 +996,21 @@ function angularField(meta: ExampleMeta): string {
     const input = `<input
   #input
   role="combobox"
-  [attr.aria-expanded]="s.isOpen"
+  aria-label="Search"
+  [attr.aria-controls]="s.comboboxInputProps['aria-controls']"
+  [attr.aria-expanded]="s.comboboxInputProps['aria-expanded']"
+  [attr.aria-haspopup]="s.comboboxInputProps['aria-haspopup']"
+  [attr.aria-activedescendant]="s.comboboxInputProps['aria-activedescendant']"
+  [attr.aria-disabled]="s.comboboxInputProps['aria-disabled'] || null"
+  [attr.aria-readonly]="s.comboboxInputProps['aria-readonly'] || null"
+  [disabled]="s.comboboxInputProps.disabled ?? false"
+  [readOnly]="s.comboboxInputProps.readonly ?? false"
   [value]="${ valueExpr }"
   placeholder="Search…"
-  (input)="s.setSearchQuery($any($event.target).value)"
-  (keydown)="s.handleTypeaheadKeydown($event)"
+  (click)="s.comboboxInputProps.onClick()"
+  (focus)="s.comboboxInputProps.onFocus()"
+  (input)="s.comboboxInputProps.onInput($event)"
+  (keydown)="s.comboboxInputProps.onKeydown($event)"
 />`;
     if (meta.chips === 'field') {
       return `<div>
@@ -926,9 +1026,16 @@ ${ indented(input, 2) }
   return `${ chips }<button
   #trigger
   type="button"
-  [attr.aria-expanded]="s.isOpen"
-  (click)="s.toggle()"
-  (keydown)="s.handleKeydown($event)"
+  role="combobox"
+  [attr.aria-controls]="s.triggerProps['aria-controls']"
+  [attr.aria-expanded]="s.triggerProps['aria-expanded']"
+  [attr.aria-haspopup]="s.triggerProps['aria-haspopup']"
+  [attr.aria-activedescendant]="s.triggerProps['aria-activedescendant']"
+  [attr.aria-disabled]="s.triggerProps['aria-disabled'] || null"
+  [attr.aria-readonly]="s.triggerProps['aria-readonly'] || null"
+  [disabled]="s.triggerProps.disabled ?? false"
+  (click)="s.triggerProps.onClick()"
+  (keydown)="s.triggerProps.onKeydown($event)"
 >
 ${ indented(angularTriggerContent(meta), 2) }
 </button>`;
@@ -940,15 +1047,43 @@ function angularList(meta: ExampleMeta): string {
   <input
     #input
     role="searchbox"
+    aria-label="Search"
+    [attr.id]="s.inputProps.id"
+    [attr.aria-controls]="s.inputProps['aria-controls']"
+    [attr.aria-activedescendant]="s.inputProps['aria-activedescendant']"
     [value]="s.searchQuery ?? ''"
     placeholder="Search…"
-    (input)="s.setSearchQuery($any($event.target).value)"
-    (keydown)="s.handleKeydown($event)"
+    (input)="s.inputProps.onInput($event)"
+    (keydown)="s.inputProps.onKeydown($event)"
   />
   <button type="button" (click)="s.clear()">Clear</button>
 </div>
 `
     : '';
+  if (meta.grouped) {
+    return `${ filter }<ul role="listbox">
+  @for (group of groupedOptions(s.filteredOptions); track group.label) {
+    <li role="group" [attr.aria-label]="group.label">
+      <span aria-hidden="true">${ interpolation('group.label') }</span>
+      @for (option of group.items; track option) {
+        <button
+          type="button"
+          [id]="s.getOptionProps(option).id"
+          role="option"
+          [attr.aria-selected]="s.isSelected(option)"
+          [attr.aria-posinset]="s.getOptionProps(option)['aria-posinset']"
+          [attr.aria-setsize]="s.getOptionProps(option)['aria-setsize']"
+          [attr.data-highlighted]="s.getOptionProps(option)['data-highlighted'] || null"
+          (click)="s.select(option)"
+          (mouseenter)="s.setHighlightedIndex(s.getOptionProps(option)['aria-posinset'] - 1)"
+        >
+          ${ interpolation("s.isSelected(option) ? '✓ ' : ''") }${ interpolation('option') }
+        </button>
+      }
+    </li>
+  }
+</ul>`;
+  }
   const indicator = meta.customOptions
     ? `<span aria-hidden="true">${ interpolation("s.isSelected(option) ? '✓' : '☐'") }</span>
       `
@@ -956,14 +1091,22 @@ function angularList(meta: ExampleMeta): string {
   const valueText = meta.optionValue
     ? ` ${ interpolation('option.id') }`
     : '';
-  return `${ filter }<ul role="listbox" [attr.aria-multiselectable]="s.multiple">
+  return `${ filter }<ul role="listbox" [attr.id]="s.listboxProps.id" [attr.aria-multiselectable]="s.listboxProps['aria-multiselectable'] || null">
   @for (option of s.filteredOptions; track ${ optionKey(meta) }; let index = $index) {
+    @let o = s.getOptionProps(option, index);
     <li
+      [attr.id]="o.id"
       role="option"
-      [attr.aria-selected]="s.isSelected(option)"
-      [attr.aria-disabled]="!s.canSelectMore && !s.isSelected(option)"
-      (click)="s.select(option)"
-      (mouseenter)="s.setHighlightedIndex(index)"
+      [attr.aria-selected]="o['aria-selected']"
+      [attr.aria-disabled]="o['aria-disabled'] || null"
+      [attr.aria-posinset]="o['aria-posinset']"
+      [attr.aria-setsize]="o['aria-setsize']"
+      [attr.data-highlighted]="o['data-highlighted'] || null"
+      (click)="o.onClick()"
+      (mousedown)="o.onMousedown($event)"
+      (mouseenter)="o.onMousemove()"
+      (focus)="o.onFocus()"
+      (keydown)="o.onKeydown($event)"
     >
       ${ indicator }${ interpolation(optionText(meta)) }${ valueText }
     </li>
@@ -1024,6 +1167,9 @@ export function angularExample(meta: ExampleMeta): string {
     () => users.find((user) => user.id === this.value())?.name ?? 'Select…',
   );\n`
     : '';
+  const groupedHelper = meta.grouped
+    ? '  readonly groupedOptions = groupedOptions;\n'
+    : '';
   const computedImport = meta.optionValue
     ? ', computed'
     : '';
@@ -1046,7 +1192,7 @@ export function angularExample(meta: ExampleMeta): string {
   }
 `
     : '';
-  return `import { Component${ computedImport }, ElementRef, effect, signal, viewChild } from '@angular/core';
+  return `import { Component${ computedImport }, effect, ElementRef, signal, viewChild } from '@angular/core';
 import { injectCombobox } from '@pdanpdan/headless-combobox-angular';
 
 ${ dataFor(meta) }
@@ -1060,7 +1206,7 @@ ${ indented(angularBody(meta), 4) }
   \`,
 })
 export class ExampleComponent {
-${ valueState }${ selectedLabel }  readonly combobox = injectCombobox({
+${ valueState }${ selectedLabel }${ groupedHelper }  readonly combobox = injectCombobox({
     props: () => ({
       options: ${ optionsFor(meta) },
 ${ modelValue }${ multipleProp }${ validationProps }${ extraOptionProps }    }),

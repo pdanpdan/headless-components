@@ -11,5 +11,6 @@ export type {
   HeadlessComboboxPropsSource,
   HeadlessComboboxScope,
   HeadlessComboboxSlotProps,
+  HeadlessComboboxStatusProps,
   HeadlessComboboxTriggerProps,
 } from './useHeadlessCombobox';

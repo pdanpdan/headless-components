@@ -40,8 +40,12 @@
   {#if $combobox.isOpen}
     <ul {...toSvelteProps($combobox.listboxProps)}>
       {#each $combobox.filteredOptions as user, index (user.id)}
-        <li {...toSvelteProps($combobox.getOptionProps(user, index))}>
-          <button type="button" onclick={() => $combobox.select(user)}>
+        <li>
+          <button
+            type="button"
+            {...toSvelteProps($combobox.getOptionProps(user, index))}
+            {@attach (el) => $combobox.setOptionRef(user, el)}
+          >
             {user.name}
           </button>
         </li>

@@ -30,7 +30,7 @@ Each element receives exactly one prop bag. The bags contain ARIA attributes and
 | root container, the click-outside and focus boundary | nothing | `setContainerRef` |
 | button trigger | `triggerProps` | `setTriggerRef` |
 | popup listbox | `listboxProps`, `popupStyle` on the popup | `setDropdownRef`, `setListRef` |
-| each option | `getOptionProps(option)` or `getOptionProps(option, index)` | `setOptionRef(option, el)` |
+| each option | `getOptionProps(option, index?)` | `setOptionRef(option, el)` |
 | search input inside the popup | `inputProps` | `setInputRef` |
 | typeahead input (the input is the combobox) | `comboboxInputProps` | `setTriggerRef`, `setInputRef` |
 | result-count live region (visually hidden) | `statusProps` | nothing |
@@ -39,7 +39,7 @@ Rules:
 
 - Never put `triggerProps` and `comboboxInputProps` on the same element.
 - Never replace a prop bag with hand-written `role`, `aria-expanded`, `aria-selected`, or key handlers. The prop bags do not set an accessible name: add `aria-label`, `aria-labelledby`, or a real `<label>` yourself.
-- `comboboxInputProps` includes a Space-safe keydown handler: arrows, Enter, and Escape navigate, while Space types a space. Do not add another keydown handler. Angular cannot spread a bag, so bind `handleTypeaheadKeydown` there.
+- `comboboxInputProps` includes a Space-safe keydown handler: arrows, Enter, and Escape navigate, while Space types a space. Do not add another keydown handler. Angular cannot spread a bag; bind `comboboxInputProps.onKeydown` individually, or `handleTypeaheadKeydown` when wiring the element by hand.
 - The option index is optional. When you pass one, it must be the option's position in the flat `filteredOptions` array, not its rendered position. Omit it in grouped or virtualized lists and the core derives that position.
 - Ref setters are optional, but `setOptionRef` is required for `alignSelected` and scroll-into-view, and `setContainerRef` extends the click-outside boundary (for example to external chips).
 - The root component renders nothing on its own. It only renders the markup you pass to it.
@@ -191,7 +191,7 @@ export function UserPicker() {
 }
 ```
 
-`useHeadlessCombobox(options)` returns the same scope object without the render prop. Controlled usage means passing `value`; omit `value` and pass `defaultValue` for uncontrolled usage. `toReactProps` maps `onKeydown`, `onMousedown`, and `onMousemove` to React event names, and it is required for every prop bag.
+`useHeadlessCombobox(options)` returns the same scope object without the render prop. Controlled usage means passing `value`; omit `value` and pass `defaultValue` for uncontrolled usage. `toReactProps` maps `onKeydown`, `onMousedown`, and `onMousemove` to React event names. Use it on any bag that contains handlers: `triggerProps`, `inputProps`, `comboboxInputProps`, and `getOptionProps(...)`.
 
 ## Svelte 5
 
@@ -341,7 +341,7 @@ pnpm add @pdanpdan/headless-combobox-angular
 Angular templates cannot spread a prop object. Bind the attributes and handlers from `combobox.snapshot()` individually, and attach the element refs with `viewChild` plus an `effect`.
 
 ```ts
-import { Component, ElementRef, effect, signal, viewChild } from '@angular/core';
+import { Component, effect, ElementRef, signal, viewChild } from '@angular/core';
 import { injectCombobox } from '@pdanpdan/headless-combobox-angular';
 
 interface User {
@@ -365,24 +365,41 @@ const users: User[] = [
         #trigger
         type="button"
         role="combobox"
-        [attr.aria-expanded]="s.triggerProps['aria-expanded']"
         [attr.aria-controls]="s.triggerProps['aria-controls']"
+        [attr.aria-expanded]="s.triggerProps['aria-expanded']"
+        [attr.aria-haspopup]="s.triggerProps['aria-haspopup']"
         [attr.aria-activedescendant]="s.triggerProps['aria-activedescendant']"
-        (click)="s.toggle()"
-        (keydown)="s.handleKeydown($event)"
+        [attr.aria-disabled]="s.triggerProps['aria-disabled'] || null"
+        [attr.aria-readonly]="s.triggerProps['aria-readonly'] || null"
+        [disabled]="s.triggerProps.disabled ?? false"
+        (click)="s.triggerProps.onClick()"
+        (keydown)="s.triggerProps.onKeydown($event)"
       >
         {{ value()?.name ?? 'Select…' }}
       </button>
 
       @if (s.isOpen) {
-        <ul role="listbox" [attr.id]="s.listboxProps.id">
+        <ul
+          #list
+          role="listbox"
+          [attr.id]="s.listboxProps.id"
+          [attr.aria-multiselectable]="s.listboxProps['aria-multiselectable'] || null"
+        >
           @for (user of s.filteredOptions; track user.id; let i = $index) {
+            @let o = s.getOptionProps(user, i);
             <li
+              [attr.id]="o.id"
               role="option"
-              [attr.id]="s.getOptionProps(user, i).id"
-              [attr.aria-selected]="s.isSelected(user)"
-              (click)="s.select(user)"
-              (mouseenter)="s.setHighlightedIndex(i)"
+              [attr.aria-selected]="o['aria-selected']"
+              [attr.aria-disabled]="o['aria-disabled'] || null"
+              [attr.aria-posinset]="o['aria-posinset']"
+              [attr.aria-setsize]="o['aria-setsize']"
+              [attr.data-highlighted]="o['data-highlighted'] || null"
+              (click)="o.onClick()"
+              (mousedown)="o.onMousedown($event)"
+              (mouseenter)="o.onMousemove()"
+              (focus)="o.onFocus()"
+              (keydown)="o.onKeydown($event)"
             >
               {{ user.name }}
             </li>
@@ -397,6 +414,7 @@ export class UserPickerComponent {
 
   readonly container = viewChild<ElementRef<HTMLElement>>('container');
   readonly trigger = viewChild<ElementRef<HTMLElement>>('trigger');
+  readonly list = viewChild<ElementRef<HTMLElement>>('list');
 
   readonly combobox = injectCombobox<User, User>({
     props: () => ({
@@ -412,6 +430,8 @@ export class UserPickerComponent {
       const snapshot = this.combobox.snapshot();
       snapshot.setContainerRef(this.container()?.nativeElement ?? null);
       snapshot.setTriggerRef(this.trigger()?.nativeElement ?? null);
+      snapshot.setDropdownRef(this.list()?.nativeElement ?? null);
+      snapshot.setListRef(this.list()?.nativeElement ?? null);
     });
   }
 }
@@ -488,14 +508,20 @@ The input also needs `setTriggerRef` and `setInputRef` (shown above for Vue). Ke
 ```html
 <input
   role="combobox"
-  [attr.aria-expanded]="s.isOpen"
+  aria-label="Search users"
+  [attr.aria-controls]="s.comboboxInputProps['aria-controls']"
+  [attr.aria-expanded]="s.comboboxInputProps['aria-expanded']"
+  [attr.aria-haspopup]="s.comboboxInputProps['aria-haspopup']"
+  [attr.aria-activedescendant]="s.comboboxInputProps['aria-activedescendant']"
   [value]="s.searchQuery ?? value()?.name ?? ''"
-  (input)="s.setSearchQuery($any($event.target).value)"
-  (keydown)="s.handleTypeaheadKeydown($event)"
+  (click)="s.comboboxInputProps.onClick()"
+  (focus)="s.comboboxInputProps.onFocus()"
+  (input)="s.comboboxInputProps.onInput($event)"
+  (keydown)="s.comboboxInputProps.onKeydown($event)"
 />
 ```
 
-`handleTypeaheadKeydown` is the Space-safe variant: Space inserts a space, while the regular keyboard matrix handles arrows, Enter, and Escape.
+`comboboxInputProps.onKeydown` is the Space-safe variant: Space inserts a space, while the regular keyboard matrix handles arrows, Enter, and Escape. Bind `handleTypeaheadKeydown` when you construct the input without the bag and need the same behavior.
 
 The input value follows `searchQuery` while the popup is open and falls back to the selected label. `inputOnOpen` controls what happens to the text when the popup opens:
 
@@ -835,16 +861,15 @@ function groups(visible: string[]) {
           :aria-labelledby="`${ labelId }-${ group.label }`"
         >
           <span :id="`${ labelId }-${ group.label }`">{{ group.label }}</span>
-          <ul role="presentation">
-            <li
-              v-for="option in group.items"
-              :key="option"
-              :ref="(el) => scope.setOptionRef(option, el)"
-              v-bind="scope.getOptionProps(option)"
-            >
-              {{ option }}
-            </li>
-          </ul>
+          <button
+            v-for="option in group.items"
+            :key="option"
+            :ref="(el) => scope.setOptionRef(option, el)"
+            v-bind="scope.getOptionProps(option)"
+            type="button"
+          >
+            {{ option }}
+          </button>
         </li>
       </ul>
     </div>
@@ -1070,7 +1095,7 @@ Use `isSelected(option)` instead of comparing `modelValue` to the option. Vue re
 | `comboboxInputProps` | typeahead input | `role="combobox"`, `aria-expanded`, `aria-controls`, `aria-haspopup`, `aria-activedescendant`, disabled and readonly attributes, open, focus, input, and Space-safe keydown handlers |
 | `listboxProps` | popup list | `role="listbox"`, `aria-multiselectable` |
 | `statusProps` | status message element | `role="status"`, `aria-live="polite"`, `aria-atomic` |
-| `getOptionProps(option, index?)` | each option | `role="option"`, `aria-selected`, `aria-disabled`, `data-highlighted`, select and highlight handlers |
+| `getOptionProps(option, index?)` | each option | `role="option"`, `aria-selected`, `aria-disabled`, `aria-posinset`, `aria-setsize`, `data-highlighted`, select and highlight handlers |
 
 Each bag already includes its interaction handlers. Spreading the bag is the only wiring an element needs.
 
@@ -1121,7 +1146,7 @@ Validation is headless and reactive. The widget computes the result, you render 
 
 | Key | When | Behavior |
 |---|---|---|
-| `Enter`, `Space`, `ArrowDown`, `ArrowUp` | closed | Open the popup. |
+| `Enter`, `Space`, `ArrowDown`, `ArrowUp` | closed | Open the popup from the trigger. In a typeahead input, Enter and the arrows open it; Space and printable keys edit the query. |
 | `Backspace`, `Delete` | closed, or open without a text query | Remove the last or only selected option. A text input that still holds text keeps native editing. |
 | `ArrowDown`, `ArrowUp` | open | Move the highlight. Wraps and skips disabled options. |
 | `PageDown`, `PageUp` | open | Move the highlight one visible page, clamped at the ends. |
