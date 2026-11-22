@@ -78,6 +78,45 @@ describe('core popover', () => {
     expect(document.activeElement).toBe(trigger);
   });
 
+  it('does not reopen when close returns focus to a typeahead trigger', async () => {
+    vi.useFakeTimers();
+    try {
+      const { store } = makeStore();
+      const container = document.createElement('div');
+      const input = document.createElement('input');
+      const dropdown = document.createElement('div');
+      container.append(input, dropdown);
+      document.body.append(container);
+
+      const scope = () => store.getSnapshot();
+      scope().setContainerRef(container);
+      scope().setTriggerRef(input);
+      scope().setInputRef(input);
+      scope().setDropdownRef(dropdown);
+      store.mount();
+
+      scope().comboboxInputProps.onFocus();
+      await Promise.resolve();
+      expect(scope().isOpen).toBe(true);
+
+      // Selecting closes the popup and returns focus to the input. The focus
+      // handler must not treat that as a user focus and reopen the popup.
+      scope().select(users[ 0 ]!);
+      await Promise.resolve();
+      expect(scope().isOpen).toBe(false);
+      scope().comboboxInputProps.onFocus();
+      expect(scope().isOpen).toBe(false);
+
+      // A later focus is a real user action again.
+      vi.advanceTimersByTime(1);
+      scope().comboboxInputProps.onFocus();
+      await Promise.resolve();
+      expect(scope().isOpen).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('toggles an open popup closed', async () => {
     const { store } = fixture();
     store.getSnapshot().toggle();

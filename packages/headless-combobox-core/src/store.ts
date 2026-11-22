@@ -169,6 +169,8 @@ export function createCombobox<O, V, Q = string>(
     /* v8 ignore next 1 */
     open: async () => {},
     /* v8 ignore next 1 */
+    openFromFocus: () => {},
+    /* v8 ignore next 1 */
     setQueryFromEvent: () => {},
     /* v8 ignore next 1 */
     openAndSetQueryFromEvent: () => {},
@@ -236,6 +238,7 @@ export function createCombobox<O, V, Q = string>(
   accessibilityDeps.toggle = popover.toggle;
   accessibilityDeps.handleKeydown = navigation.handleKeydown;
   accessibilityDeps.open = popover.open;
+  accessibilityDeps.openFromFocus = popover.openFromFocus;
   accessibilityDeps.setQueryFromEvent = filtering.setQueryFromEvent;
   accessibilityDeps.openAndSetQueryFromEvent = filtering.openAndSetQueryFromEvent;
   accessibilityDeps.isSelected = selection.isSelected;

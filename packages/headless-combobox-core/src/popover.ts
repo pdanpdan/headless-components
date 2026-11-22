@@ -65,6 +65,34 @@ export function createPopover<O, V, Q>(
     }
   }
 
+  // Closing returns focus to the trigger. In the typeahead pattern the trigger
+  // is the text input whose focus handler opens the popup, so refocusing would
+  // immediately reopen it. Ignore focus-driven opens for one task after close.
+  let suppressFocusOpen = false;
+  let suppressFocusTimer: number | null = null;
+
+  function suppressNextFocusOpen() {
+    const win = ctx.runtime.getDocument()?.defaultView ?? null;
+    if (win == null) {
+      return;
+    }
+    suppressFocusOpen = true;
+    if (suppressFocusTimer != null) {
+      win.clearTimeout(suppressFocusTimer);
+    }
+    suppressFocusTimer = win.setTimeout(() => {
+      suppressFocusOpen = false;
+      suppressFocusTimer = null;
+    }, 0);
+  }
+
+  function openFromFocus() {
+    if (suppressFocusOpen) {
+      return;
+    }
+    open();
+  }
+
   async function open(selectText = true) {
     if (ctx.state.isOpen || deps.isLocked()) {
       return;
@@ -117,6 +145,7 @@ export function createPopover<O, V, Q>(
       ctx.bump();
     });
     if (returnFocus) {
+      suppressNextFocusOpen();
       refs.triggerRef?.focus();
     }
   }
@@ -195,6 +224,7 @@ export function createPopover<O, V, Q>(
 
   return {
     open,
+    openFromFocus,
     close,
     toggle,
     focusInput,

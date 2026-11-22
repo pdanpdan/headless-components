@@ -10,6 +10,7 @@ export interface AccessibilityDeps<O> {
   toggle: () => void;
   handleKeydown: (event: Event) => void;
   open: () => Promise<void>;
+  openFromFocus: () => void;
   setQueryFromEvent: (event: Event) => void;
   openAndSetQueryFromEvent: (event: Event) => void;
   isSelected: (option: O) => boolean;
@@ -77,7 +78,7 @@ export function createAccessibility<O, V, Q>(
     disabled: ctx.props.disabled ? true : undefined,
     readonly: ctx.props.readonly ? true : undefined,
     onClick: deps.open,
-    onFocus: deps.open,
+    onFocus: deps.openFromFocus,
     onInput: deps.openAndSetQueryFromEvent,
   }));
 
