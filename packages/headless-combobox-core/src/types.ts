@@ -39,6 +39,7 @@ export interface HeadlessComboboxComboboxInputProps {
   onClick: () => void;
   onFocus: () => void;
   onInput: (event: Event) => void;
+  onKeydown: (event: Event) => void;
 }
 
 export interface HeadlessComboboxListboxProps {
@@ -47,11 +48,20 @@ export interface HeadlessComboboxListboxProps {
   'aria-multiselectable': true | undefined;
 }
 
+/** Polite live-region props for announcing filtered result counts. */
+export interface HeadlessComboboxStatusProps {
+  role: 'status';
+  'aria-live': 'polite';
+  'aria-atomic': true;
+}
+
 export interface HeadlessComboboxOptionProps {
   id: string;
   role: 'option';
   'aria-selected': boolean;
   'aria-disabled': true | undefined;
+  'aria-posinset': number;
+  'aria-setsize': number;
   'data-highlighted': true | undefined;
   onClick: () => void;
   onMousedown: (event: MouseEvent) => void;
@@ -111,6 +121,10 @@ export interface HeadlessComboboxProps<O, V = O, Q = string> {
   inputOnOpen?: 'select' | 'keep' | 'clear';
   /** Override default validation messages. */
   errorMessages?: Partial<Record<HeadlessComboboxErrorCode, string>>;
+  /** Offer to create a value from the typed query when no option matches. */
+  creatable?: boolean;
+  /** Builds the value stored for the typed query. Required when `creatable` is set. */
+  createOption?: (query: Q) => V | null | undefined;
 }
 
 /** Flat state and actions exposed by the state machine. */
@@ -131,15 +145,20 @@ export interface HeadlessComboboxSnapshot<O, V, Q = string> {
   selectedList: V[];
   canSelectMore: boolean;
   isSelected: (option: O) => boolean;
+  /** True when the typed query can be committed as a new value (`creatable`). */
+  canCreate: boolean;
   valid: boolean;
   errors: HeadlessComboboxErrorCode[];
   validationMessage: string;
+  /** Text for a polite live region: filtered result count while open, empty otherwise. */
+  statusMessage: string;
   // ARIA prop bags (spread onto your markup)
   triggerProps: HeadlessComboboxTriggerProps;
   inputProps: HeadlessComboboxInputProps;
   comboboxInputProps: HeadlessComboboxComboboxInputProps;
   listboxProps: HeadlessComboboxListboxProps;
-  getOptionProps: (option: O, index: number) => HeadlessComboboxOptionProps;
+  statusProps: HeadlessComboboxStatusProps;
+  getOptionProps: (option: O, index?: number) => HeadlessComboboxOptionProps;
   // Actions
   setSearchQuery: (value: Q | undefined) => void;
   setHighlightedIndex: (index: number) => void;
@@ -147,9 +166,13 @@ export interface HeadlessComboboxSnapshot<O, V, Q = string> {
   open: () => Promise<void>;
   close: (returnFocus?: boolean) => void;
   select: (option: O) => void;
+  /** Commit the typed query as a new value. No-op unless `canCreate`. */
+  createSelection: () => void;
   clear: () => void;
   focusInput: () => void;
   handleKeydown: (event: Event) => void;
+  /** Keyboard handler for typeahead inputs; Space types instead of activating. */
+  handleTypeaheadKeydown: (event: Event) => void;
   // Element wiring
   setContainerRef: (el: unknown) => void;
   setTriggerRef: (el: unknown) => void;

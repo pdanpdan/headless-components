@@ -24,7 +24,7 @@ const users: User[] = [
         [attr.aria-expanded]="s.isOpen"
         [value]="s.searchQuery ?? value()?.name ?? ''"
         (input)="s.setSearchQuery($any($event.target).value)"
-        (keydown)="s.handleKeydown($event)"
+        (keydown)="s.handleTypeaheadKeydown($event)"
       />
       @if (s.isOpen) {
         <ul role="listbox">

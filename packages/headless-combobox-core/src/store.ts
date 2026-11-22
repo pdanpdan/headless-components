@@ -167,6 +167,10 @@ export function createCombobox<O, V, Q = string>(
     /* v8 ignore next 1 */
     handleKeydown: () => {},
     /* v8 ignore next 1 */
+    handleTypeaheadKeydown: () => {},
+    /* v8 ignore next 1 */
+    getFilteredOptions: () => [],
+    /* v8 ignore next 1 */
     open: async () => {},
     /* v8 ignore next 1 */
     openFromFocus: () => {},
@@ -205,6 +209,10 @@ export function createCombobox<O, V, Q = string>(
     scrollToHighlight: positioning.scrollToHighlight,
     /* v8 ignore next 1 */
     removeLastSelected: () => {},
+    /* v8 ignore next 1 */
+    canCreate: () => false,
+    /* v8 ignore next 1 */
+    createSelection: () => {},
   };
   const navigation = createNavigation(ctx, refs, navigationDeps);
 
@@ -233,10 +241,14 @@ export function createCombobox<O, V, Q = string>(
   navigationDeps.close = popover.close;
   navigationDeps.isInsideWidget = popover.isInsideWidget;
   navigationDeps.removeLastSelected = selection.removeLastSelected;
+  navigationDeps.canCreate = selection.getCanCreate;
+  navigationDeps.createSelection = selection.createSelection;
   accessibilityDeps.select = selection.select;
   accessibilityDeps.setHighlightedIndex = navigation.setHighlightedIndex;
   accessibilityDeps.toggle = popover.toggle;
   accessibilityDeps.handleKeydown = navigation.handleKeydown;
+  accessibilityDeps.handleTypeaheadKeydown = navigation.handleTypeaheadKeydown;
+  accessibilityDeps.getFilteredOptions = filtering.getFilteredOptions;
   accessibilityDeps.open = popover.open;
   accessibilityDeps.openFromFocus = popover.openFromFocus;
   accessibilityDeps.setQueryFromEvent = filtering.setQueryFromEvent;
@@ -287,6 +299,21 @@ export function createCombobox<O, V, Q = string>(
   }
 
   // --- Snapshot ---
+  // Result counts are the useful thing to announce while filtering. The region
+  // is rendered by the consumer and stays empty while the popup is closed.
+  function getStatusMessage(): string {
+    if (!state.isOpen) {
+      return '';
+    }
+    const count = filtering.getFilteredOptions().length;
+    if (count === 0) {
+      return 'No results found.';
+    }
+    return `${ count } result${ count === 1
+      ? ''
+      : 's' } available.`;
+  }
+
   let cachedSnapshot: HeadlessComboboxSnapshot<O, V, Q> | undefined;
   let cachedVersion = -1;
 
@@ -311,13 +338,16 @@ export function createCombobox<O, V, Q = string>(
       selectedList,
       canSelectMore: selection.getCanSelectMore(),
       isSelected: selection.isSelected,
+      canCreate: selection.getCanCreate(),
       valid: validation.getValid(),
       errors: validation.getErrors(),
       validationMessage: validation.getValidationMessage(),
+      statusMessage: getStatusMessage(),
       triggerProps: accessibility.getTriggerProps(),
       inputProps: accessibility.getInputProps(),
       comboboxInputProps: accessibility.getComboboxInputProps(),
       listboxProps: accessibility.getListboxProps(),
+      statusProps: accessibility.statusProps,
       getOptionProps: accessibility.getOptionProps,
       setSearchQuery: filtering.setSearchQuery,
       setHighlightedIndex: navigation.setHighlightedIndex,
@@ -325,9 +355,11 @@ export function createCombobox<O, V, Q = string>(
       open: popover.open,
       close: popover.close,
       select: selection.select,
+      createSelection: selection.createSelection,
       clear: selection.clear,
       focusInput: popover.focusInput,
       handleKeydown: navigation.handleKeydown,
+      handleTypeaheadKeydown: navigation.handleTypeaheadKeydown,
       setContainerRef,
       setTriggerRef,
       setDropdownRef,

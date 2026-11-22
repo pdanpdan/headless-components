@@ -196,6 +196,18 @@ export const BASE_PROPS: PropRow[] = [
     default: 'n/a',
     description: 'Override default validation messages.',
   },
+  {
+    name: 'creatable',
+    type: 'boolean',
+    default: 'false',
+    description: 'Offer to commit the typed query as a new value when no option matches.',
+  },
+  {
+    name: 'createOption',
+    type: '(query: Q) => V | null | undefined',
+    default: 'n/a',
+    description: 'Builds the value stored by `createSelection` and by Enter when nothing is highlighted.',
+  },
 ];
 
 export const VALUE_PROPS: Record<AdapterId, PropRow[]> = {
@@ -304,9 +316,11 @@ export const STATE_ROWS: PropRow[] = [
   { name: 'selectedList', type: 'V[]', description: 'Selected values (single mode: a single-element array).' },
   { name: 'canSelectMore', type: 'boolean', description: 'False when at `maxLength` (multiple).' },
   { name: 'isSelected', type: '(option: T) => boolean', description: 'Whether an option is selected.' },
+  { name: 'canCreate', type: 'boolean', description: 'Whether the typed query can be committed as a new value (`creatable`).' },
   { name: 'valid', type: 'boolean', description: 'Whether the current selection passes validation.' },
   { name: 'errors', type: 'HeadlessComboboxErrorCode[]', description: "Active validation errors ('required' | 'minlength' | 'maxlength')." },
   { name: 'validationMessage', type: 'string', description: 'Human-readable message for the first error.' },
+  { name: 'statusMessage', type: 'string', description: 'Filtered result count for a polite live region; empty while closed.' },
 ];
 
 export const KEYBOARD_ROWS: PropRow[] = [
@@ -315,7 +329,7 @@ export const KEYBOARD_ROWS: PropRow[] = [
   { name: 'ArrowDown / ArrowUp', type: 'popup open', description: 'Move the highlight; wraps around and skips disabled options.' },
   { name: 'PageDown / PageUp', type: 'popup open', description: 'Move the highlight a full page (visible options), clamped at the ends.' },
   { name: 'Home / End', type: 'popup open', description: 'Jump to the first or last selectable option (native caret behavior in inputs).' },
-  { name: 'Enter', type: 'popup open', description: 'Select the highlighted option.' },
+  { name: 'Enter', type: 'popup open', description: 'Select the highlighted option, or create the typed query when `canCreate`.' },
   { name: 'Space', type: 'popup open', description: 'Does nothing on the trigger; options and text entries keep their native behavior.' },
   { name: 'Tab / Shift+Tab', type: 'popup open', description: 'Skip the options list to the next focusable element; closes when focus leaves the widget (selectOnTab selects first).' },
   { name: 'Escape', type: 'popup open', description: 'Close the popup and return focus to the trigger.' },
@@ -326,11 +340,13 @@ export const ACTION_ROWS: PropRow[] = [
   { name: 'open', type: '() => void', description: 'Open the dropdown.' },
   { name: 'close', type: '(returnFocus?: boolean) => void', description: 'Close the dropdown.' },
   { name: 'select', type: '(option: T) => void', description: 'Select (single) or toggle (multiple) an option.' },
+  { name: 'createSelection', type: '() => void', description: 'Commit the typed query as a new value. No-op unless `canCreate`.' },
   { name: 'clear', type: '() => void', description: 'Clear the selection (null or []).' },
   { name: 'setSearchQuery', type: '(value: Q | undefined) => void', description: 'Update the search query.' },
   { name: 'setHighlightedIndex', type: '(index: number) => void', description: 'Set the highlighted option. Wire it to hover to match keyboard behavior.' },
   { name: 'focusInput', type: '() => void', description: 'Focus the filter input while the popup stays open.' },
   { name: 'handleKeydown', type: '(event: KeyboardEvent) => void', description: 'Keyboard navigation handler.' },
+  { name: 'handleTypeaheadKeydown', type: '(event: KeyboardEvent) => void', description: 'Keyboard handler for typeahead inputs; Space types instead of activating.' },
 ];
 
 export const REF_ROWS: PropRow[] = [
@@ -345,9 +361,10 @@ export const REF_ROWS: PropRow[] = [
 export const ARIA_ROWS: PropRow[] = [
   { name: 'triggerProps', type: 'HeadlessComboboxTriggerProps', description: 'role=combobox, aria-expanded, aria-activedescendant, toggle and keydown handlers.' },
   { name: 'inputProps', type: 'HeadlessComboboxInputProps', description: 'Search input attributes, aria-activedescendant, and keydown handling.' },
-  { name: 'comboboxInputProps', type: 'HeadlessComboboxComboboxInputProps', description: 'Typeahead input attributes, open and focus handlers.' },
+  { name: 'comboboxInputProps', type: 'HeadlessComboboxComboboxInputProps', description: 'Typeahead input attributes, open, focus, input, and Space-safe keydown handlers.' },
   { name: 'listboxProps', type: 'HeadlessComboboxListboxProps', description: 'role=listbox and aria-multiselectable.' },
-  { name: 'getOptionProps', type: '(option, index) => HeadlessComboboxOptionProps', description: 'role=option, aria-selected, aria-disabled, and select and highlight handlers.' },
+  { name: 'statusProps', type: 'HeadlessComboboxStatusProps', description: 'role=status, aria-live=polite, aria-atomic; spread on the status message element.' },
+  { name: 'getOptionProps', type: '(option, index?) => HeadlessComboboxOptionProps', description: 'role=option, aria-selected, aria-disabled, and select and highlight handlers. The index is derived from filteredOptions when omitted.' },
 ];
 
 export function scopeGroups(adapter: AdapterId): ScopeGroup[] {

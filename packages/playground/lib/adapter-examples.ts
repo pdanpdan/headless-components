@@ -24,6 +24,7 @@ export interface ExampleMeta {
   customOptions?: boolean;
   internal?: boolean;
   maxLength?: number;
+  status?: boolean;
 }
 
 export const EXAMPLE_META: Record<string, ExampleMeta> = {
@@ -60,7 +61,7 @@ export const EXAMPLE_META: Record<string, ExampleMeta> = {
   },
   TextSelectOnTab: { selectOnTab: true },
   TextSingle: {},
-  TextTypeahead: { typeahead: true },
+  TextTypeahead: { typeahead: true, status: true },
   TextTypeaheadChips: {
     typeahead: true,
     multiple: true,
@@ -376,9 +377,12 @@ function reactBody(meta: ExampleMeta): string {
   const validation = meta.validation
     ? `  <p>{scope.valid ? 'Looks good.' : scope.validationMessage}</p>\n`
     : '';
+  const status = meta.status
+    ? `  <p {...scope.statusProps} className="sr-only">{scope.statusMessage}</p>\n`
+    : '';
   const container = `<div ref={scope.setContainerRef}>
 ${ indented(reactField(meta), 2) }
-  {scope.isOpen && (
+${ status }  {scope.isOpen && (
     <div>
 ${ indented(reactList(meta), 6) }
     </div>
@@ -566,9 +570,12 @@ function svelteBody(meta: ExampleMeta): string {
   const validation = meta.validation
     ? `  <p>{scope.valid ? 'Looks good.' : scope.validationMessage}</p>\n`
     : '';
+  const status = meta.status
+    ? `  <p {...scope.statusProps} class="sr-only">{scope.statusMessage}</p>\n`
+    : '';
   return `${ controls }<div {@attach scope.setContainerRef}>
 ${ indented(svelteField(meta), 2) }
-  {#if scope.isOpen}
+${ status }  {#if scope.isOpen}
     <div>
 ${ indented(svelteList(meta), 6) }
     </div>
@@ -759,9 +766,12 @@ function solidBody(meta: ExampleMeta): string {
   const validation = meta.validation
     ? `  <p>{scope().valid ? 'Looks good.' : scope().validationMessage}</p>\n`
     : '';
+  const status = meta.status
+    ? `  <p {...scope().statusProps} class="sr-only">{scope().statusMessage}</p>\n`
+    : '';
   const container = `<div ref={scope().setContainerRef}>
 ${ indented(solidField(meta), 2) }
-  {scope().isOpen && (
+${ status }  {scope().isOpen && (
     <div>
 ${ indented(solidList(meta), 6) }
     </div>
@@ -900,7 +910,7 @@ function angularField(meta: ExampleMeta): string {
   [value]="${ valueExpr }"
   placeholder="Search…"
   (input)="s.setSearchQuery($any($event.target).value)"
-  (keydown)="s.handleKeydown($event)"
+  (keydown)="s.handleTypeaheadKeydown($event)"
 />`;
     if (meta.chips === 'field') {
       return `<div>
@@ -966,9 +976,12 @@ function angularBody(meta: ExampleMeta): string {
   const validation = meta.validation
     ? `  <p>${ interpolation("s.valid ? 'Looks good.' : s.validationMessage") }</p>\n`
     : '';
+  const status = meta.status
+    ? `  <p class="sr-only" role="status" aria-live="polite" aria-atomic="true">${ interpolation('s.statusMessage') }</p>\n`
+    : '';
   return `${ controls }<div #container>
 ${ indented(angularField(meta), 2) }
-  @if (s.isOpen) {
+${ status }  @if (s.isOpen) {
     <div>
 ${ indented(angularList(meta), 6) }
     </div>

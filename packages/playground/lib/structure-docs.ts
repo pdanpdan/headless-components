@@ -150,6 +150,7 @@ export const STRUCTURE_TREES: Record<AdapterId, StructureTrees> = {
    │  │      (click)="s.comboboxInputProps.onClick()"
    │  │      (focus)="s.comboboxInputProps.onFocus()"
    │  │      (input)="s.comboboxInputProps.onInput($event)"
+   │  │      (keydown)="s.comboboxInputProps.onKeydown($event)"
    └─ div popup                                     the popup
       │      @if (s.isOpen) { ... }
       └─ ul

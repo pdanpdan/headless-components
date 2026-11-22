@@ -57,7 +57,7 @@ This is where each slot prop is designed to be used:
 | search input in the popup | `inputProps`, `setInputRef` | `role="searchbox"`. Filters while the popup stays open. |
 | popup element | `popupStyle`, `setDropdownRef` | Positioning; add `popover="manual"` to use the native Popover API. |
 | list element | `listboxProps`, `setListRef` | `role="listbox"`. The options container. |
-| each option element | `getOptionProps(option, index)`, `setOptionRef(option, el)` | Option semantics + select/highlight handlers. |
+| each option element | `getOptionProps(option)`, `setOptionRef(option, el)` | Option semantics + select/highlight handlers. The index is the option's position in `filteredOptions`; omit it to derive that position (safe for grouped and virtualized lists). |
 
 Ref setters are wired with `:ref="..."` and are optional. Bind only the elements your markup uses. `setOptionRef` enables `alignSelected` and scroll-into-view; `setContainerRef` extends the click-outside boundary (e.g. to external chips).
 
@@ -204,6 +204,8 @@ const {
 | `alignSelected` | `boolean`                                 | `false`            | Align the dropdown so the selected option covers the trigger. |
 | `inputOnOpen` | `'select' \| 'keep' \| 'clear'`                | `'select'`         | Typeahead input when the popup opens: `select` keeps showing the current value and selects it (typing replaces it); `keep` shows it without selecting; `clear` opens with an empty input. |
 | `errorMessages` | `Partial<Record<HeadlessComboboxErrorCode, string>>` | n/a             | Override default validation messages.                                       |
+| `creatable`     | `boolean`                                 | `false`            | Offer to commit the typed query as a new value when no option matches.      |
+| `createOption`  | `(query: Q) => V \| null \| undefined`    | n/a                | Builds the value stored by `createSelection` and by Enter when nothing is highlighted. |
 
 ## Emits
 
@@ -218,18 +220,19 @@ const {
 
 ## Slot props
 
-State: `isOpen`, `multiple`, `disabled`, `readonly`, `searchQuery` (`Q | undefined`, defaults to `string`), `filteredOptions`, `highlightedIndex`, `alignmentOffset`, `cssAnchorName`, `popupStyle` (`HeadlessComboboxPopupStyle`), `selectedCount`, `selectedList`, `canSelectMore`, `isSelected(option)`, `valid`, `errors`, `validationMessage`.
+State: `isOpen`, `multiple`, `disabled`, `readonly`, `searchQuery` (`Q | undefined`, defaults to `string`), `filteredOptions`, `highlightedIndex`, `alignmentOffset`, `cssAnchorName`, `popupStyle` (`HeadlessComboboxPopupStyle`), `selectedCount`, `selectedList`, `canSelectMore`, `isSelected(option)`, `canCreate`, `valid`, `errors`, `validationMessage`, `statusMessage`.
 
 ARIA prop bags (spread with `v-bind`). Each bag also carries its interaction handlers, so options, triggers, and inputs need no hand-written event wiring:
 - `triggerProps`: `HeadlessComboboxTriggerProps` (trigger as `role="combobox"`, plus `onClick` → toggle and `onKeydown` → `handleKeydown`)
 - `inputProps`: `HeadlessComboboxInputProps` (in-popup filter input as `role="searchbox"`, plus `onInput` → `setSearchQuery` and `onKeydown` → `handleKeydown`)
-- `comboboxInputProps`: `HeadlessComboboxComboboxInputProps` (typeahead input as `role="combobox"`, plus `onClick`/`onFocus` → open and `onInput` → `setSearchQuery`)
+- `comboboxInputProps`: `HeadlessComboboxComboboxInputProps` (typeahead input as `role="combobox"`, plus `onClick`/`onFocus` → open, `onInput` → `setSearchQuery`, and a Space-safe `onKeydown`)
 - `listboxProps`: `HeadlessComboboxListboxProps`
-- `getOptionProps(option, index)` → `HeadlessComboboxOptionProps` (option semantics, plus `onClick` → select, `onMousedown` → `preventDefault` to keep the filter focused, and `onMousemove`/`onFocus` → `setHighlightedIndex`; blocked options are skipped)
+- `statusProps`: `HeadlessComboboxStatusProps` (`role="status"`, `aria-live="polite"`, `aria-atomic`; bind to `statusMessage`)
+- `getOptionProps(option, index?)` → `HeadlessComboboxOptionProps` (option semantics, `aria-posinset`/`aria-setsize`, plus `onClick` → select, `onMousedown` → `preventDefault` to keep the filter focused, and `onMousemove`/`onFocus` → `setHighlightedIndex`; blocked options are skipped). The index is derived from `filteredOptions` when omitted.
 
 Each ARIA interface is exported for precise typing. The `disabled`/`readonly` flags and all `aria-*` attributes are included.
 
-Actions: `toggle`, `open`, `close(returnFocus?)`, `select(option)`, `clear()`, `setSearchQuery(value: Q | undefined)`, `setHighlightedIndex(index)`, `focusInput()`, `handleKeydown(event)`.
+Actions: `toggle`, `open`, `close(returnFocus?)`, `select(option)`, `createSelection()`, `clear()`, `setSearchQuery(value: Q | undefined)`, `setHighlightedIndex(index)`, `focusInput()`, `handleKeydown(event)`, `handleTypeaheadKeydown(event)`.
 
 Ref setters (assign with `:ref`): `setContainerRef`, `setTriggerRef`, `setDropdownRef`, `setInputRef`, `setListRef`, `setOptionRef(option, el)`.
 

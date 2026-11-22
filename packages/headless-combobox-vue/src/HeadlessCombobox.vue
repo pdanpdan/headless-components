@@ -48,13 +48,16 @@ const {
   selectedList,
   canSelectMore,
   isSelected,
+  canCreate,
   valid,
   errors,
   validationMessage,
+  statusMessage,
   triggerProps,
   inputProps,
   comboboxInputProps,
   listboxProps,
+  statusProps,
   getOptionProps,
   setSearchQuery,
   setHighlightedIndex,
@@ -62,9 +65,11 @@ const {
   open,
   close,
   select,
+  createSelection,
   clear,
   focusInput,
   handleKeydown,
+  handleTypeaheadKeydown,
   setContainerRef,
   setTriggerRef,
   setDropdownRef,
@@ -97,13 +102,16 @@ const {
     :selected-list="selectedList"
     :can-select-more="canSelectMore"
     :is-selected="isSelected"
+    :can-create="canCreate"
     :valid="valid"
     :errors="errors"
     :validation-message="validationMessage"
+    :status-message="statusMessage"
     :trigger-props="triggerProps"
     :input-props="inputProps"
     :combobox-input-props="comboboxInputProps"
     :listbox-props="listboxProps"
+    :status-props="statusProps"
     :get-option-props="getOptionProps"
     :set-search-query="setSearchQuery"
     :set-highlighted-index="setHighlightedIndex"
@@ -111,9 +119,11 @@ const {
     :open="open"
     :close="close"
     :select="select"
+    :create-selection="createSelection"
     :clear="clear"
     :focus-input="focusInput"
     :handle-keydown="handleKeydown"
+    :handle-typeahead-keydown="handleTypeaheadKeydown"
     :set-container-ref="setContainerRef"
     :set-trigger-ref="setTriggerRef"
     :set-dropdown-ref="setDropdownRef"

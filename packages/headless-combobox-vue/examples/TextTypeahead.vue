@@ -36,8 +36,8 @@ const labelId = useId();
     <HeadlessCombobox
       v-slot="{
         isOpen, filteredOptions, highlightedIndex, searchQuery, toggle, open,
-        isSelected, handleKeydown, cssAnchorName, popupStyle,
-        comboboxInputProps, listboxProps, getOptionProps, setContainerRef, setTriggerRef,
+        isSelected, statusMessage, cssAnchorName, popupStyle,
+        comboboxInputProps, listboxProps, statusProps, getOptionProps, setContainerRef, setTriggerRef,
         setInputRef, setDropdownRef, setListRef, setOptionRef,
       }"
       v-model="selected"
@@ -62,7 +62,6 @@ const labelId = useId();
             type="text"
             class="w-full pe-6"
             placeholder="Search a language…"
-            @keydown="(e) => { if (e.key !== ' ') { handleKeydown(e); } }"
           />
           <button
             type="button"
@@ -94,6 +93,8 @@ const labelId = useId();
           </button>
         </div>
       </fieldset>
+
+      <p v-bind="statusProps" class="sr-only">{{ statusMessage }}</p>
 
       <ul
         :ref="(el) => { setDropdownRef(el); setListRef(el); }"

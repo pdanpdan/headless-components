@@ -105,7 +105,7 @@ const structureRows = [
   { name: 'search input', type: 'inputProps, setInputRef', description: 'role="searchbox". Filters while the popup stays open.' },
   { name: 'popup element', type: 'popupStyle, setDropdownRef', description: 'Positioning; add popover="manual" to use the native Popover API.' },
   { name: 'list element', type: 'listboxProps, setListRef', description: 'role="listbox". The options container.' },
-  { name: 'each option element', type: 'getOptionProps(option, index), setOptionRef(option, el)', description: 'Option semantics and select/highlight handlers.' },
+  { name: 'each option element', type: 'getOptionProps(option, index?), setOptionRef(option, el)', description: 'Option semantics and select/highlight handlers. The index is the position in filteredOptions; omit it to derive that position in grouped or virtualized lists.' },
 ];
 
 const propsRows = computed(() => valueProps(props.adapter));

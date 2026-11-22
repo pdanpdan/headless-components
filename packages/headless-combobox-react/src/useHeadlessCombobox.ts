@@ -43,6 +43,8 @@ const CORE_PROP_KEYS = [
   'alignSelected',
   'inputOnOpen',
   'errorMessages',
+  'creatable',
+  'createOption',
 ] as const;
 
 /**

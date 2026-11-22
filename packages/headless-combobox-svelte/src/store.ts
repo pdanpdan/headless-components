@@ -27,6 +27,8 @@ const CORE_PROP_KEYS = [
   'alignSelected',
   'inputOnOpen',
   'errorMessages',
+  'creatable',
+  'createOption',
 ] as const;
 
 const SVELTE_EVENT_NAMES: Record<string, string> = {

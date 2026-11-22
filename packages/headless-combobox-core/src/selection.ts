@@ -23,6 +23,12 @@ export function createSelection<O, V, Q>(
       : option as unknown as V;
   }
 
+  function labelOf(option: O): string {
+    return ctx.props.optionLabel
+      ? ctx.props.optionLabel(option)
+      : String(option);
+  }
+
   /** The option whose value equals `value` (used to resolve the model back to an option). */
   function findOptionByValue(value: V): O | undefined {
     return ctx.props.options.find((option) => ctx.unwrap(valueOf(option)) === ctx.unwrap(value));
@@ -50,6 +56,23 @@ export function createSelection<O, V, Q>(
   });
 
   const isLocked = createMemo<boolean>(ctx)(() => ctx.props.disabled === true || ctx.props.readonly === true);
+
+  // Free-solo: the typed query can become a value when it is non-empty, no
+  // existing option already has that label, and the multiple cap allows it.
+  const getCanCreate = createMemo<boolean>(ctx)(() => {
+    if (ctx.props.creatable !== true || ctx.props.createOption == null || isLocked() || !getCanSelectMore()) {
+      return false;
+    }
+    const query = ctx.state.searchQuery;
+    if (query == null) {
+      return false;
+    }
+    const text = String(query).trim().toLowerCase();
+    if (text === '') {
+      return false;
+    }
+    return !ctx.props.options.some((option) => labelOf(option).trim().toLowerCase() === text);
+  });
 
   function isSelected(option: O): boolean {
     const value = ctx.unwrap(valueOf(option));
@@ -88,6 +111,38 @@ export function createSelection<O, V, Q>(
       } else if (ctx.state.isOpen) {
         // Popup stays open (e.g. multiple): keep the filter focused for continued typing,
         // unless the user is focused on another text field / control.
+        ctx.nextTick().then(hooks.maybeRefocusInput);
+      }
+    });
+  }
+
+  // Commit the current query as a new value. The consumer supplies the value
+  // through `createOption`; it is stored exactly like a selected option value.
+  function createSelection() {
+    const query = ctx.state.searchQuery;
+    const createOption = ctx.props.createOption;
+    if (!getCanCreate() || query == null || createOption == null) {
+      return;
+    }
+    const created = createOption(query);
+    if (created == null) {
+      return;
+    }
+    ctx.mutate(() => {
+      if (ctx.props.multiple) {
+        const current = getSelectedList();
+        const raw = ctx.unwrap(created);
+        if (getCanSelectMore() && !current.some((value) => ctx.unwrap(value) === raw)) {
+          ctx.emitModel([ ...current, created ]);
+        }
+      } else {
+        ctx.emitModel(created);
+      }
+
+      const shouldClose = ctx.props.closeOnSelect ?? !ctx.props.multiple;
+      if (shouldClose) {
+        hooks.close(true);
+      } else if (ctx.state.isOpen) {
         ctx.nextTick().then(hooks.maybeRefocusInput);
       }
     });
@@ -134,10 +189,12 @@ export function createSelection<O, V, Q>(
     getSelectedList,
     getSelectedCount,
     getCanSelectMore,
+    getCanCreate,
     isSelected,
     isOptionDisabled,
     isLocked,
     select,
+    createSelection,
     clear,
     removeLastSelected,
   };

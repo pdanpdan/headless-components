@@ -60,15 +60,18 @@ export interface HeadlessComboboxScope<O, V, Q = string> {
   selectedList: ComputedRef<V[]>;
   canSelectMore: ComputedRef<boolean>;
   isSelected: (option: O) => boolean;
+  canCreate: ComputedRef<boolean>;
   valid: ComputedRef<boolean>;
   errors: ComputedRef<HeadlessComboboxSnapshot<O, V, Q>[ 'errors' ]>;
   validationMessage: ComputedRef<string>;
+  statusMessage: ComputedRef<string>;
   // ARIA prop bags (spread with v-bind)
   triggerProps: ComputedRef<HeadlessComboboxSnapshot<O, V, Q>[ 'triggerProps' ]>;
   inputProps: ComputedRef<HeadlessComboboxSnapshot<O, V, Q>[ 'inputProps' ]>;
   comboboxInputProps: ComputedRef<HeadlessComboboxSnapshot<O, V, Q>[ 'comboboxInputProps' ]>;
   listboxProps: ComputedRef<HeadlessComboboxSnapshot<O, V, Q>[ 'listboxProps' ]>;
-  getOptionProps: (option: O, index: number) => HeadlessComboboxSnapshot<O, V, Q>[ 'getOptionProps' ] extends (option: O, index: number) => infer R
+  statusProps: ComputedRef<HeadlessComboboxSnapshot<O, V, Q>[ 'statusProps' ]>;
+  getOptionProps: (option: O, index?: number) => HeadlessComboboxSnapshot<O, V, Q>[ 'getOptionProps' ] extends (option: O, index?: number) => infer R
     ? R
     : never;
   // Actions
@@ -78,9 +81,11 @@ export interface HeadlessComboboxScope<O, V, Q = string> {
   open: () => Promise<void>;
   close: (returnFocus?: boolean) => void;
   select: (option: O) => void;
+  createSelection: () => void;
   clear: () => void;
   focusInput: () => void;
   handleKeydown: (event: Event) => void;
+  handleTypeaheadKeydown: (event: Event) => void;
   // Element wiring
   setContainerRef: (el: unknown) => void;
   setTriggerRef: (el: unknown) => void;
@@ -111,6 +116,8 @@ const PROP_KEYS = [
   'alignSelected',
   'inputOnOpen',
   'errorMessages',
+  'creatable',
+  'createOption',
 ] as const;
 
 function resolveProps<O, V, Q>(source: HeadlessComboboxPropsSource<O, V, Q>): HeadlessComboboxProps<O, V, Q> {
@@ -182,7 +189,7 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
   }
 
   const isSelected = (option: O) => store.getSnapshot().isSelected(option);
-  const getOptionProps = (option: O, index: number) =>
+  const getOptionProps = (option: O, index?: number) =>
     store.getSnapshot().getOptionProps(option, index);
 
   return {
@@ -212,13 +219,16 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
     selectedList: computed(() => snapshot.value.selectedList),
     canSelectMore: computed(() => snapshot.value.canSelectMore),
     isSelected,
+    canCreate: computed(() => snapshot.value.canCreate),
     valid: computed(() => snapshot.value.valid),
     errors: computed(() => snapshot.value.errors),
     validationMessage: computed(() => snapshot.value.validationMessage),
+    statusMessage: computed(() => snapshot.value.statusMessage),
     triggerProps: computed(() => snapshot.value.triggerProps),
     inputProps: computed(() => snapshot.value.inputProps),
     comboboxInputProps: computed(() => snapshot.value.comboboxInputProps),
     listboxProps: computed(() => snapshot.value.listboxProps),
+    statusProps: computed(() => snapshot.value.statusProps),
     getOptionProps,
     setSearchQuery: (value) => store.getSnapshot().setSearchQuery(value),
     setHighlightedIndex: (index) => store.getSnapshot().setHighlightedIndex(index),
@@ -226,9 +236,11 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
     open: () => store.getSnapshot().open(),
     close: (returnFocus) => store.getSnapshot().close(returnFocus),
     select: (option) => store.getSnapshot().select(option),
+    createSelection: () => store.getSnapshot().createSelection(),
     clear: () => store.getSnapshot().clear(),
     focusInput: () => store.getSnapshot().focusInput(),
     handleKeydown: (event) => store.getSnapshot().handleKeydown(event),
+    handleTypeaheadKeydown: (event) => store.getSnapshot().handleTypeaheadKeydown(event),
     setContainerRef: (el) => store.getSnapshot().setContainerRef(el),
     setTriggerRef: (el) => store.getSnapshot().setTriggerRef(el),
     setDropdownRef: (el) => store.getSnapshot().setDropdownRef(el),

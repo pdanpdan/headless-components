@@ -8,6 +8,7 @@ export type {
   HeadlessComboboxPopupStyle,
   HeadlessComboboxProps,
   HeadlessComboboxSnapshot,
+  HeadlessComboboxStatusProps,
   HeadlessComboboxTriggerProps,
 } from './types';
 export type { ComboboxState } from './context';

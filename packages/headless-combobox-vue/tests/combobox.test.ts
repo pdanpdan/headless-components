@@ -13,7 +13,10 @@ interface User {
 
 type SlotProps = HeadlessComboboxSlotProps<User, User>;
 
-type MountConfig = Partial<Pick<HeadlessComboboxProps<User, User>, 'modelValue' | 'multiple' | 'minLength' | 'maxLength' | 'required' | 'disabled' | 'readonly' | 'errorMessages' | 'optionFilter' | 'alignSelected' | 'closeOnSelect' | 'closeOnClickOutside' | 'clickOutsideFilter' | 'selectOnTab' | 'inputOnOpen'>>;
+type MountConfig = Partial<Pick<HeadlessComboboxProps<User, User>, 'modelValue' | 'multiple' | 'minLength' | 'maxLength' | 'required' | 'disabled' | 'readonly' | 'errorMessages' | 'optionFilter' | 'alignSelected' | 'closeOnSelect' | 'closeOnClickOutside' | 'clickOutsideFilter' | 'selectOnTab' | 'inputOnOpen' | 'creatable'>> & {
+  // The mount's generic query type is unknown; keep the callback assignable.
+  createOption?: (query: unknown) => unknown;
+};
 
 function createUsers(): User[] {
   return [
@@ -67,6 +70,12 @@ function buildProps(options: User[], config: MountConfig = {}) {
       : {}),
     ...(config.inputOnOpen !== undefined
       ? { inputOnOpen: config.inputOnOpen }
+      : {}),
+    ...(config.creatable !== undefined
+      ? { creatable: config.creatable }
+      : {}),
+    ...(config.createOption !== undefined
+      ? { createOption: config.createOption }
       : {}),
   };
 }
@@ -154,8 +163,6 @@ function mountWired(optionsArg: User[], config: MountConfig & { wireList?: boole
                 els.input = el as HTMLInputElement;
               },
               class: 'filter',
-              // The typeahead pattern wires keyboard handling manually.
-              onKeydown: (e: KeyboardEvent) => sc.handleKeydown(e),
               ...sc.comboboxInputProps,
             })
             : null,
@@ -236,8 +243,6 @@ function mountTypeahead(optionsArg: User[], config: MountConfig = {}) {
               els.input = el as HTMLInputElement;
             },
             type: 'text',
-            // The typeahead pattern wires keyboard handling manually.
-            onKeydown: (e: KeyboardEvent) => sc.handleKeydown(e),
             ...sc.comboboxInputProps,
           }),
           h('div', {
@@ -384,6 +389,50 @@ describe('headless combobox (single)', () => {
     expect(cb.wrapper.emitted('update:modelValue')).toEqual([
       [ target ],
     ]);
+  });
+
+  it('creates a value from the typed query', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users, {
+      creatable: true,
+      createOption: (query: unknown) => ({
+        id: 99,
+        name: String(query),
+      }),
+    });
+
+    cb.scope.setSearchQuery('New User');
+    await nextTick();
+    expect(cb.scope.canCreate).toBe(true);
+
+    cb.scope.createSelection();
+    await nextTick();
+
+    expect(cb.wrapper.emitted('update:modelValue')).toEqual([
+      [
+        { id: 99, name: 'New User' },
+      ],
+    ]);
+  });
+
+  it('exposes the result-count live region', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    expect(cb.scope.statusMessage).toBe('');
+    expect(cb.scope.statusProps).toEqual({
+      role: 'status',
+      'aria-live': 'polite',
+      'aria-atomic': true,
+    });
+
+    await cb.scope.open();
+    await nextTick();
+    expect(cb.scope.statusMessage).toBe('3 results available.');
+
+    cb.scope.setSearchQuery('nothing');
+    await nextTick();
+    expect(cb.scope.statusMessage).toBe('No results found.');
   });
 
   it('closes the dropdown after selecting', async () => {

@@ -12,6 +12,8 @@ export interface NavigationDeps<O> {
   isInsideWidget: (target: Node | null) => boolean;
   scrollToHighlight: () => Promise<void>;
   removeLastSelected: () => void;
+  canCreate: () => boolean;
+  createSelection: () => void;
 }
 
 // Backspace/Delete fall through to native behavior when the key is meant to
@@ -192,6 +194,9 @@ export function createNavigation<O, V, Q>(
         const option = deps.getFilteredOptions()[ ctx.state.highlightedIndex ];
         if (ctx.state.highlightedIndex >= 0 && option != null) {
           deps.select(option);
+        } else if (deps.canCreate()) {
+          // Free-solo: the typed query becomes the selection when no option is highlighted.
+          deps.createSelection();
         }
         break;
       }
@@ -273,6 +278,16 @@ export function createNavigation<O, V, Q>(
     }
   }
 
+  // A typeahead input is a text field: Space inserts a space instead of
+  // opening the popup (the regular matrix treats Space on the trigger as
+  // activation). Everything else uses the same keyboard behavior.
+  function handleTypeaheadKeydown(event: Event) {
+    if ((event as KeyboardEvent).key === ' ') {
+      return;
+    }
+    handleKeydown(event);
+  }
+
   return {
     setHighlightedIndex,
     firstActionableIndex,
@@ -282,5 +297,6 @@ export function createNavigation<O, V, Q>(
     getFocusableElements,
     focusNextOutside,
     handleKeydown,
+    handleTypeaheadKeydown,
   };
 }

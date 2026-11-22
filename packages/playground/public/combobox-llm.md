@@ -30,15 +30,17 @@ Each element receives exactly one prop bag. The bags contain ARIA attributes and
 | root container, the click-outside and focus boundary | nothing | `setContainerRef` |
 | button trigger | `triggerProps` | `setTriggerRef` |
 | popup listbox | `listboxProps`, `popupStyle` on the popup | `setDropdownRef`, `setListRef` |
-| each option | `getOptionProps(option, index)` | `setOptionRef(option, el)` |
+| each option | `getOptionProps(option)` or `getOptionProps(option, index)` | `setOptionRef(option, el)` |
 | search input inside the popup | `inputProps` | `setInputRef` |
 | typeahead input (the input is the combobox) | `comboboxInputProps` | `setTriggerRef`, `setInputRef` |
+| result-count live region (visually hidden) | `statusProps` | nothing |
 
 Rules:
 
 - Never put `triggerProps` and `comboboxInputProps` on the same element.
 - Never replace a prop bag with hand-written `role`, `aria-expanded`, `aria-selected`, or key handlers. The prop bags do not set an accessible name: add `aria-label`, `aria-labelledby`, or a real `<label>` yourself.
-- `comboboxInputProps` has click, focus, and input handlers but no keydown handler. A typeahead input must call `handleKeydown` itself, otherwise arrows, Enter, and Escape do nothing. Every example below shows the exact binding.
+- `comboboxInputProps` includes a Space-safe keydown handler: arrows, Enter, and Escape navigate, while Space types a space. Do not add another keydown handler. Angular cannot spread a bag, so bind `handleTypeaheadKeydown` there.
+- The option index is optional. When you pass one, it must be the option's position in the flat `filteredOptions` array, not its rendered position. Omit it in grouped or virtualized lists and the core derives that position.
 - Ref setters are optional, but `setOptionRef` is required for `alignSelected` and scroll-into-view, and `setContainerRef` extends the click-outside boundary (for example to external chips).
 - The root component renders nothing on its own. It only renders the markup you pass to it.
 - The packages ship no styles. A working page still needs a visible trigger, a popup with a background and border or shadow, and a distinct state for the highlighted and selected options.
@@ -465,7 +467,6 @@ In the typeahead pattern the text input itself is the combobox. It receives `com
       :value="scope.searchQuery ?? selected ?? ''"
       type="text"
       placeholder="Search…"
-      @keydown="(e) => { if (e.key !== ' ') scope.handleKeydown(e); }"
     />
 
     <ul v-if="scope.isOpen" :ref="scope.setDropdownRef" v-bind="scope.listboxProps">
@@ -482,15 +483,19 @@ In the typeahead pattern the text input itself is the combobox. It receives `com
 </HeadlessCombobox>
 ```
 
-The input also needs `setTriggerRef` and `setInputRef` (shown above for Vue). `comboboxInputProps` contains no keydown handler, so add `handleKeydown` to the input yourself. Skip the space key so queries can contain spaces, because the core treats Space on the trigger as activation. The same handler, in each adapter's syntax:
+The input also needs `setTriggerRef` and `setInputRef` (shown above for Vue). Keyboard navigation comes from `comboboxInputProps`; no extra handler is needed. Angular cannot spread a bag, so it binds the same behavior directly:
 
-| Adapter | Input keydown |
-|---|---|
-| Vue | `@keydown="(e) => { if (e.key !== ' ') scope.handleKeydown(e); }"` |
-| React | `onKeyDown={(e) => { if (e.key !== ' ') scope.handleKeydown(e); }}` |
-| Svelte | `onkeydown={(e) => { if (e.key !== ' ') scope.handleKeydown(e); }}` |
-| Solid | `onKeyDown={(e) => { if (e.key !== ' ') scope().handleKeydown(e); }}` |
-| Angular | `(keydown)="$event.key !== ' ' && s.handleKeydown($event)"` with `@let s = combobox.snapshot()` |
+```html
+<input
+  role="combobox"
+  [attr.aria-expanded]="s.isOpen"
+  [value]="s.searchQuery ?? value()?.name ?? ''"
+  (input)="s.setSearchQuery($any($event.target).value)"
+  (keydown)="s.handleTypeaheadKeydown($event)"
+/>
+```
+
+`handleTypeaheadKeydown` is the Space-safe variant: Space inserts a space, while the regular keyboard matrix handles arrows, Enter, and Escape.
 
 The input value follows `searchQuery` while the popup is open and falls back to the selected label. `inputOnOpen` controls what happens to the text when the popup opens:
 
@@ -779,6 +784,177 @@ With `selectOnTab`, pressing Tab while an option is highlighted selects it and c
 
 `onChange` still reports every selection in React, Solid, and Angular when the value is not controlled. Use it for notifications, for example to fetch dependent data.
 
+### Grouped options
+
+The option list stays flat in `filteredOptions`; grouping is markup. Wrap each group in `role="group"` with an accessible label, and call `getOptionProps(option)` without an index so the core finds the option's position in the flat list.
+
+```vue
+<script setup lang="ts">
+import { HeadlessCombobox } from '@pdanpdan/headless-combobox-vue';
+import { ref, useId } from 'vue';
+
+const categories: Record<string, string[]> = {
+  Frontend: ['Vue', 'React', 'Svelte'],
+  Backend: ['Rust', 'Go', 'Python'],
+};
+const options = Object.values(categories).flat();
+const selected = ref<string | null>(null);
+const labelId = useId();
+
+function groups(visible: string[]) {
+  return Object.entries(categories)
+    .map(([ label, items ]) => ({
+      label,
+      items: items.filter((item) => visible.includes(item)),
+    }))
+    .filter((group) => group.items.length > 0);
+}
+</script>
+
+<template>
+  <HeadlessCombobox v-slot="scope" v-model="selected" :options="options">
+    <div :ref="scope.setContainerRef">
+      <button
+        :ref="scope.setTriggerRef"
+        v-bind="scope.triggerProps"
+        :aria-labelledby="labelId"
+        type="button"
+      >
+        {{ selected ?? 'Select…' }}
+      </button>
+
+      <ul
+        v-if="scope.isOpen"
+        :ref="(el) => { scope.setDropdownRef(el); scope.setListRef(el); }"
+        v-bind="scope.listboxProps"
+      >
+        <li
+          v-for="group in groups(scope.filteredOptions)"
+          :key="group.label"
+          role="group"
+          :aria-labelledby="`${ labelId }-${ group.label }`"
+        >
+          <span :id="`${ labelId }-${ group.label }`">{{ group.label }}</span>
+          <ul role="presentation">
+            <li
+              v-for="option in group.items"
+              :key="option"
+              :ref="(el) => scope.setOptionRef(option, el)"
+              v-bind="scope.getOptionProps(option)"
+            >
+              {{ option }}
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </HeadlessCombobox>
+</template>
+```
+
+Render groups in the same order as the flat `options` array; arrow keys, paging, and `aria-activedescendant` follow that order. Group headers are not options: give them `role="presentation"` or no role, never `role="option"`.
+
+### Creatable values (free solo)
+
+Set `creatable` and supply `createOption`, which turns the typed query into the value stored in the model. The create affordance is yours to render; call `createSelection()` from it.
+
+```vue
+<HeadlessCombobox
+  v-slot="scope"
+  v-model="selected"
+  :options="languages"
+  creatable
+  :create-option="(query) => query"
+>
+  <div :ref="scope.setContainerRef">
+    <input
+      :ref="(el) => { scope.setTriggerRef(el); scope.setInputRef(el); }"
+      v-bind="scope.comboboxInputProps"
+      :value="scope.searchQuery ?? selected ?? ''"
+      type="text"
+    />
+
+    <div v-if="scope.isOpen" :ref="scope.setDropdownRef">
+      <ul :ref="scope.setListRef" v-bind="scope.listboxProps">
+        <li
+          v-for="option in scope.filteredOptions"
+          :key="option"
+          :ref="(el) => scope.setOptionRef(option, el)"
+          v-bind="scope.getOptionProps(option)"
+        >
+          {{ option }}
+        </li>
+      </ul>
+      <button v-if="scope.canCreate" type="button" @click="scope.createSelection()">
+        Create "{{ scope.searchQuery }}"
+      </button>
+    </div>
+  </div>
+</HeadlessCombobox>
+```
+
+- Enter creates when no option is highlighted and `canCreate` is true.
+- `canCreate` is false for an empty query, an exact existing label, a locked control, and a reached `maxLength`.
+- `createOption` returns the stored value (`V`, not the option). The created value is not added to `options` automatically; add it in your change handler if it should appear in the list or resolve a label for a chip.
+
+### Async remote search
+
+The core does not fetch or debounce. Keep `optionFilter: () => true` so the core does not filter the server results again, replace `options` with each response, and drop stale responses yourself.
+
+```vue
+<script setup lang="ts">
+import { useHeadlessCombobox } from '@pdanpdan/headless-combobox-vue';
+import { ref, watch } from 'vue';
+
+const selected = ref<User | null>(null);
+const options = ref<User[]>([]);
+let latest = 0;
+let timer: ReturnType<typeof setTimeout> | undefined;
+
+const scope = useHeadlessCombobox<User>(
+  {
+    modelValue: selected,
+    options,
+    optionLabel: (user) => user.name,
+    optionFilter: () => true,
+  },
+  (value) => {
+    selected.value = value as User | null;
+  },
+);
+
+watch(scope.searchQuery, (query) => {
+  clearTimeout(timer);
+  timer = setTimeout(async () => {
+    const request = ++latest;
+    const response = await fetch(`/api/users?q=${ encodeURIComponent(query ?? '')}`);
+    const data = await response.json();
+    if (request === latest) {
+      options.value = data;
+    }
+  }, 250);
+});
+</script>
+```
+
+Loading and error states are yours: the core only exposes `filteredOptions`, `searchQuery`, and the result-count announcement.
+
+### Virtualized lists
+
+Render only the visible window of `filteredOptions`, call `getOptionProps(option)` without an index, and keep `setListRef` on the scroll container. Each option carries `aria-posinset` and `aria-setsize` for the flat list, so screen readers stay oriented even when the DOM holds a subset.
+
+`highlightedIndex` can point at an option that is not rendered. When it does, scroll your virtualizer so that option is rendered; the core's scroll-into-view only scrolls elements that exist. `alignSelected` has the same constraint: it uses `setOptionRef` on the selected option.
+
+### Result announcements
+
+Render the live region once, outside any conditional, and bind the bag:
+
+```vue
+<p v-bind="scope.statusProps" class="sr-only">{{ scope.statusMessage }}</p>
+```
+
+While the popup is open the message is `"3 results available."`, `"1 result available."`, or `"No results found."`; it is empty while closed. The element must be present before the text changes, which is why it is not behind `v-if`.
+
 ### Programmatic control
 
 Actions are plain functions, so they can be called from buttons, effects, watchers, or timers. The composable is the simplest way to reach them from outside the markup.
@@ -840,6 +1016,8 @@ These props are shared by every adapter.
 | `alignSelected` | `boolean` | `false` | Align the popup so the selected option covers the trigger. |
 | `inputOnOpen` | `'select' \| 'keep' \| 'clear'` | `'select'` | Typeahead input text when the popup opens. |
 | `errorMessages` | `Partial<Record<HeadlessComboboxErrorCode, string>>` | none | Override the default validation messages. |
+| `creatable` | `boolean` | `false` | Offer to commit the typed query as a new value when no option matches. |
+| `createOption` | `(query: Q) => V \| null \| undefined` | none | Builds the stored value for the query. Required for `creatable`. |
 
 ### Value binding per adapter
 
@@ -875,9 +1053,11 @@ Every adapter exposes the same snapshot fields. Vue exposes them as slot props (
 | `selectedList` | `V[]` | Selected values. Single mode returns a single-element array. |
 | `canSelectMore` | `boolean` | `false` when `maxLength` is reached. |
 | `isSelected` | `(option: O) => boolean` | Identity-based selection check. |
+| `canCreate` | `boolean` | `true` when the query can be committed as a new value. |
 | `valid` | `boolean` | Whether the current selection passes validation. |
 | `errors` | `HeadlessComboboxErrorCode[]` | Active error codes. |
 | `validationMessage` | `string` | Message for the first error. |
+| `statusMessage` | `string` | Filtered result count while open, empty while closed. |
 
 Use `isSelected(option)` instead of comparing `modelValue` to the option. Vue refs deep-convert object values into reactive proxies, so `===` checks against your original objects can fail.
 
@@ -887,9 +1067,10 @@ Use `isSelected(option)` instead of comparing `modelValue` to the option. Vue re
 |---|---|---|
 | `triggerProps` | button trigger | `role="combobox"`, `aria-expanded`, `aria-controls`, `aria-haspopup`, `aria-activedescendant`, `aria-disabled`, `aria-readonly`, `disabled`, click toggles, keydown handles |
 | `inputProps` | search input inside the popup | `role="searchbox"`, `aria-autocomplete`, `aria-controls`, `aria-activedescendant`, input and keydown handlers |
-| `comboboxInputProps` | typeahead input | `role="combobox"`, `aria-expanded`, `aria-controls`, `aria-haspopup`, `aria-activedescendant`, disabled and readonly attributes, open and focus handlers, input handler |
+| `comboboxInputProps` | typeahead input | `role="combobox"`, `aria-expanded`, `aria-controls`, `aria-haspopup`, `aria-activedescendant`, disabled and readonly attributes, open, focus, input, and Space-safe keydown handlers |
 | `listboxProps` | popup list | `role="listbox"`, `aria-multiselectable` |
-| `getOptionProps(option, index)` | each option | `role="option"`, `aria-selected`, `aria-disabled`, `data-highlighted`, select and highlight handlers |
+| `statusProps` | status message element | `role="status"`, `aria-live="polite"`, `aria-atomic` |
+| `getOptionProps(option, index?)` | each option | `role="option"`, `aria-selected`, `aria-disabled`, `data-highlighted`, select and highlight handlers |
 
 Each bag already includes its interaction handlers. Spreading the bag is the only wiring an element needs.
 
@@ -901,11 +1082,13 @@ Each bag already includes its interaction handlers. Spreading the bag is the onl
 | `open` | `() => Promise<void>` | Open the popup. |
 | `close` | `(returnFocus?: boolean) => void` | Close the popup. Focus returns to the trigger by default. |
 | `select` | `(option: O) => void` | Select in single mode, toggle in multiple mode. |
+| `createSelection` | `() => void` | Commit the typed query. No-op unless `canCreate`. |
 | `clear` | `() => void` | Clear the selection. |
 | `setSearchQuery` | `(value: Q \| undefined) => void` | Set the query. |
 | `setHighlightedIndex` | `(index: number) => void` | Set the highlighted option. Wire it to hover to match keyboard behavior. |
 | `focusInput` | `() => void` | Focus the filter input while the popup stays open. |
 | `handleKeydown` | `(event: KeyboardEvent) => void` | Keyboard navigation handler. Reserved for custom controls outside the bags. |
+| `handleTypeaheadKeydown` | `(event: KeyboardEvent) => void` | Space-safe keyboard handler for typeahead inputs. |
 
 ### Ref setters
 
@@ -943,7 +1126,7 @@ Validation is headless and reactive. The widget computes the result, you render 
 | `ArrowDown`, `ArrowUp` | open | Move the highlight. Wraps and skips disabled options. |
 | `PageDown`, `PageUp` | open | Move the highlight one visible page, clamped at the ends. |
 | `Home`, `End` | open | Jump to the first or last selectable option. Native caret behavior inside text inputs. |
-| `Enter` | open | Select the highlighted option. |
+| `Enter` | open | Select the highlighted option, or create the typed query when `canCreate`. |
 | `Space` | open | Does nothing on the trigger. Options and text inputs keep native behavior. |
 | `Tab`, `Shift+Tab` | open | Move focus past the list. The popup closes when focus leaves the widget; `selectOnTab` selects the highlighted option first. |
 | `Escape` | open | Close and return focus to the trigger. |
@@ -1032,8 +1215,11 @@ Style the selected option with `isSelected(option)` and the highlighted option b
 
 ## Common mistakes
 
-- Adding `@click` or `@keydown` to an element that already spreads a bag that contains them (trigger, search input inside the popup, options). The typeahead input is the exception: `comboboxInputProps` has no keydown, so it needs `handleKeydown`.
+- Adding `@click` or `@keydown` to an element that already spreads a bag that contains them (trigger, typeahead input, search input inside the popup, options).
 - Spreading `triggerProps` and `comboboxInputProps` on the same element.
+- Rendering the status live region conditionally. Screen readers need the empty element to exist before the text changes.
+- Passing an index to `getOptionProps` that matches the rendered position in a grouped or virtualized list instead of the flat `filteredOptions` position. Omit the index in those lists.
+- Expecting a created value to appear in `options` or resolve a chip label automatically. `createOption` only produces the stored value; update `options` yourself.
 - Rendering the popup with `{#if}` while also using `popover="manual"`, or using `popover` while relying on `v-if` to hide it.
 - Forgetting `toReactProps`, `toSvelteProps`, or `toSolidProps`. Without them the core handler keys (`onKeydown`, `onMousedown`, `onMousemove`) do not match the framework event names.
 - Calling the Solid accessor once at the top of the component. Call `scope()` inside JSX.
@@ -1041,6 +1227,7 @@ Style the selected option with `isSelected(option)` and the highlighted option b
 - Using `$state` for object values in Svelte. The proxy breaks identity checks; use `$state.raw` or primitive values through `optionValue`.
 - Hand-writing `aria-*` attributes in Angular instead of reading them from `combobox.snapshot()` where the snapshot provides them.
 - Comparing object selections with `===`. Use `isSelected(option)`.
+- Putting a button or link inside an option or the trigger button. `role="option"` is a leaf for screen readers, and `<button>` cannot nest; keep chip remove buttons outside the trigger and inside the container boundary.
 - Omitting `setOptionRef`. Then `alignSelected` and scroll-into-view cannot work.
 - Treating `open()` as synchronous when you need the DOM to be mounted or focus to be set.
 

@@ -1,5 +1,5 @@
 import type { ComboboxContext } from './context';
-import type { HeadlessComboboxComboboxInputProps, HeadlessComboboxInputProps, HeadlessComboboxListboxProps, HeadlessComboboxOptionProps, HeadlessComboboxTriggerProps } from './types';
+import type { HeadlessComboboxComboboxInputProps, HeadlessComboboxInputProps, HeadlessComboboxListboxProps, HeadlessComboboxOptionProps, HeadlessComboboxStatusProps, HeadlessComboboxTriggerProps } from './types';
 
 import { createMemo } from './context';
 
@@ -9,6 +9,8 @@ export interface AccessibilityDeps<O> {
   setHighlightedIndex: (index: number) => void;
   toggle: () => void;
   handleKeydown: (event: Event) => void;
+  handleTypeaheadKeydown: (event: Event) => void;
+  getFilteredOptions: () => O[];
   open: () => Promise<void>;
   openFromFocus: () => void;
   setQueryFromEvent: (event: Event) => void;
@@ -16,6 +18,13 @@ export interface AccessibilityDeps<O> {
   isSelected: (option: O) => boolean;
   isOptionDisabled: (option: O) => boolean;
 }
+
+/** Static ARIA attributes for the visually hidden result-count live region. */
+const STATUS_PROPS: HeadlessComboboxStatusProps = {
+  role: 'status',
+  'aria-live': 'polite',
+  'aria-atomic': true,
+};
 
 /** Ids, the anchor name, and the ARIA prop bags spread onto consumer markup. */
 export function createAccessibility<O, V, Q>(
@@ -80,6 +89,7 @@ export function createAccessibility<O, V, Q>(
     onClick: deps.open,
     onFocus: deps.openFromFocus,
     onInput: deps.openAndSetQueryFromEvent,
+    onKeydown: deps.handleTypeaheadKeydown,
   }));
 
   const getListboxProps = createMemo<HeadlessComboboxListboxProps>(ctx)(() => ({
@@ -88,16 +98,25 @@ export function createAccessibility<O, V, Q>(
     'aria-multiselectable': ctx.props.multiple ? true : undefined,
   }));
 
-  function getOptionProps(option: O, index: number): HeadlessComboboxOptionProps {
+  // The index is optional so grouped and virtualized lists can render options
+  // without tracking their position in the flat `filteredOptions` array.
+  function getOptionProps(option: O, index?: number): HeadlessComboboxOptionProps {
+    const filtered = deps.getFilteredOptions();
+    const resolvedIndex = index ?? filtered
+      .findIndex((candidate) => ctx.unwrap(candidate) === ctx.unwrap(option));
     const actionable = () => !deps.isOptionDisabled(option);
     return {
-      id: getOptionId(index),
+      id: getOptionId(resolvedIndex),
       role: 'option',
       'aria-selected': deps.isSelected(option),
       'aria-disabled': deps.isOptionDisabled(option)
         ? true
         : undefined,
-      'data-highlighted': index === ctx.state.highlightedIndex
+      // Virtualized lists render a window of the option list; the flat
+      // position and size keep screen readers oriented.
+      'aria-posinset': resolvedIndex + 1,
+      'aria-setsize': filtered.length,
+      'data-highlighted': resolvedIndex === ctx.state.highlightedIndex
         ? true
         : undefined,
       onClick: () => deps.select(option),
@@ -106,12 +125,12 @@ export function createAccessibility<O, V, Q>(
       // Hover and focus drive the highlight; blocked options never get it.
       onMousemove: () => {
         if (actionable()) {
-          deps.setHighlightedIndex(index);
+          deps.setHighlightedIndex(resolvedIndex);
         }
       },
       onFocus: () => {
         if (actionable()) {
-          deps.setHighlightedIndex(index);
+          deps.setHighlightedIndex(resolvedIndex);
         }
       },
       // Keep the popup's keyboard navigation (and Tab skipping) working from
@@ -126,6 +145,7 @@ export function createAccessibility<O, V, Q>(
     getInputProps,
     getComboboxInputProps,
     getListboxProps,
+    statusProps: STATUS_PROPS,
     getOptionProps,
   };
 }

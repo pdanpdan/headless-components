@@ -47,7 +47,7 @@ watch(selected, () => {
     <HeadlessCombobox
       v-slot="{
         isOpen, filteredOptions, highlightedIndex, searchQuery, open,
-        select, isSelected, canSelectMore, handleKeydown, cssAnchorName, popupStyle,
+        select, isSelected, canSelectMore, cssAnchorName, popupStyle,
         comboboxInputProps, listboxProps, getOptionProps, setContainerRef, setTriggerRef,
         setInputRef, setDropdownRef, setListRef, setOptionRef,
       }"
@@ -114,15 +114,6 @@ watch(selected, () => {
             type="text"
             class="min-w-24 flex-1"
             placeholder="Add a topic…"
-            @keydown="(e) => {
-              if (e.key === 'Backspace' && !searchQuery && selected.length > 0) {
-                const last = selected[selected.length - 1];
-                if (last) { select(last); }
-              }
-              else if (e.key !== ' ') {
-                handleKeydown(e);
-              }
-            }"
           />
         </div>
       </fieldset>

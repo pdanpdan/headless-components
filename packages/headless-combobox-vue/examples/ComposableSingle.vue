@@ -41,7 +41,6 @@ const {
   toggle,
   open,
   isSelected,
-  handleKeydown,
   cssAnchorName,
   popupStyle,
   comboboxInputProps,
@@ -85,7 +84,6 @@ const {
           type="text"
           class="w-full pe-6"
           placeholder="Search a language…"
-          @keydown="(e) => { if (e.key !== ' ') { handleKeydown(e); } }"
         />
         <button
           type="button"
