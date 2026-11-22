@@ -196,6 +196,7 @@ const {
 | `clickOutsideFilter` | `(target: EventTarget \| null) => boolean` | n/a       | Return `false` to keep the dropdown open for a specific outside target.     |
 | `selectOnTab`  | `boolean`                                 | `false`            | On `Tab`, when focus leaves the widget: select the highlighted option and close. |
 | `optionValue`  | `(option: O) => V`                        | the option itself  | Maps an option to the value stored in `modelValue` / emitted on select.     |
+| `valueEqual`   | `(a: V, b: V) => boolean`                 | proxy-unwrapped identity | Compare stored values by ID or another stable key when proxies/clones differ. |
 | `optionLabel`  | `(option: O) => string`                   | `String(option)`   | Maps an option to a string for default filtering / rendering.               |
 | `optionFilter` | `(option: O, query: Q) => boolean`        | case-insensitive substring | Custom filter function. `Q` defaults to `string`.                   |
 | `id`            | `string`                                  | auto (`useId()`)   | Base id for accessibility attributes.                                       |
@@ -232,7 +233,7 @@ Each ARIA interface is exported for precise typing. The `disabled`/`readonly` fl
 
 Actions: `toggle`, `open`, `close(returnFocus?)`, `select(option)`, `createSelection()`, `clear()`, `setSearchQuery(value: Q | undefined)`, `setHighlightedIndex(index)`, `focusInput()`, `handleKeydown(event)`, `handleTypeaheadKeydown(event)`. Closing or selecting returns focus to the trigger only when focus is already inside the widget; external controls keep focus.
 
-Ref setters (assign with `:ref`): `setContainerRef`, `setTriggerRef`, `setDropdownRef`, `setInputRef`, `setListRef`, `setOptionRef(option, el)`.
+Ref setters (assign with `:ref`): `setContainerRef`, `setTriggerRef`, `setDropdownRef`, `setInputRef`, `setListRef`, `setOptionRef(option, el)`. `setContainerRef` is enough for standard markup: it discovers the trigger, typeahead/search input, listbox, and dropdown, including a listbox linked by `aria-controls` outside the container. Explicit refs override discovery. `setOptionRef` is only needed for virtualized windows.
 
 > The example components render options, triggers, and search inputs with nothing more than `v-bind` on the bags. See `examples/` for the recommended usage.
 

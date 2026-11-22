@@ -138,6 +138,7 @@ export function createCombobox<O, V, Q = string>(
     emitModel,
     nextTick: () => runtime.nextTick(),
     unwrap: runtime.unwrap,
+    valuesEqual: (a, b) => props.valueEqual?.(a, b) ?? runtime.unwrap(a) === runtime.unwrap(b),
   };
 
   // --- Feature modules (dependency cycle broken with late-bound hooks) ---
@@ -260,15 +261,70 @@ export function createCombobox<O, V, Q = string>(
   // The handler is late-bound because navigation is created after the refs.
   const keydownHandler = (event: Event) => navigation.handleKeydown(event);
 
+  let containerObserver: MutationObserver | null = null;
+
+  function discoverRefs(root: HTMLElement) {
+    if (refs.containerRef !== root) {
+      return;
+    }
+    const trigger = root.querySelector<HTMLElement>('[role="combobox"]');
+    if (trigger && (refs.triggerRef == null || !refs.triggerRef.isConnected)) {
+      setTriggerRef(trigger);
+    }
+    const controlsId = trigger?.getAttribute('aria-controls');
+    const list = (controlsId
+      ? root.ownerDocument.getElementById(controlsId)
+      : null)
+    ?? root.querySelector<HTMLElement>('[role="listbox"]');
+    if (list) {
+      if (refs.listRef == null || !refs.listRef.isConnected) {
+        setListRef(list);
+      }
+      const dropdown = list.closest<HTMLElement>('[popover]') ?? list;
+      if (refs.dropdownRef == null || !refs.dropdownRef.isConnected) {
+        setDropdownRef(dropdown);
+      }
+    }
+    const input = trigger instanceof HTMLInputElement
+      ? trigger
+      : list?.querySelector<HTMLInputElement>('[role="searchbox"]')
+        ?? root.querySelector<HTMLInputElement>('[role="searchbox"]');
+    if (input && (refs.inputRef == null || !refs.inputRef.isConnected)) {
+      setInputRef(input);
+    }
+  }
+
+  function queueRefDiscovery(root: HTMLElement) {
+    queueMicrotask(() => discoverRefs(root));
+  }
+
   function setContainerRef(el: unknown) {
     if (refs.containerRef != null) {
       refs.containerRef.removeEventListener('keydown', keydownHandler);
     }
     refs.containerRef = el as HTMLElement | null;
+    containerObserver?.disconnect();
+    containerObserver = null;
     // Catch keys from elements around the trigger so Tab always skips the
     // options list instead of entering it.
     if (refs.containerRef != null) {
       refs.containerRef.addEventListener('keydown', keydownHandler);
+      const root = refs.containerRef;
+      discoverRefs(root);
+      if (typeof MutationObserver !== 'undefined') {
+        containerObserver = new MutationObserver(() => queueRefDiscovery(root));
+        containerObserver.observe(root, {
+          attributes: true,
+          attributeFilter: [
+            'aria-controls',
+            'aria-expanded',
+            'id',
+            'role',
+          ],
+          childList: true,
+          subtree: true,
+        });
+      }
     }
   }
   function setTriggerRef(el: unknown) {
@@ -439,6 +495,8 @@ export function createCombobox<O, V, Q = string>(
       doc.removeEventListener('keydown', popover.handleDocumentKeydown);
     }
     mounted = false;
+    containerObserver?.disconnect();
+    containerObserver = null;
     refs.containerRef?.removeEventListener('keydown', keydownHandler);
     refs.dropdownRef?.removeEventListener('keydown', keydownHandler);
     subscribers.clear();

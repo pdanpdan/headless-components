@@ -348,7 +348,7 @@ function reactField(meta: ExampleMeta): string {
     scope.setTriggerRef(el);
     scope.setInputRef(el);
   }}
-  {...toReactProps(scope.comboboxInputProps)}
+  {...scope.comboboxInputProps}
   value={${ valueExpr }}
   placeholder="Search…"
 />`;
@@ -366,7 +366,7 @@ ${ indented(input, 2) }
   return `${ chips }<button
   ref={scope.setTriggerRef}
   type="button"
-  {...toReactProps(scope.triggerProps)}
+  {...scope.triggerProps}
 >
 ${ indented(reactTriggerContent(meta), 2) }
 </button>`;
@@ -377,7 +377,7 @@ function reactList(meta: ExampleMeta): string {
     ? `<div>
   <input
     ref={scope.setInputRef}
-    {...toReactProps(scope.inputProps)}
+    {...scope.inputProps}
     value={scope.searchQuery ?? ''}
     placeholder="Search…"
   />
@@ -386,7 +386,7 @@ function reactList(meta: ExampleMeta): string {
 `
     : '';
   if (meta.grouped) {
-    return `${ filter }<ul {...toReactProps(scope.listboxProps)}>
+    return `${ filter }<ul {...scope.listboxProps}>
   {groupedOptions(scope.filteredOptions).map((group) => (
     <li key={group.label} role="group" aria-label={group.label}>
       <span aria-hidden="true">{group.label}</span>
@@ -395,7 +395,7 @@ function reactList(meta: ExampleMeta): string {
           key={option}
           type="button"
           ref={(el) => scope.setOptionRef(option, el)}
-          {...toReactProps(scope.getOptionProps(option))}
+          {...scope.getOptionProps(option)}
         >
           {scope.isSelected(option) ? '✓ ' : ''}
           {option}
@@ -419,11 +419,11 @@ function reactList(meta: ExampleMeta): string {
   </button>
 )}`
     : '';
-  return `${ filter }<ul {...toReactProps(scope.listboxProps)}>
+  return `${ filter }<ul {...scope.listboxProps}>
   {scope.filteredOptions.map((option, index) => (
     <li
       key={${ optionKey(meta) }}${ optionRef }
-      {...toReactProps(scope.getOptionProps(option, index))}
+      {...scope.getOptionProps(option, index)}
     >
       ${ indicator }${ braces(optionText(meta)) }${ meta.optionValue ? ' <span>{option.id}</span>' : '' }
     </li>
@@ -472,7 +472,7 @@ export function reactExample(meta: ExampleMeta): string {
   const model = modelType(meta);
   if (meta.composable) {
     return `import { useState } from 'react';
-import { toReactProps, useHeadlessCombobox } from '@pdanpdan/headless-combobox-react';
+import { useHeadlessCombobox } from '@pdanpdan/headless-combobox-react';
 
 ${ dataFor(meta) }
 
@@ -508,7 +508,7 @@ ${ indented(reactBody(meta), 4) }
     .map((prop) => `      ${ prop }`)
     .join('\n');
   return `import { useState } from 'react';
-import { HeadlessCombobox, toReactProps } from '@pdanpdan/headless-combobox-react';
+import { HeadlessCombobox } from '@pdanpdan/headless-combobox-react';
 
 ${ dataFor(meta) }
 
@@ -570,7 +570,7 @@ function svelteField(meta: ExampleMeta): string {
       ? "scope.searchQuery ?? ''"
       : "scope.searchQuery ?? value ?? ''";
     const input = `<input
-  {...toSvelteProps(scope.comboboxInputProps)}
+  {...scope.comboboxInputProps}
   {@attach (el) => {
     scope.setTriggerRef(el);
     scope.setInputRef(el);
@@ -591,7 +591,7 @@ ${ indented(input, 2) }
     : '';
   return `${ chips }<button
   type="button"
-  {...toSvelteProps(scope.triggerProps)}
+  {...scope.triggerProps}
   {@attach scope.setTriggerRef}
 >
 ${ indented(svelteTriggerContent(meta), 2) }
@@ -602,7 +602,7 @@ function svelteList(meta: ExampleMeta): string {
   const filter = meta.filterInput
     ? `<div>
   <input
-    {...toSvelteProps(scope.inputProps)}
+    {...scope.inputProps}
     {@attach scope.setInputRef}
     value={scope.searchQuery ?? ''}
     placeholder="Search…"
@@ -612,14 +612,14 @@ function svelteList(meta: ExampleMeta): string {
 `
     : '';
   if (meta.grouped) {
-    return `${ filter }<ul {...toSvelteProps(scope.listboxProps)}>
+    return `${ filter }<ul {...scope.listboxProps}>
   {#each groupedOptions(scope.filteredOptions) as group (group.label)}
     <li role="group" aria-label={group.label}>
       <span aria-hidden="true">{group.label}</span>
       {#each group.items as option (option)}
         <button
           type="button"
-          {...toSvelteProps(scope.getOptionProps(option))}
+          {...scope.getOptionProps(option)}
           {@attach (el) => scope.setOptionRef(option, el)}
         >
           {scope.isSelected(option) ? '✓ ' : ''}{option}
@@ -641,9 +641,9 @@ function svelteList(meta: ExampleMeta): string {
   <button type="button" onclick={() => scope.createSelection()}>Create "{scope.searchQuery?.trim()}"</button>
 {/if}`
     : '';
-  return `${ filter }<ul {...toSvelteProps(scope.listboxProps)}>
+  return `${ filter }<ul {...scope.listboxProps}>
   {#each scope.filteredOptions as option, index (${ optionKey(meta) })}
-    <li${ optionRef } {...toSvelteProps(scope.getOptionProps(option, index))}>
+    <li${ optionRef } {...scope.getOptionProps(option, index)}>
       ${ indicator }${ braces(optionText(meta)) }${ meta.optionValue ? ' <span>{option.id}</span>' : '' }
     </li>
   {/each}
@@ -682,7 +682,7 @@ export function svelteExample(meta: ExampleMeta): string {
   if (meta.composable) {
     return `<script lang="ts">
   import { onMount } from 'svelte';
-  import { createComboboxStore, toSvelteProps } from '@pdanpdan/headless-combobox-svelte';
+  import { createComboboxStore } from '@pdanpdan/headless-combobox-svelte';
 
 ${ dataFor(meta) }
 
@@ -720,7 +720,7 @@ ${ svelteBodyForStore(meta).trimEnd() }
     .join('\n');
   return `<script lang="ts">
   import HeadlessCombobox from '@pdanpdan/headless-combobox-svelte/HeadlessCombobox.svelte';
-  import { toSvelteProps } from '@pdanpdan/headless-combobox-svelte';
+
 
 ${ dataFor(meta) }
 
@@ -792,7 +792,7 @@ function solidField(meta: ExampleMeta): string {
     scope().setTriggerRef(el);
     scope().setInputRef(el);
   }}
-  {...toSolidProps(scope().comboboxInputProps)}
+  {...scope().comboboxInputProps}
   value={${ valueExpr }}
   placeholder="Search…"
 />`;
@@ -810,7 +810,7 @@ ${ indented(input, 2) }
   return `${ chips }<button
   ref={scope().setTriggerRef}
   type="button"
-  {...toSolidProps(scope().triggerProps)}
+  {...scope().triggerProps}
 >
 ${ indented(solidTriggerContent(meta), 2) }
 </button>`;
@@ -821,7 +821,7 @@ function solidList(meta: ExampleMeta): string {
     ? `<div>
   <input
     ref={scope().setInputRef}
-    {...toSolidProps(scope().inputProps)}
+    {...scope().inputProps}
     value={scope().searchQuery ?? ''}
     placeholder="Search…"
   />
@@ -830,7 +830,7 @@ function solidList(meta: ExampleMeta): string {
 `
     : '';
   if (meta.grouped) {
-    return `${ filter }<ul {...toSolidProps(scope().listboxProps)}>
+    return `${ filter }<ul {...scope().listboxProps}>
   <For each={groupedOptions(scope().filteredOptions)}>
     {(group) => (
       <li role="group" aria-label={group.label}>
@@ -840,7 +840,7 @@ function solidList(meta: ExampleMeta): string {
             <button
               type="button"
               ref={(el) => scope().setOptionRef(option, el)}
-              {...toSolidProps(scope().getOptionProps(option))}
+              {...scope().getOptionProps(option)}
             >
               {scope().isSelected(option) ? '✓ ' : ''}{option}
             </button>
@@ -865,10 +865,10 @@ function solidList(meta: ExampleMeta): string {
   </button>
 )}`
     : '';
-  return `${ filter }<ul {...toSolidProps(scope().listboxProps)}>
+  return `${ filter }<ul {...scope().listboxProps}>
   <For each={scope().filteredOptions}>
     {(option, index) => (
-      <li${ optionRef } {...toSolidProps(scope().getOptionProps(option, index()))}>
+      <li${ optionRef } {...scope().getOptionProps(option, index())}>
         ${ indicator }${ braces(optionText(meta)) }${ meta.optionValue ? ' <span>{option.id}</span>' : '' }
       </li>
     )}
@@ -915,7 +915,7 @@ export function solidExample(meta: ExampleMeta): string {
   const model = modelType(meta);
   if (meta.composable) {
     return `import { For, createSignal } from 'solid-js';
-import { toSolidProps, useHeadlessCombobox } from '@pdanpdan/headless-combobox-solid';
+import { useHeadlessCombobox } from '@pdanpdan/headless-combobox-solid';
 
 ${ dataFor(meta) }
 
@@ -951,7 +951,7 @@ ${ indented(solidBody(meta), 4) }
     .map((prop) => `      ${ prop }`)
     .join('\n');
   return `import { For, createSignal } from 'solid-js';
-import { HeadlessCombobox, toSolidProps } from '@pdanpdan/headless-combobox-solid';
+import { HeadlessCombobox } from '@pdanpdan/headless-combobox-solid';
 
 ${ dataFor(meta) }
 

@@ -21,6 +21,7 @@ const CORE_PROP_KEYS = [
   'clickOutsideFilter',
   'selectOnTab',
   'optionValue',
+  'valueEqual',
   'optionLabel',
   'optionFilter',
   'id',
@@ -46,10 +47,33 @@ export interface CreateSvelteComboboxOptions<O, V = O, Q = string> {
   onChange?: (value: V | V[] | null) => void;
 }
 
+/** Snapshot with Svelte-ready prop bags; spread them directly. */
+export type SvelteComboboxSnapshot<O, V, Q = string>
+  = Omit<HeadlessComboboxSnapshot<O, V, Q>, 'triggerProps' | 'inputProps' | 'comboboxInputProps' | 'listboxProps' | 'statusProps' | 'getOptionProps'> & {
+    triggerProps: Record<string, unknown>;
+    inputProps: Record<string, unknown>;
+    comboboxInputProps: Record<string, unknown>;
+    listboxProps: Record<string, unknown>;
+    statusProps: Record<string, unknown>;
+    getOptionProps: (option: O, index?: number) => Record<string, unknown>;
+  };
+
+function adaptSnapshot<O, V, Q>(snapshot: HeadlessComboboxSnapshot<O, V, Q>): SvelteComboboxSnapshot<O, V, Q> {
+  return {
+    ...snapshot,
+    triggerProps: toSvelteProps(snapshot.triggerProps),
+    inputProps: toSvelteProps(snapshot.inputProps),
+    comboboxInputProps: toSvelteProps(snapshot.comboboxInputProps),
+    listboxProps: toSvelteProps(snapshot.listboxProps),
+    statusProps: toSvelteProps(snapshot.statusProps),
+    getOptionProps: (option, index) => toSvelteProps(snapshot.getOptionProps(option, index)),
+  };
+}
+
 /** Svelte store (`$store` / `get(store)`) plus the adapter wiring. */
 export interface SvelteComboboxStore<O, V, Q = string> {
-  subscribe: (run: (value: HeadlessComboboxSnapshot<O, V, Q>) => void) => () => void;
-  getSnapshot: () => HeadlessComboboxSnapshot<O, V, Q>;
+  subscribe: (run: (value: SvelteComboboxSnapshot<O, V, Q>) => void) => () => void;
+  getSnapshot: () => SvelteComboboxSnapshot<O, V, Q>;
   setProps: (props: HeadlessComboboxProps<O, V, Q>) => void;
   mount: () => void;
   destroy: () => void;
@@ -84,10 +108,10 @@ export function createComboboxStore<O, V = O, Q = string>(
 
   return {
     subscribe: (run) => {
-      run(store.getSnapshot());
-      return store.subscribe(() => run(store.getSnapshot()));
+      run(adaptSnapshot(store.getSnapshot()));
+      return store.subscribe(() => run(adaptSnapshot(store.getSnapshot())));
     },
-    getSnapshot: store.getSnapshot,
+    getSnapshot: () => adaptSnapshot(store.getSnapshot()),
     setProps: store.setProps,
     mount: store.mount,
     destroy: store.destroy,

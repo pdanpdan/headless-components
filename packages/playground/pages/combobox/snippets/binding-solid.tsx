@@ -5,14 +5,14 @@
 >
   {(scope) => (
     <div ref={scope().setContainerRef}>
-      <button ref={scope().setTriggerRef} {...toSolidProps(scope().triggerProps)}>
+      <button ref={scope().setTriggerRef} {...scope().triggerProps}>
         {value() ?? 'Select…'}
       </button>
       {scope().isOpen && (
-        <ul {...toSolidProps(scope().listboxProps)}>
+        <ul {...scope().listboxProps}>
           <For each={scope().filteredOptions}>
             {(option, index) => (
-              <li {...toSolidProps(scope().getOptionProps(option, index()))}>
+              <li {...scope().getOptionProps(option, index())}>
                 {option}
               </li>
             )}

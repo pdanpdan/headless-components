@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { HeadlessComboboxSnapshot } from '@pdanpdan/headless-combobox-core';
   import type { Snippet } from 'svelte';
   import { onDestroy, onMount } from 'svelte';
 
+  import type { SvelteComboboxSnapshot } from './store';
   import { createComboboxStore, toCoreProps } from './store';
 
   let props: {
-    children: Snippet<[HeadlessComboboxSnapshot<unknown, unknown, string>]>;
+    children: Snippet<[SvelteComboboxSnapshot<unknown, unknown, string>]>;
     onChange?: (value: unknown) => void;
     [key: string]: unknown;
   } = $props();

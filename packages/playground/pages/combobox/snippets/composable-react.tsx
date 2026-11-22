@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toReactProps, useHeadlessCombobox } from '@pdanpdan/headless-combobox-react';
+import { useHeadlessCombobox } from '@pdanpdan/headless-combobox-react';
 
 interface User {
   id: number;
@@ -27,17 +27,17 @@ export function Example() {
           scope.setTriggerRef(el);
           scope.setInputRef(el);
         }}
-        {...toReactProps(scope.comboboxInputProps)}
+        {...scope.comboboxInputProps}
         aria-label="Search users"
       />
       {scope.isOpen && (
-        <ul {...toReactProps(scope.listboxProps)}>
+        <ul {...scope.listboxProps}>
           {scope.filteredOptions.map((user, index) => (
             <li key={user.id}>
               <button
                 type="button"
                 ref={(el) => scope.setOptionRef(user, el)}
-                {...toReactProps(scope.getOptionProps(user, index))}
+                {...scope.getOptionProps(user, index)}
               >
                 {user.name}
               </button>

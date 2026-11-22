@@ -106,6 +106,8 @@ export interface HeadlessComboboxProps<O, V = O, Q = string> {
   selectOnTab?: boolean;
   /** Maps an option to the value stored in `modelValue` / emitted on select. Defaults to the option itself. */
   optionValue?: (option: O) => V;
+  /** Compare stored values. Defaults to proxy-unwrapped identity; use IDs for proxied or cloned objects. */
+  valueEqual?: (a: V, b: V) => boolean;
   /** Maps an option object to a string for default filtering and rendering */
   optionLabel?: (option: O) => string;
   /** Custom filter function. Defaults to case-insensitive substring search */

@@ -31,7 +31,7 @@ export function createSelection<O, V, Q>(
 
   /** The option whose value equals `value` (used to resolve the model back to an option). */
   function findOptionByValue(value: V): O | undefined {
-    return ctx.props.options.find((option) => ctx.unwrap(valueOf(option)) === ctx.unwrap(value));
+    return ctx.props.options.find((option) => ctx.valuesEqual(valueOf(option), value));
   }
 
   const getSelectedList = createMemo<V[]>(ctx)(() => {
@@ -75,8 +75,8 @@ export function createSelection<O, V, Q>(
   });
 
   function isSelected(option: O): boolean {
-    const value = ctx.unwrap(valueOf(option));
-    return getSelectedList().some((v) => ctx.unwrap(v) === value);
+    const value = valueOf(option);
+    return getSelectedList().some((v) => ctx.valuesEqual(v, value));
   }
 
   // Options that cannot be selected: only when at `maxLength` (multiple).
@@ -93,10 +93,9 @@ export function createSelection<O, V, Q>(
     ctx.mutate(() => {
       if (ctx.props.multiple) {
         const current = getSelectedList();
-        const raw = ctx.unwrap(value);
-        const has = current.some((v) => ctx.unwrap(v) === raw);
+        const has = current.some((v) => ctx.valuesEqual(v, value));
         if (has) {
-          ctx.emitModel(current.filter((v) => ctx.unwrap(v) !== raw));
+          ctx.emitModel(current.filter((v) => !ctx.valuesEqual(v, value)));
         } else if (getCanSelectMore()) {
           ctx.emitModel([ ...current, value ]);
         }
@@ -132,8 +131,7 @@ export function createSelection<O, V, Q>(
     ctx.mutate(() => {
       if (ctx.props.multiple) {
         const current = getSelectedList();
-        const raw = ctx.unwrap(created);
-        if (getCanSelectMore() && !current.some((value) => ctx.unwrap(value) === raw)) {
+        if (getCanSelectMore() && !current.some((value) => ctx.valuesEqual(value, created))) {
           ctx.emitModel([ ...current, created ]);
         }
       } else {

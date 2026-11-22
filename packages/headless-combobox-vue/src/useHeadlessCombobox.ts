@@ -111,6 +111,7 @@ const PROP_KEYS = [
   'clickOutsideFilter',
   'selectOnTab',
   'optionValue',
+  'valueEqual',
   'optionLabel',
   'optionFilter',
   'id',

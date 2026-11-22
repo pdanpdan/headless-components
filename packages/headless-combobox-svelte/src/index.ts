@@ -9,6 +9,6 @@ export type {
   HeadlessComboboxStatusProps,
   HeadlessComboboxTriggerProps,
 } from '@pdanpdan/headless-combobox-core';
-export type { CreateSvelteComboboxOptions, SvelteComboboxStore } from './store';
+export type { CreateSvelteComboboxOptions, SvelteComboboxSnapshot, SvelteComboboxStore } from './store';
 
 export { createComboboxStore, toCoreProps, toSvelteProps } from './store';

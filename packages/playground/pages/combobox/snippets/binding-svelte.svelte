@@ -7,15 +7,15 @@
     <div {@attach scope.setContainerRef}>
       <button
         type="button"
-        {...toSvelteProps(scope.triggerProps)}
+        {...scope.triggerProps}
         {@attach scope.setTriggerRef}
       >
         {value ?? 'Select…'}
       </button>
       {#if scope.isOpen}
-        <ul {...toSvelteProps(scope.listboxProps)}>
+        <ul {...scope.listboxProps}>
           {#each scope.filteredOptions as option, index (option)}
-            <li {...toSvelteProps(scope.getOptionProps(option, index))}>
+            <li {...scope.getOptionProps(option, index)}>
               {option}
             </li>
           {/each}

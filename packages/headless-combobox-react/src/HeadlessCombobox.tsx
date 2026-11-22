@@ -1,5 +1,4 @@
-import type { UseHeadlessComboboxOptions } from './useHeadlessCombobox';
-import type { HeadlessComboboxSnapshot } from '@pdanpdan/headless-combobox-core';
+import type { ReactComboboxSnapshot, UseHeadlessComboboxOptions } from './useHeadlessCombobox';
 import type { ReactNode } from 'react';
 
 import { useHeadlessCombobox } from './useHeadlessCombobox';
@@ -7,7 +6,7 @@ import { useHeadlessCombobox } from './useHeadlessCombobox';
 /** Props for the render-prop component: hook options plus a scope renderer. */
 export interface HeadlessComboboxProps<O, V = O, Q = string>
   extends UseHeadlessComboboxOptions<O, V, Q> {
-  children: (scope: HeadlessComboboxSnapshot<O, V, Q>) => ReactNode;
+  children: (scope: ReactComboboxSnapshot<O, V, Q>) => ReactNode;
 }
 
 /**

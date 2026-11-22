@@ -52,7 +52,7 @@ export const ADAPTER_DOCS: Record<AdapterId, AdapterDoc> = {
     apiNote: 'The component and `useHeadlessCombobox` share the same options and return the same scope object.',
     component: 'HeadlessCombobox',
     composable: 'useHeadlessCombobox',
-    spread: 'Spread a prop bag with `toReactProps`.',
+    spread: 'Spread the React-ready prop bags directly.',
     scopeNote: 'The render prop receives this scope object. The hook returns the same object.',
   },
   svelte: {
@@ -64,7 +64,7 @@ export const ADAPTER_DOCS: Record<AdapterId, AdapterDoc> = {
     apiNote: 'The component and `createComboboxStore` share the same props. `createComboboxStore` returns a store; read it with `$combobox`.',
     component: 'HeadlessCombobox',
     composable: 'createComboboxStore',
-    spread: 'Spread a prop bag with `toSvelteProps`.',
+    spread: 'Spread the Svelte-ready prop bags directly.',
     scopeNote: 'The children snippet receives this scope. The store exposes the same values through `$combobox`.',
   },
   solid: {
@@ -76,7 +76,7 @@ export const ADAPTER_DOCS: Record<AdapterId, AdapterDoc> = {
     apiNote: 'The component and `useHeadlessCombobox` return an accessor. Call it inside JSX, not once at the top.',
     component: 'HeadlessCombobox',
     composable: 'useHeadlessCombobox',
-    spread: 'Spread a prop bag with `toSolidProps`.',
+    spread: 'Spread the Solid-ready prop bags directly.',
     scopeNote: 'The render prop receives an accessor. Call `scope()` to read these values; the hook returns the same accessor.',
   },
   angular: {
@@ -165,6 +165,12 @@ export const BASE_PROPS: PropRow[] = [
     type: '(option: O) => V',
     default: 'option itself',
     description: 'Maps an option to the value stored in the model.',
+  },
+  {
+    name: 'valueEqual',
+    type: '(a: V, b: V) => boolean',
+    default: 'proxy-unwrapped identity',
+    description: 'Compare stored values by ID or another stable key when proxies or clones differ.',
   },
   {
     name: 'optionLabel',
@@ -315,7 +321,7 @@ export const STATE_ROWS: PropRow[] = [
   { name: 'selectedCount', type: 'number', description: 'Number of selected options.' },
   { name: 'selectedList', type: 'V[]', description: 'Selected values (single mode: a single-element array).' },
   { name: 'canSelectMore', type: 'boolean', description: 'False when at `maxLength` (multiple).' },
-  { name: 'isSelected', type: '(option: T) => boolean', description: 'Whether an option is selected.' },
+  { name: 'isSelected', type: '(option: T) => boolean', description: 'Whether an option is selected, using `valueEqual` when provided.' },
   { name: 'canCreate', type: 'boolean', description: 'Whether the typed query can be committed as a new value (`creatable`).' },
   { name: 'valid', type: 'boolean', description: 'Whether the current selection passes validation.' },
   { name: 'errors', type: 'HeadlessComboboxErrorCode[]', description: "Active validation errors ('required' | 'minlength' | 'maxlength')." },
@@ -350,12 +356,12 @@ export const ACTION_ROWS: PropRow[] = [
 ];
 
 export const REF_ROWS: PropRow[] = [
-  { name: 'setContainerRef', type: 'ref fn', description: 'The root container element.' },
-  { name: 'setTriggerRef', type: 'ref fn', description: 'The trigger button or typeahead input.' },
-  { name: 'setDropdownRef', type: 'ref fn', description: 'The dropdown popup element.' },
-  { name: 'setInputRef', type: 'ref fn', description: 'The search input element.' },
-  { name: 'setListRef', type: 'ref fn', description: 'The options list element.' },
-  { name: 'setOptionRef', type: '(option, el) => void', description: 'Each option element. Needed for `alignSelected` and scroll-into-view.' },
+  { name: 'setContainerRef', type: 'ref fn', description: 'The root container. Auto-discovers the trigger, input, listbox, and dropdown; explicit refs override it.' },
+  { name: 'setTriggerRef', type: 'ref fn', description: 'Optional explicit trigger override.' },
+  { name: 'setDropdownRef', type: 'ref fn', description: 'Optional explicit popup override.' },
+  { name: 'setInputRef', type: 'ref fn', description: 'Optional explicit search/typeahead input override.' },
+  { name: 'setListRef', type: 'ref fn', description: 'Optional explicit options list override.' },
+  { name: 'setOptionRef', type: '(option, el) => void', description: 'Optional per-option ref. Needed for virtualized windows; standard rendered lists fall back to `aria-posinset`.' },
 ];
 
 export const ARIA_ROWS: PropRow[] = [

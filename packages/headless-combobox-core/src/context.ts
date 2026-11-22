@@ -30,6 +30,8 @@ export interface ComboboxContext<O, V, Q> {
   emitModel: (value: V | V[] | null) => void;
   nextTick: () => Promise<void>;
   unwrap: <T>(value: T) => T;
+  /** Compare stored values; honors `valueEqual`, otherwise unwrapped identity. */
+  valuesEqual: (a: V, b: V) => boolean;
 }
 
 /**

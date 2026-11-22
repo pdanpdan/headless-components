@@ -35,84 +35,84 @@ export const STRUCTURE_TREES: Record<AdapterId, StructureTrees> = {
     popup: `HeadlessCombobox (scope)
 └─ div ref={scope.setContainerRef}                   widget boundary (optional)
    ├─ button ref={scope.setTriggerRef}                the trigger
-   │  │        {...toReactProps(scope.triggerProps)}
+   │  │        {...scope.triggerProps}
    │  └─ selected label
    ├─ div ref={scope.setDropdownRef}                  the popup
    │  │      style={scope.popupStyle} popover="manual"
-   │  └─ ul {...toReactProps(scope.listboxProps)}
+   │  └─ ul {...scope.listboxProps}
    │     └─ scope.filteredOptions.map((option, i) => (
-   │        <li {...toReactProps(scope.getOptionProps(option, i))}
+   │        <li {...scope.getOptionProps(option, i)}
    │            ref={(el) => scope.setOptionRef(option, el)} />))
    └─ input ref={scope.setInputRef}                    search input (optional)
-           {...toReactProps(scope.inputProps)}`,
+           {...scope.inputProps}`,
     typeahead: `HeadlessCombobox (scope)
 └─ div ref={scope.setContainerRef}                   widget boundary (optional)
    ├─ input ref={(el) => {
    │         scope.setTriggerRef(el);
    │         scope.setInputRef(el);
    │       }}
-   │       {...toReactProps(scope.comboboxInputProps)}  the combobox input
+   │       {...scope.comboboxInputProps}  the combobox input
    └─ div ref={scope.setDropdownRef}                  the popup
       │      style={scope.popupStyle} popover="manual"
-      └─ ul {...toReactProps(scope.listboxProps)}
+      └─ ul {...scope.listboxProps}
          └─ scope.filteredOptions.map((option, i) => (
-            <li {...toReactProps(scope.getOptionProps(option, i))}
+            <li {...scope.getOptionProps(option, i)}
                 ref={(el) => scope.setOptionRef(option, el)} />))`,
   },
   svelte: {
     popup: `HeadlessCombobox (scope)
 └─ div {@attach scope.setContainerRef}               widget boundary (optional)
    ├─ button {@attach scope.setTriggerRef}            the trigger
-   │  │      {...toSvelteProps(scope.triggerProps)}
+   │  │      {...scope.triggerProps}
    │  └─ selected label
    ├─ div {@attach scope.setDropdownRef}              the popup
    │  │    popover="manual"                           optional: native Popover API
-   │  └─ ul {...toSvelteProps(scope.listboxProps)}
+   │  └─ ul {...scope.listboxProps}
    │     └─ {#each scope.filteredOptions as option, i}
-   │        <li {...toSvelteProps(scope.getOptionProps(option, i))}
+   │        <li {...scope.getOptionProps(option, i)}
    │            {@attach (el) => scope.setOptionRef(option, el)} />
    └─ input {@attach scope.setInputRef}               search input (optional)
-           {...toSvelteProps(scope.inputProps)}`,
+           {...scope.inputProps}`,
     typeahead: `HeadlessCombobox (scope)
 └─ div {@attach scope.setContainerRef}               widget boundary (optional)
    ├─ input {@attach (el) => {
    │         scope.setTriggerRef(el);
    │         scope.setInputRef(el);
    │       }}
-   │       {...toSvelteProps(scope.comboboxInputProps)}  the combobox input
+   │       {...scope.comboboxInputProps}  the combobox input
    └─ div {@attach scope.setDropdownRef}              the popup
       │    popover="manual"
-      └─ ul {...toSvelteProps(scope.listboxProps)}
+      └─ ul {...scope.listboxProps}
          └─ {#each scope.filteredOptions as option, i}
-            <li {...toSvelteProps(scope.getOptionProps(option, i))}
+            <li {...scope.getOptionProps(option, i)}
                 {@attach (el) => scope.setOptionRef(option, el)} />`,
   },
   solid: {
     popup: `HeadlessCombobox (scope)
 └─ div ref={scope().setContainerRef}                 widget boundary (optional)
    ├─ button ref={scope().setTriggerRef}              the trigger
-   │  │        {...toSolidProps(scope().triggerProps)}
+   │  │        {...scope().triggerProps}
    │  └─ selected label
    ├─ div ref={scope().setDropdownRef}                the popup
    │  │      style={scope().popupStyle} popover="manual"
-   │  └─ ul {...toSolidProps(scope().listboxProps)}
+   │  └─ ul {...scope().listboxProps}
    │     └─ <For each={scope().filteredOptions}>
-   │        {(option, i) => <li {...toSolidProps(scope().getOptionProps(option, i()))}
+   │        {(option, i) => <li {...scope().getOptionProps(option, i())}
    │          ref={(el) => scope().setOptionRef(option, el)} />}
    └─ input ref={scope().setInputRef}                 search input (optional)
-           {...toSolidProps(scope().inputProps)}`,
+           {...scope().inputProps}`,
     typeahead: `HeadlessCombobox (scope)
 └─ div ref={scope().setContainerRef}                 widget boundary (optional)
    ├─ input ref={(el) => {
    │         scope().setTriggerRef(el);
    │         scope().setInputRef(el);
    │       }}
-   │       {...toSolidProps(scope().comboboxInputProps)}  the combobox input
+   │       {...scope().comboboxInputProps}  the combobox input
    └─ div ref={scope().setDropdownRef}                the popup
       │      style={scope().popupStyle} popover="manual"
-      └─ ul {...toSolidProps(scope().listboxProps)}
+      └─ ul {...scope().listboxProps}
          └─ <For each={scope().filteredOptions}>
-            {(option, i) => <li {...toSolidProps(scope().getOptionProps(option, i()))}
+            {(option, i) => <li {...scope().getOptionProps(option, i())}
               ref={(el) => scope().setOptionRef(option, el)} />}`,
   },
   angular: {

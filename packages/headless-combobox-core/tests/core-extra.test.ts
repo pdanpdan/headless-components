@@ -117,6 +117,24 @@ describe('core details', () => {
     expect(snapshot.comboboxInputProps.autocomplete).toBe('off');
   });
 
+  it('compares values through valueEqual instead of object identity', async () => {
+    const onChange = vi.fn();
+    const store = makeStore({
+      multiple: true,
+      modelValue: [
+        { ...users[ 0 ]! },
+      ],
+      valueEqual: (a, b) => a.id === b.id,
+    }, onChange);
+
+    expect(store.getSnapshot().isSelected(users[ 0 ]!)).toBe(true);
+    await store.getSnapshot().open();
+    expect(store.getSnapshot().highlightedIndex).toBe(0);
+
+    store.getSnapshot().select(users[ 0 ]!);
+    expect(onChange).toHaveBeenLastCalledWith([]);
+  });
+
   it('builds disabled and readonly ARIA bags', () => {
     const disabled = makeStore({ disabled: true }).getSnapshot();
     expect(disabled.triggerProps.disabled).toBe(true);

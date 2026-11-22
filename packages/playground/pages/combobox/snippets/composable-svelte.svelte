@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { createComboboxStore, toSvelteProps } from '@pdanpdan/headless-combobox-svelte';
+  import { createComboboxStore } from '@pdanpdan/headless-combobox-svelte';
 
   interface User {
     id: number;
@@ -30,7 +30,7 @@
 
 <div {@attach $combobox.setContainerRef}>
   <input
-    {...toSvelteProps($combobox.comboboxInputProps)}
+    {...$combobox.comboboxInputProps}
     {@attach (el) => {
       $combobox.setTriggerRef(el);
       $combobox.setInputRef(el);
@@ -38,12 +38,12 @@
     aria-label="Search users"
   />
   {#if $combobox.isOpen}
-    <ul {...toSvelteProps($combobox.listboxProps)}>
+    <ul {...$combobox.listboxProps}>
       {#each $combobox.filteredOptions as user, index (user.id)}
         <li>
           <button
             type="button"
-            {...toSvelteProps($combobox.getOptionProps(user, index))}
+            {...$combobox.getOptionProps(user, index)}
             {@attach (el) => $combobox.setOptionRef(user, el)}
           >
             {user.name}

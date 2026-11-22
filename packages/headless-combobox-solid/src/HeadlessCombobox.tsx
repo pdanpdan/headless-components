@@ -1,5 +1,4 @@
-import type { UseHeadlessComboboxOptions } from './useHeadlessCombobox';
-import type { HeadlessComboboxSnapshot } from '@pdanpdan/headless-combobox-core';
+import type { SolidComboboxSnapshot, UseHeadlessComboboxOptions } from './useHeadlessCombobox';
 import type { JSX } from '@solidjs/web';
 import type { Accessor } from 'solid-js';
 
@@ -9,7 +8,7 @@ import { useHeadlessCombobox } from './useHeadlessCombobox';
 export interface HeadlessComboboxProps<O, V = O, Q = string>
   extends UseHeadlessComboboxOptions<O, V, Q> {
   /** The scope accessor keeps every binding reactive (Solid components run once). */
-  children: (scope: Accessor<HeadlessComboboxSnapshot<O, V, Q>>) => JSX.Element;
+  children: (scope: Accessor<SolidComboboxSnapshot<O, V, Q>>) => JSX.Element;
 }
 
 /**

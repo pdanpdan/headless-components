@@ -107,7 +107,7 @@ const structureRows = [
   { name: 'search input', type: 'inputProps, setInputRef', description: 'role="searchbox". Filters while the popup stays open. Native autocomplete is off.' },
   { name: 'popup element', type: 'popupStyle, setDropdownRef', description: 'Positioning; add popover="manual" to use the native Popover API.' },
   { name: 'list element', type: 'listboxProps, setListRef', description: 'role="listbox". The options container.' },
-  { name: 'each option element', type: 'getOptionProps(option, index?), setOptionRef(option, el)', description: 'Option semantics and select/highlight handlers. The index is the position in filteredOptions; omit it to derive that position in grouped or virtualized lists.' },
+  { name: 'each option element', type: 'getOptionProps(option, index?)', description: 'Option semantics and select/highlight handlers. The index is the position in filteredOptions; omit it in grouped or virtualized lists. `setOptionRef` is optional and only needed for virtualized windows.' },
 ];
 
 const propsRows = computed(() => valueProps(props.adapter));
@@ -215,10 +215,11 @@ function formatInline(text: string): string {
       </div>
 
       <p class="text-sm text-base-content/80">
-        Ref setters are optional. <code>setOptionRef</code> enables
-        <code>alignSelected</code> and scroll-into-view;
-        <code>setContainerRef</code> extends the click-outside boundary, for
-        example to chips outside the field.
+        <code>setContainerRef</code> is enough for standard markup: it
+        auto-discovers the trigger, input, listbox, and dropdown, including a
+        listbox linked by <code>aria-controls</code> outside the container.
+        Explicit refs override discovery; <code>setOptionRef</code> is only
+        needed for virtualized windows.
       </p>
       <p class="text-sm text-base-content/80">
         For CSS anchor positioning and the popover entry animation, see

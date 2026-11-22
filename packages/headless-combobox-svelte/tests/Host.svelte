@@ -1,8 +1,7 @@
 <script lang="ts">
-  import type { HeadlessComboboxSnapshot } from '@pdanpdan/headless-combobox-core';
+  import type { SvelteComboboxSnapshot } from '../src/store';
 
   import Combobox from '../src/HeadlessCombobox.svelte';
-  import { toSvelteProps } from '../src/store';
 
   interface User {
     id: number;
@@ -19,7 +18,7 @@
 </script>
 
 <Combobox {options} {onChange} optionLabel={(user: unknown) => (user as User).name}>
-  {#snippet children(scope: HeadlessComboboxSnapshot<User, User>)}
+  {#snippet children(scope: SvelteComboboxSnapshot<User, User>)}
     <div
       {@attach (el) => {
         scope.setContainerRef(el);
@@ -28,7 +27,7 @@
     >
       <button
         type="button"
-        {...toSvelteProps(scope.triggerProps)}
+        {...scope.triggerProps}
         {@attach (el) => {
           scope.setTriggerRef(el);
           return () => scope.setTriggerRef(null);
@@ -37,7 +36,7 @@
         Trigger
       </button>
       <ul
-        {...toSvelteProps(scope.listboxProps)}
+        {...scope.listboxProps}
         {@attach (el) => {
           scope.setDropdownRef(el);
           return () => scope.setDropdownRef(null);
@@ -45,7 +44,7 @@
       >
         {#each scope.filteredOptions as user, index (user.id)}
           <li
-            {...toSvelteProps(scope.getOptionProps(user, index))}
+            {...scope.getOptionProps(user, index)}
             {@attach (el) => {
               scope.setOptionRef(user, el);
               return () => scope.setOptionRef(user, null);

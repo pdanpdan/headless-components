@@ -36,7 +36,6 @@ const users: User[] = [
 
     <div #container>
       <button
-        #trigger
         type="button"
         role="combobox"
         [attr.aria-controls]="s.triggerProps['aria-controls']"
@@ -54,7 +53,6 @@ const users: User[] = [
 
       @if (s.isOpen) {
         <ul
-          #list
           role="listbox"
           [attr.id]="s.listboxProps.id"
           [attr.aria-multiselectable]="s.listboxProps['aria-multiselectable'] || null"
@@ -87,8 +85,6 @@ export class ExampleComponent {
   readonly value = signal<User | null>(null);
 
   readonly container = viewChild<ElementRef<HTMLElement>>('container');
-  readonly trigger = viewChild<ElementRef<HTMLElement>>('trigger');
-  readonly list = viewChild<ElementRef<HTMLElement>>('list');
 
   readonly combobox = injectCombobox<User, User>({
     props: () => ({
@@ -103,9 +99,6 @@ export class ExampleComponent {
     effect(() => {
       const snapshot = this.combobox.snapshot();
       snapshot.setContainerRef(this.container()?.nativeElement ?? null);
-      snapshot.setTriggerRef(this.trigger()?.nativeElement ?? null);
-      snapshot.setDropdownRef(this.list()?.nativeElement ?? null);
-      snapshot.setListRef(this.list()?.nativeElement ?? null);
     });
   }
 }

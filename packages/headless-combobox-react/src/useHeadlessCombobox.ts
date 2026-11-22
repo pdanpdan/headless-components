@@ -7,6 +7,7 @@ import { createCombobox } from '@pdanpdan/headless-combobox-core';
 import {
   useEffect,
   useId,
+  useMemo,
   useReducer,
   useRef,
   useState,
@@ -37,6 +38,7 @@ const CORE_PROP_KEYS = [
   'clickOutsideFilter',
   'selectOnTab',
   'optionValue',
+  'valueEqual',
   'optionLabel',
   'optionFilter',
   'id',
@@ -47,15 +49,39 @@ const CORE_PROP_KEYS = [
   'createOption',
 ] as const;
 
+/** Snapshot with React-ready prop bags; spread them directly with JSX. */
+export type ReactComboboxSnapshot<O, V, Q = string>
+  = Omit<HeadlessComboboxSnapshot<O, V, Q>, 'triggerProps' | 'inputProps' | 'comboboxInputProps' | 'listboxProps' | 'statusProps' | 'getOptionProps'> & {
+    triggerProps: Record<string, unknown>;
+    inputProps: Record<string, unknown>;
+    comboboxInputProps: Record<string, unknown>;
+    listboxProps: Record<string, unknown>;
+    statusProps: Record<string, unknown>;
+    getOptionProps: (option: O, index?: number) => Record<string, unknown>;
+  };
+
+function adaptSnapshot<O, V, Q>(snapshot: HeadlessComboboxSnapshot<O, V, Q>): ReactComboboxSnapshot<O, V, Q> {
+  return {
+    ...snapshot,
+    triggerProps: toReactProps(snapshot.triggerProps),
+    inputProps: toReactProps(snapshot.inputProps),
+    comboboxInputProps: toReactProps(snapshot.comboboxInputProps),
+    listboxProps: toReactProps(snapshot.listboxProps),
+    statusProps: toReactProps(snapshot.statusProps),
+    getOptionProps: (option, index) => toReactProps(snapshot.getOptionProps(option, index)),
+  };
+}
+
 /**
  * React adapter for the framework-independent combobox core.
  *
  * State is read through `useSyncExternalStore`, so any `select`/`open`/`close`
- * call (from this hook or a child) re-renders the component tree.
+ * call (from this hook or a child) re-renders the component tree. Prop bags are
+ * already adapted to React names and can be spread directly.
  */
 export function useHeadlessCombobox<O, V = O, Q = string>(
   options: UseHeadlessComboboxOptions<O, V, Q>,
-): HeadlessComboboxSnapshot<O, V, Q> {
+): ReactComboboxSnapshot<O, V, Q> {
   const controlled = 'value' in options;
   const [ uncontrolled, setUncontrolled ] = useState<V | V[] | null>(() => options.defaultValue ?? null);
   const modelValue = controlled
@@ -120,7 +146,7 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
     return () => store.destroy();
   }, [ store ]);
 
-  return snapshot;
+  return useMemo(() => adaptSnapshot(snapshot), [ snapshot ]);
 }
 
 const REACT_PROP_NAMES: Record<string, string> = {

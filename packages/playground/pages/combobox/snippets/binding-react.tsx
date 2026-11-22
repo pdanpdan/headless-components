@@ -5,15 +5,15 @@
 >
   {(scope) => (
     <div ref={scope.setContainerRef}>
-      <button ref={scope.setTriggerRef} {...toReactProps(scope.triggerProps)}>
+      <button ref={scope.setTriggerRef} {...scope.triggerProps}>
         {value ?? 'Select…'}
       </button>
       {scope.isOpen && (
-        <ul {...toReactProps(scope.listboxProps)}>
+        <ul {...scope.listboxProps}>
           {scope.filteredOptions.map((option, index) => (
             <li
               key={option}
-              {...toReactProps(scope.getOptionProps(option, index))}
+              {...scope.getOptionProps(option, index)}
             >
               {option}
             </li>

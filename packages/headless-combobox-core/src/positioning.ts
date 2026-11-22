@@ -53,6 +53,26 @@ export function createPositioning<O, V, Q>(
     return style;
   });
 
+  function findOptionElement(option: O): HTMLElement | undefined {
+    const registered = refs.optionRefs.get(ctx.unwrap(option));
+    if (registered != null) {
+      return registered;
+    }
+    const list = refs.listRef;
+    if (list == null) {
+      return undefined;
+    }
+    const index = deps.getFilteredOptions()
+      .findIndex((candidate) => ctx.unwrap(candidate) === ctx.unwrap(option));
+    // Only an option outside the current render reaches this; callers pass
+    // options from `filteredOptions`.
+    /* v8 ignore next 2 */
+    if (index < 0) {
+      return undefined;
+    }
+    return list.querySelector<HTMLElement>(`[role="option"][aria-posinset="${ index + 1 }"]`) ?? undefined;
+  }
+
   function calculateAlignment() {
     const firstSelected = deps.getSelectedList()[ 0 ];
     if (!refs.dropdownRef || !ctx.props.alignSelected || firstSelected == null) {
@@ -67,7 +87,7 @@ export function createPositioning<O, V, Q>(
     const selectedOption = deps.findOptionByValue(firstSelected);
     const selectedEl = selectedOption == null
       ? undefined
-      : refs.optionRefs.get(ctx.unwrap(selectedOption));
+      : findOptionElement(selectedOption);
     if (selectedEl && refs.listRef) {
       scrollElementIntoContainer(selectedEl, refs.listRef);
 
@@ -97,7 +117,7 @@ export function createPositioning<O, V, Q>(
     if (!option) {
       return;
     }
-    const el = refs.optionRefs.get(ctx.unwrap(option));
+    const el = findOptionElement(option);
     if (el) {
       scrollElementIntoContainer(el, refs.listRef);
     }

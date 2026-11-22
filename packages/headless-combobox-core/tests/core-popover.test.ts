@@ -140,6 +140,95 @@ describe('core popover', () => {
     }
   });
 
+  it('discovers trigger, input, listbox, and dropdown from the container', async () => {
+    const { store } = makeStore();
+    const snapshot = store.getSnapshot();
+    const root = document.createElement('div');
+    const input = document.createElement('input');
+    input.setAttribute('role', 'combobox');
+    input.setAttribute('aria-controls', snapshot.listboxProps.id);
+    const list = document.createElement('div');
+    list.id = snapshot.listboxProps.id;
+    list.setAttribute('role', 'listbox');
+    root.append(input);
+    document.body.append(root, list);
+
+    snapshot.setContainerRef(root);
+    await snapshot.open();
+    expect(document.activeElement).toBe(input);
+
+    input.setAttribute('aria-expanded', 'true');
+    await Promise.resolve();
+    await Promise.resolve();
+
+    snapshot.close();
+    expect(document.activeElement).toBe(input);
+
+    root.append(document.createElement('span'));
+    await Promise.resolve();
+    snapshot.setContainerRef(null);
+    await Promise.resolve();
+    store.destroy();
+  });
+
+  it('finds rendered options without setOptionRef', async () => {
+    const { store } = makeStore({ modelValue: users[ 0 ], alignSelected: true });
+    const snapshot = store.getSnapshot();
+    const root = document.createElement('div');
+    const trigger = document.createElement('button');
+    trigger.setAttribute('role', 'combobox');
+    trigger.setAttribute('aria-controls', snapshot.listboxProps.id);
+    const list = document.createElement('div');
+    list.id = snapshot.listboxProps.id;
+    list.setAttribute('role', 'listbox');
+    const option = document.createElement('button');
+    option.setAttribute('role', 'option');
+    option.setAttribute('aria-posinset', '1');
+    root.append(trigger, list);
+    list.append(option);
+    document.body.append(root);
+
+    snapshot.setContainerRef(root);
+    await snapshot.open();
+    expect(store.getSnapshot().alignmentOffset).toBe(0);
+    expect(store.getSnapshot().isOpen).toBe(true);
+  });
+
+  it('keeps alignment at zero when the selected option is filtered out', async () => {
+    const { store } = makeStore({
+      modelValue: users[ 0 ],
+      alignSelected: true,
+      optionFilter: (option: User) => option.id !== users[ 0 ]!.id,
+    });
+    const snapshot = store.getSnapshot();
+    const root = document.createElement('div');
+    const trigger = document.createElement('button');
+    trigger.setAttribute('role', 'combobox');
+    trigger.setAttribute('aria-controls', snapshot.listboxProps.id);
+    const list = document.createElement('div');
+    list.id = snapshot.listboxProps.id;
+    list.setAttribute('role', 'listbox');
+    root.append(trigger, list);
+    document.body.append(root);
+
+    snapshot.setContainerRef(root);
+    await snapshot.open();
+    expect(store.getSnapshot().alignmentOffset).toBe(0);
+  });
+
+  it('wires the container without MutationObserver', () => {
+    vi.stubGlobal('MutationObserver', undefined);
+    try {
+      const { store } = makeStore();
+      const root = document.createElement('div');
+      root.append(document.createElement('button'));
+      store.getSnapshot().setContainerRef(root);
+      expect(root).toBeTruthy();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('toggles an open popup closed', async () => {
     const { store } = fixture();
     store.getSnapshot().toggle();

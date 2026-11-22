@@ -1,11 +1,11 @@
-import type { HeadlessComboboxSnapshot } from '../src';
+import type { SolidComboboxSnapshot } from '../src';
 import type { Accessor } from 'solid-js';
 
 import { delegateEvents, render } from '@solidjs/web';
 import { createSignal, flush, For } from 'solid-js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { HeadlessCombobox, toSolidProps } from '../src';
+import { HeadlessCombobox } from '../src';
 
 interface User {
   id: number;
@@ -19,25 +19,25 @@ const users: User[] = [
 ];
 
 function ComboboxMarkup(props: {
-  scope: Accessor<HeadlessComboboxSnapshot<User, User>>;
+  scope: Accessor<SolidComboboxSnapshot<User, User>>;
 }) {
   return (
     <div ref={props.scope().setContainerRef}>
       <button
         ref={props.scope().setTriggerRef}
         type="button"
-        {...toSolidProps(props.scope().triggerProps)}
+        {...props.scope().triggerProps}
       >
         Trigger
       </button>
-      <ul ref={props.scope().setDropdownRef} {...toSolidProps(props.scope().listboxProps)}>
+      <ul ref={props.scope().setDropdownRef} {...props.scope().listboxProps}>
         <For each={props.scope().filteredOptions}>
           {(user, index) => (
             <li
               ref={(el) => {
                 props.scope().setOptionRef(user, el);
               }}
-              {...toSolidProps(props.scope().getOptionProps(user, index()))}
+              {...props.scope().getOptionProps(user, index())}
             >
               {user.name}
             </li>

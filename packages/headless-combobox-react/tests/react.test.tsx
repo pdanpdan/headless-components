@@ -1,11 +1,11 @@
-import type { HeadlessComboboxSnapshot } from '../src';
+import type { ReactComboboxSnapshot } from '../src';
 import type { Root } from 'react-dom/client';
 
 import { act, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { HeadlessCombobox, toReactProps } from '../src';
+import { HeadlessCombobox } from '../src';
 
 interface User {
   id: number;
@@ -24,21 +24,21 @@ const users: User[] = [
 function ComboboxMarkup({
   scope,
 }: {
-  scope: HeadlessComboboxSnapshot<User, User>;
+  scope: ReactComboboxSnapshot<User, User>;
 }) {
   return (
     <div ref={scope.setContainerRef}>
-      <button ref={scope.setTriggerRef} type="button" {...toReactProps(scope.triggerProps)}>
+      <button ref={scope.setTriggerRef} type="button" {...scope.triggerProps}>
         Trigger
       </button>
-      <ul ref={scope.setDropdownRef} {...toReactProps(scope.listboxProps)}>
+      <ul ref={scope.setDropdownRef} {...scope.listboxProps}>
         {scope.filteredOptions.map((user, index) => (
           <li
             key={user.id}
             ref={(el) => {
               scope.setOptionRef(user, el);
             }}
-            {...toReactProps(scope.getOptionProps(user, index))}
+            {...scope.getOptionProps(user, index)}
           >
             {user.name}
           </li>
@@ -142,11 +142,11 @@ describe('react adapter', () => {
                   scope.setTriggerRef(el);
                   scope.setInputRef(el);
                 }}
-                {...toReactProps(scope.comboboxInputProps)}
+                {...scope.comboboxInputProps}
               />
-              <ul {...toReactProps(scope.listboxProps)}>
+              <ul {...scope.listboxProps}>
                 {scope.filteredOptions.map((user, index) => (
-                  <li key={user.id} {...toReactProps(scope.getOptionProps(user, index))}>
+                  <li key={user.id} {...scope.getOptionProps(user, index)}>
                     {user.name}
                   </li>
                 ))}

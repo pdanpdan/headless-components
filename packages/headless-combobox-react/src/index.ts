@@ -9,7 +9,7 @@ export type {
   HeadlessComboboxStatusProps,
   HeadlessComboboxTriggerProps,
 } from '@pdanpdan/headless-combobox-core';
-export type { UseHeadlessComboboxOptions } from './useHeadlessCombobox';
+export type { ReactComboboxSnapshot, UseHeadlessComboboxOptions } from './useHeadlessCombobox';
 export type { HeadlessComboboxProps } from './HeadlessCombobox';
 
 export { HeadlessCombobox } from './HeadlessCombobox';

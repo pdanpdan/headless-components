@@ -13,7 +13,7 @@ pnpm add @pdanpdan/headless-combobox-solid
 ## Usage
 
 ```tsx
-import { HeadlessCombobox, toSolidProps } from '@pdanpdan/headless-combobox-solid';
+import { HeadlessCombobox } from '@pdanpdan/headless-combobox-solid';
 import { createSignal, For } from 'solid-js';
 
 const users = [
@@ -33,13 +33,13 @@ export function Example() {
     >
       {(scope) => (
         <div ref={scope().setContainerRef}>
-          <button ref={scope().setTriggerRef} type="button" {...toSolidProps(scope().triggerProps)}>
+          <button ref={scope().setTriggerRef} type="button" {...scope().triggerProps}>
             {value()?.name ?? 'Select…'}
           </button>
-          <ul ref={scope().setDropdownRef} {...toSolidProps(scope().listboxProps)}>
+          <ul ref={scope().setDropdownRef} {...scope().listboxProps}>
             <For each={scope().filteredOptions}>
               {(user, index) => (
-                <li {...toSolidProps(scope().getOptionProps(user, index()))}>
+                <li {...scope().getOptionProps(user, index())}>
                   {user.name}
                 </li>
               )}

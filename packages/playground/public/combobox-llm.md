@@ -12,12 +12,14 @@ The same behavior is shared by all adapters. Only the binding syntax changes.
 |---|---|---|---|
 | `@pdanpdan/headless-combobox-core` | none | `createCombobox` | none |
 | `@pdanpdan/headless-combobox-vue` | Vue 3 | `HeadlessCombobox`, `useHeadlessCombobox` | `vue@^3` |
-| `@pdanpdan/headless-combobox-react` | React | `HeadlessCombobox`, `useHeadlessCombobox`, `toReactProps` | `react@>=18` |
-| `@pdanpdan/headless-combobox-svelte` | Svelte 5 | `HeadlessCombobox.svelte`, `createComboboxStore`, `toSvelteProps` | `svelte@>=5` |
-| `@pdanpdan/headless-combobox-solid` | Solid 2 | `HeadlessCombobox`, `useHeadlessCombobox`, `toSolidProps` | `solid-js@>=2`, `@solidjs/web@>=2` |
+| `@pdanpdan/headless-combobox-react` | React | `HeadlessCombobox`, `useHeadlessCombobox` | `react@>=18` |
+| `@pdanpdan/headless-combobox-svelte` | Svelte 5 | `HeadlessCombobox.svelte`, `createComboboxStore` | `svelte@>=5` |
+| `@pdanpdan/headless-combobox-solid` | Solid 2 | `HeadlessCombobox`, `useHeadlessCombobox` | `solid-js@>=2`, `@solidjs/web@>=2` |
 | `@pdanpdan/headless-combobox-angular` | Angular | `injectCombobox`, `createComboboxStore` | `@angular/core@>=19` |
 
 Install only the package for the framework you use. Each section below starts with its own install command and a complete example. The packages are independent; none of them requires the others at runtime beyond the core dependency that npm installs automatically.
+
+The Vue, React, Svelte, and Solid adapters return prop bags ready for their binding syntax; spread them directly. Angular cannot spread objects, so bind each attribute and handler individually. When you use a raw core snapshot instead of an adapter, `toReactProps`, `toSvelteProps`, and `toSolidProps` apply the same mapping.
 
 ## Markup anatomy
 
@@ -25,14 +27,14 @@ A combobox is a combobox control plus a popup listbox. The control can be a butt
 
 Each element receives exactly one prop bag. The bags contain ARIA attributes and the matching event handlers, so no manual `onClick`, `onKeydown`, or `aria-*` wiring is needed.
 
-| Element | Bind | Ref setter |
+| Element | Bind | Wiring |
 |---|---|---|
 | root container, the click-outside and focus boundary | nothing | `setContainerRef` |
-| button trigger | `triggerProps` | `setTriggerRef` |
-| popup listbox | `listboxProps`, `popupStyle` on the popup | `setDropdownRef`, `setListRef` |
-| each option | `getOptionProps(option, index?)` | `setOptionRef(option, el)` |
-| search input inside the popup | `inputProps` | `setInputRef` |
-| typeahead input (the input is the combobox) | `comboboxInputProps` | `setTriggerRef`, `setInputRef` |
+| button trigger | `triggerProps` | auto-discovered |
+| popup listbox | `listboxProps`, `popupStyle` on the popup | auto-discovered |
+| each option | `getOptionProps(option, index?)` | auto-discovered for rendered lists |
+| search input inside the popup | `inputProps` | auto-discovered |
+| typeahead input (the input is the combobox) | `comboboxInputProps` | auto-discovered |
 | result-count live region (visually hidden) | `statusProps` | nothing |
 
 Rules:
@@ -41,7 +43,8 @@ Rules:
 - Never replace a prop bag with hand-written `role`, `aria-expanded`, `aria-selected`, or key handlers. The prop bags do not set an accessible name: add `aria-label`, `aria-labelledby`, or a real `<label>` yourself.
 - `comboboxInputProps` includes a Space-safe keydown handler: arrows, Enter, and Escape navigate, while Space types a space. Do not add another keydown handler. Angular cannot spread a bag; bind `comboboxInputProps.onKeydown` individually, or `handleTypeaheadKeydown` when wiring the element by hand.
 - The option index is optional. When you pass one, it must be the option's position in the flat `filteredOptions` array, not its rendered position. Omit it in grouped or virtualized lists and the core derives that position.
-- Ref setters are optional, but `setOptionRef` is required for `alignSelected` and scroll-into-view, and `setContainerRef` extends the click-outside boundary (for example to external chips).
+- `setContainerRef` is the only ref needed for standard markup: it auto-discovers the trigger, typeahead/search input, listbox, and dropdown, including a listbox linked by `aria-controls` outside the container. Explicit `setTriggerRef`, `setInputRef`, `setListRef`, and `setDropdownRef` override discovery. `setOptionRef` is only needed for virtualized windows where the highlighted option may not match a rendered `aria-posinset`.
+- Stored object values are compared by proxy-unwrapped identity. When a framework proxies or clones them so identity no longer matches, pass `valueEqual` (for example `(a, b) => a.id === b.id`).
 - The root component renders nothing on its own. It only renders the markup you pass to it.
 - The packages ship no styles. A working page still needs a visible trigger, a popup with a background and border or shadow, and a distinct state for the highlighted and selected options.
 
@@ -138,7 +141,7 @@ pnpm add @pdanpdan/headless-combobox-react
 ```
 
 ```tsx
-import { HeadlessCombobox, toReactProps } from '@pdanpdan/headless-combobox-react';
+import { HeadlessCombobox } from '@pdanpdan/headless-combobox-react';
 import { useState } from 'react';
 
 interface User {
@@ -166,18 +169,18 @@ export function UserPicker() {
           <button
             ref={scope.setTriggerRef}
             type="button"
-            {...toReactProps(scope.triggerProps)}
+            {...scope.triggerProps}
           >
             {value?.name ?? 'Select…'}
           </button>
 
           {scope.isOpen && (
-            <ul {...toReactProps(scope.listboxProps)}>
+            <ul {...scope.listboxProps}>
               {scope.filteredOptions.map((user, index) => (
                 <li
                   key={user.id}
                   ref={(el) => scope.setOptionRef(user, el)}
-                  {...toReactProps(scope.getOptionProps(user, index))}
+                  {...scope.getOptionProps(user, index)}
                 >
                   {user.name}
                 </li>
@@ -191,7 +194,7 @@ export function UserPicker() {
 }
 ```
 
-`useHeadlessCombobox(options)` returns the same scope object without the render prop. Controlled usage means passing `value`; omit `value` and pass `defaultValue` for uncontrolled usage. `toReactProps` maps `autocomplete` to `autoComplete` and `onKeydown`, `onMousedown`, and `onMousemove` to React event names. Use it on any bag that contains handlers: `triggerProps`, `inputProps`, `comboboxInputProps`, and `getOptionProps(...)`.
+`useHeadlessCombobox(options)` returns the same scope object without the render prop. Controlled usage means passing `value`; omit `value` and pass `defaultValue` for uncontrolled usage. The adapter returns React-ready prop bags, so spread them directly. For a raw core snapshot, `toReactProps` maps `autocomplete` to `autoComplete` and the event handlers to React names.
 
 ## Svelte 5
 
@@ -202,7 +205,6 @@ pnpm add @pdanpdan/headless-combobox-svelte
 ```svelte
 <script lang="ts">
   import HeadlessCombobox from '@pdanpdan/headless-combobox-svelte/HeadlessCombobox.svelte';
-  import { toSvelteProps } from '@pdanpdan/headless-combobox-svelte';
 
   interface User {
     id: number;
@@ -232,7 +234,7 @@ pnpm add @pdanpdan/headless-combobox-svelte
     >
       <button
         type="button"
-        {...toSvelteProps(scope.triggerProps)}
+        {...scope.triggerProps}
         {@attach (el) => {
           scope.setTriggerRef(el);
           return () => scope.setTriggerRef(null);
@@ -242,11 +244,11 @@ pnpm add @pdanpdan/headless-combobox-svelte
       </button>
 
       {#if scope.isOpen}
-        <ul {...toSvelteProps(scope.listboxProps)}>
+        <ul {...scope.listboxProps}>
           {#each scope.filteredOptions as option, index ((option as User).id)}
             {@const user = option as User}
             <li
-              {...toSvelteProps(scope.getOptionProps(user, index))}
+              {...scope.getOptionProps(user, index)}
               {@attach (el) => {
                 scope.setOptionRef(user, el);
                 return () => scope.setOptionRef(user, null);
@@ -262,12 +264,12 @@ pnpm add @pdanpdan/headless-combobox-svelte
 </HeadlessCombobox>
 ```
 
-Omit `onChange` to keep the selection inside the component. `createComboboxStore({ props, onChange })` returns a Svelte store: `$combobox` is the live snapshot. Call `store.mount()` and `store.destroy()` yourself when using the store directly. `toSvelteProps` maps handler keys to Svelte 5 lowercase event attributes and is required for every prop bag.
+Omit `onChange` to keep the selection inside the component. `createComboboxStore({ props, onChange })` returns a Svelte store: `$combobox` is the live snapshot with Svelte-ready prop bags. Call `store.mount()` and `store.destroy()` yourself when using the store directly. For a raw core snapshot, `toSvelteProps` maps the handlers to Svelte 5 event attributes.
 
 Two Svelte rules that the type checker and the runtime enforce:
 
 - The component does not infer the option type. Annotate callback parameters (`optionLabel={(user: User) => user.name}`) and cast slot options (`{@const user = option as User}`), because the snippet scope is `unknown`.
-- `$state` wraps objects and arrays in deep proxies. The selection checks compare option identity, so a proxied value never equals the option object: `isSelected` stays false and `aria-selected` is never set. Use `$state.raw` for object values, or store primitives with `optionValue` and `optionLabel`.
+- `$state` wraps objects and arrays in deep proxies. The default comparison is proxy-unwrapped identity, so a proxied value may not equal the option object. Use `$state.raw` for object values, `optionValue` for primitives, or pass `valueEqual` (for example `(a, b) => a.id === b.id`) to compare by ID.
 
 Svelte's `style` attribute does not accept the `popupStyle` object. Either turn it into a style string, or skip anchor positioning and position the popup with CSS (the examples use `position: absolute` under a `position: relative` container).
 
@@ -278,7 +280,7 @@ pnpm add @pdanpdan/headless-combobox-solid
 ```
 
 ```tsx
-import { HeadlessCombobox, toSolidProps } from '@pdanpdan/headless-combobox-solid';
+import { HeadlessCombobox } from '@pdanpdan/headless-combobox-solid';
 import { For, createSignal } from 'solid-js';
 
 interface User {
@@ -303,17 +305,17 @@ export function UserPicker() {
     >
       {(scope) => (
         <div ref={scope().setContainerRef}>
-          <button ref={scope().setTriggerRef} {...toSolidProps(scope().triggerProps)}>
+          <button ref={scope().setTriggerRef} {...scope().triggerProps}>
             {value()?.name ?? 'Select…'}
           </button>
 
           {scope().isOpen && (
-            <ul {...toSolidProps(scope().listboxProps)}>
+            <ul {...scope().listboxProps}>
               <For each={scope().filteredOptions}>
                 {(user, index) => (
                   <li
                     ref={(el) => scope().setOptionRef(user, el)}
-                    {...toSolidProps(scope().getOptionProps(user, index()))}
+                    {...scope().getOptionProps(user, index())}
                   >
                     {user.name}
                   </li>
@@ -472,7 +474,7 @@ combobox.destroy();
 
 Each guide starts from the Vue example above and changes one thing. Runnable versions of these scenarios live in `packages/headless-combobox-vue/examples/`.
 
-To port a guide to another adapter, keep the same props, scope fields, and prop bags. Change only the binding syntax: `toReactProps` in React, `toSvelteProps` in Svelte, `toSolidProps` in Solid, and individual attribute bindings in Angular, which cannot spread. Solid also needs `scope()` calls inside JSX.
+To port a guide to another adapter, keep the same props, scope fields, and prop bags. Change only the binding syntax: spread the bags directly in Vue, React, Svelte, and Solid; bind individual attributes in Angular, which cannot spread. Solid also needs `scope()` calls inside JSX.
 
 ### Typeahead (editable combobox)
 
@@ -1016,7 +1018,7 @@ const { open, close, select, clear } = useHeadlessCombobox<User>(
 </template>
 ```
 
-`clickOutsideFilter` keeps the popup open when the click lands in the control panel. Refs and prop bags are still required for behavior that depends on the DOM: focus return, click-outside, and scroll-into-view. Closing or selecting from an external control leaves focus on that control; focus returns to the trigger only when focus is already inside the widget.
+`clickOutsideFilter` keeps the popup open when the click lands in the control panel. `setContainerRef` covers the standard wiring: it discovers the trigger, input, listbox, and dropdown. Explicit refs are only needed for virtualized options or a custom boundary. Closing or selecting from an external control leaves focus on that control; focus returns to the trigger only when focus is already inside the widget.
 
 ## Props
 
@@ -1036,6 +1038,7 @@ These props are shared by every adapter.
 | `clickOutsideFilter` | `(target: EventTarget \| null) => boolean` | none | Return `false` to keep the popup open for specific outside targets. |
 | `selectOnTab` | `boolean` | `false` | On Tab, when focus leaves the widget, select the highlighted option and close. |
 | `optionValue` | `(option: O) => V` | the option itself | Maps an option to the stored and emitted value. |
+| `valueEqual` | `(a: V, b: V) => boolean` | proxy-unwrapped identity | Compare stored values by ID or another stable key when the framework proxies or clones objects. |
 | `optionLabel` | `(option: O) => string` | `String(option)` | Maps an option to a string for default filtering. |
 | `optionFilter` | `(option: O, query: Q) => boolean` | case-insensitive substring | Custom filter. `Q` defaults to `string`. |
 | `id` | `string` | generated | Base id for accessibility attributes. |
@@ -1078,7 +1081,7 @@ Every adapter exposes the same snapshot fields. Vue exposes them as slot props (
 | `selectedCount` | `number` | Number of selected options. |
 | `selectedList` | `V[]` | Selected values. Single mode returns a single-element array. |
 | `canSelectMore` | `boolean` | `false` when `maxLength` is reached. |
-| `isSelected` | `(option: O) => boolean` | Identity-based selection check. |
+| `isSelected` | `(option: O) => boolean` | Selection check using `valueEqual` when provided. |
 | `canCreate` | `boolean` | `true` when the query can be committed as a new value. |
 | `valid` | `boolean` | Whether the current selection passes validation. |
 | `errors` | `HeadlessComboboxErrorCode[]` | Active error codes. |
@@ -1247,14 +1250,14 @@ Style the selected option with `isSelected(option)` and the highlighted option b
 - Passing an index to `getOptionProps` that matches the rendered position in a grouped or virtualized list instead of the flat `filteredOptions` position. Omit the index in those lists.
 - Expecting a created value to appear in `options` or resolve a chip label automatically. `createOption` only produces the stored value; update `options` yourself.
 - Rendering the popup with `{#if}` while also using `popover="manual"`, or using `popover` while relying on `v-if` to hide it.
-- Forgetting `toReactProps`, `toSvelteProps`, or `toSolidProps`. Without them the core handler keys (`onKeydown`, `onMousedown`, `onMousemove`) do not match the framework event names.
+- Spreading a raw core snapshot without `toReactProps`, `toSvelteProps`, or `toSolidProps`. Adapter snapshots already contain framework-ready bags.
 - Calling the Solid accessor once at the top of the component. Call `scope()` inside JSX.
 - Conditionally rendering a Solid popup that contains a search input. Render it once with `popover="manual"`.
-- Using `$state` for object values in Svelte. The proxy breaks identity checks; use `$state.raw` or primitive values through `optionValue`.
+- Using `$state` for object values in Svelte. The proxy can break identity checks; use `$state.raw`, primitive values through `optionValue`, or `valueEqual`.
 - Hand-writing `aria-*` attributes in Angular instead of reading them from `combobox.snapshot()` where the snapshot provides them.
-- Comparing object selections with `===`. Use `isSelected(option)`.
+- Comparing object selections with `===`. Use `isSelected(option)`, `optionValue`, or `valueEqual`.
 - Putting a button or link inside an option or the trigger button. `role="option"` is a leaf for screen readers, and `<button>` cannot nest; keep chip remove buttons outside the trigger and inside the container boundary.
-- Omitting `setOptionRef`. Then `alignSelected` and scroll-into-view cannot work.
+- Omitting the container ref and every explicit ref. `setContainerRef` auto-discovers standard markup; `setOptionRef` is only required for virtualized windows.
 - Treating `open()` as synchronous when you need the DOM to be mounted or focus to be set.
 
 ## License

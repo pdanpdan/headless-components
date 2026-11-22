@@ -13,7 +13,7 @@ pnpm add @pdanpdan/headless-combobox-react
 ## Usage
 
 ```tsx
-import { HeadlessCombobox, toReactProps } from '@pdanpdan/headless-combobox-react';
+import { HeadlessCombobox } from '@pdanpdan/headless-combobox-react';
 import { useState } from 'react';
 
 const users = [
@@ -33,15 +33,15 @@ export function Example() {
     >
       {(scope) => (
         <div ref={scope.setContainerRef}>
-          <button ref={scope.setTriggerRef} type="button" {...toReactProps(scope.triggerProps)}>
+          <button ref={scope.setTriggerRef} type="button" {...scope.triggerProps}>
             {value?.name ?? 'Select…'}
           </button>
-          <ul ref={scope.setDropdownRef} {...toReactProps(scope.listboxProps)}>
+          <ul ref={scope.setDropdownRef} {...scope.listboxProps}>
             {scope.filteredOptions.map((user, index) => (
               <li
                 key={user.id}
                 ref={(el) => scope.setOptionRef(user, el)}
-                {...toReactProps(scope.getOptionProps(user, index))}
+                {...scope.getOptionProps(user, index)}
               >
                 {user.name}
               </li>
@@ -55,7 +55,7 @@ export function Example() {
 ```
 
 - `value` + `onChange` for controlled usage; omit `value` and pass `defaultValue` for uncontrolled.
-- `toReactProps` maps the core's `onKeydown` / `onMousedown` / `onMousemove` handlers to React's `onKeyDown` / `onMouseDown` / `onMouseMove`.
+- Spread the adapter's prop bags directly. For a raw core snapshot, `toReactProps` maps `onKeydown` / `onMousedown` / `onMousemove` and `autocomplete` to React names.
 - `useHeadlessCombobox(options)` returns the same scope without the component wrapper.
 
 The same focus, filtering, validation, and keyboard behavior is tested once in the core and shared with every adapter.

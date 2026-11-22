@@ -9,17 +9,17 @@ export const COMPOSABLE_NOTES: Record<AdapterId, string[]> = {
   react: [
     '`HeadlessCombobox` is a render-prop wrapper around `useHeadlessCombobox`. Use the hook when the markup cannot sit inside the component.',
     'Pass `value` for controlled use, or omit it and use `defaultValue`. `onChange` receives every selection change. The hook returns the same scope object as the render prop.',
-    'Spread ARIA bags with `toReactProps`; actions are plain functions on the scope.',
+    'Spread the React-ready ARIA bags directly; actions are plain functions on the scope.',
   ],
   svelte: [
     'The component and `createComboboxStore` share the same props. The store is the lower-level API.',
     'Pass props as a getter so the store tracks reactive changes. Call `mount()` after the view exists and `destroy()` on teardown.',
-    'The store is readable with `$combobox` in markup. Spread ARIA bags with `toSvelteProps`.',
+    'The store is readable with `$combobox` in markup. Spread the Svelte-ready ARIA bags directly.',
   ],
   solid: [
     'The component wraps `useHeadlessCombobox`. Use the hook when you do not need the render-prop wrapper.',
     'Pass an options accessor. `value` is controlled; `defaultValue` seeds an uncontrolled store. `onChange` receives every change.',
-    'The hook returns an accessor. Call `scope()` inside JSX so bindings stay reactive; spread bags with `toSolidProps`.',
+    'The hook returns an accessor. Call `scope()` inside JSX so bindings stay reactive; spread the Solid-ready bags directly.',
   ],
   angular: [
     '`injectCombobox` is the Angular entry point. It creates the signal store and registers teardown through `DestroyRef`; `createComboboxStore` is the non-DI factory.',

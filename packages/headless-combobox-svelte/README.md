@@ -15,7 +15,6 @@ pnpm add @pdanpdan/headless-combobox-svelte
 ```svelte
 <script lang="ts">
   import HeadlessCombobox from '@pdanpdan/headless-combobox-svelte/HeadlessCombobox.svelte';
-  import { toSvelteProps } from '@pdanpdan/headless-combobox-svelte';
 
   const users = [
     { id: 1, name: 'Wade Cooper' },
@@ -39,7 +38,7 @@ pnpm add @pdanpdan/headless-combobox-svelte
     >
       <button
         type="button"
-        {...toSvelteProps(scope.triggerProps)}
+        {...scope.triggerProps}
         {@attach (el) => {
           scope.setTriggerRef(el);
           return () => scope.setTriggerRef(null);
@@ -49,7 +48,7 @@ pnpm add @pdanpdan/headless-combobox-svelte
       </button>
 
       <ul
-        {...toSvelteProps(scope.listboxProps)}
+        {...scope.listboxProps}
         {@attach (el) => {
           scope.setDropdownRef(el);
           return () => scope.setDropdownRef(null);
@@ -57,7 +56,7 @@ pnpm add @pdanpdan/headless-combobox-svelte
       >
         {#each scope.filteredOptions as user, index (user.id)}
           <li
-            {...toSvelteProps(scope.getOptionProps(user, index))}
+            {...scope.getOptionProps(user, index)}
             {@attach (el) => {
               scope.setOptionRef(user, el);
               return () => scope.setOptionRef(user, null);
@@ -74,4 +73,4 @@ pnpm add @pdanpdan/headless-combobox-svelte
 
 ### Store API
 
-`createComboboxStore({ props, onChange })` returns a Svelte store, so `$combobox` gives the live snapshot. Call `store.mount()` / `store.destroy()` yourself when using the store directly. `toSvelteProps` maps the core's handler keys to Svelte 5's lowercase event attributes.
+`createComboboxStore({ props, onChange })` returns a Svelte store, so `$combobox` gives the live snapshot with Svelte-ready prop bags. Call `store.mount()` / `store.destroy()` yourself when using the store directly. For a raw core snapshot, `toSvelteProps` maps the handlers to Svelte 5 event attributes.

@@ -105,7 +105,7 @@ export function createPopover<O, V, Q>(
       const firstSelected = deps.getSelectedList()[ 0 ];
       const selectedIndex = firstSelected == null
         ? -1
-        : deps.getFilteredOptions().findIndex((o) => ctx.unwrap(deps.valueOf(o)) === ctx.unwrap(firstSelected));
+        : deps.getFilteredOptions().findIndex((o) => ctx.valuesEqual(deps.valueOf(o), firstSelected));
       // A selected option is always actionable; otherwise start on the first one that can be selected.
       ctx.state.highlightedIndex = selectedIndex >= 0
         ? selectedIndex

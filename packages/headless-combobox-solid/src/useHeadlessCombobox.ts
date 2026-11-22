@@ -31,6 +31,7 @@ const CORE_PROP_KEYS = [
   'clickOutsideFilter',
   'selectOnTab',
   'optionValue',
+  'valueEqual',
   'optionLabel',
   'optionFilter',
   'id',
@@ -41,15 +42,38 @@ const CORE_PROP_KEYS = [
   'createOption',
 ] as const;
 
+/** Snapshot with Solid-ready prop bags; spread them directly in JSX. */
+export type SolidComboboxSnapshot<O, V, Q = string>
+  = Omit<HeadlessComboboxSnapshot<O, V, Q>, 'triggerProps' | 'inputProps' | 'comboboxInputProps' | 'listboxProps' | 'statusProps' | 'getOptionProps'> & {
+    triggerProps: Record<string, unknown>;
+    inputProps: Record<string, unknown>;
+    comboboxInputProps: Record<string, unknown>;
+    listboxProps: Record<string, unknown>;
+    statusProps: Record<string, unknown>;
+    getOptionProps: (option: O, index?: number) => Record<string, unknown>;
+  };
+
+function adaptSnapshot<O, V, Q>(snapshot: HeadlessComboboxSnapshot<O, V, Q>): SolidComboboxSnapshot<O, V, Q> {
+  return {
+    ...snapshot,
+    triggerProps: toSolidProps(snapshot.triggerProps),
+    inputProps: toSolidProps(snapshot.inputProps),
+    comboboxInputProps: toSolidProps(snapshot.comboboxInputProps),
+    listboxProps: toSolidProps(snapshot.listboxProps),
+    statusProps: toSolidProps(snapshot.statusProps),
+    getOptionProps: (option, index) => toSolidProps(snapshot.getOptionProps(option, index)),
+  };
+}
+
 /**
  * Solid adapter for the framework-independent combobox core.
  *
- * Returns an accessor for the snapshot, so `<button {...toSolidProps(scope().triggerProps)} />`
+ * Returns an accessor for the snapshot, so `<button {...scope().triggerProps} />`
  * stays reactive. The options accessor is tracked by a `createEffect`.
  */
 export function useHeadlessCombobox<O, V = O, Q = string>(
   options: Accessor<UseHeadlessComboboxOptions<O, V, Q>>,
-): Accessor<HeadlessComboboxSnapshot<O, V, Q>> {
+): Accessor<SolidComboboxSnapshot<O, V, Q>> {
   // Solid 2's createSignal overloads cannot express a generic `V | V[] | null`
   // initial value; the runtime value is the same.
   const [ uncontrolled, setUncontrolled ] = createSignal<unknown>(
@@ -86,7 +110,7 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
     return () => store.destroy();
   });
 
-  return snapshot;
+  return () => adaptSnapshot(snapshot());
 }
 
 const SOLID_EVENT_NAMES: Record<string, string> = {

@@ -1,5 +1,5 @@
 import { For, createSignal } from 'solid-js';
-import { toSolidProps, useHeadlessCombobox } from '@pdanpdan/headless-combobox-solid';
+import { useHeadlessCombobox } from '@pdanpdan/headless-combobox-solid';
 
 interface User {
   id: number;
@@ -27,18 +27,18 @@ export function Example() {
           scope().setTriggerRef(el);
           scope().setInputRef(el);
         }}
-        {...toSolidProps(scope().comboboxInputProps)}
+        {...scope().comboboxInputProps}
         aria-label="Search users"
       />
       {scope().isOpen && (
-        <ul {...toSolidProps(scope().listboxProps)}>
+        <ul {...scope().listboxProps}>
           <For each={scope().filteredOptions}>
             {(user, index) => (
               <li>
                 <button
                   type="button"
                   ref={(el) => scope().setOptionRef(user, el)}
-                  {...toSolidProps(scope().getOptionProps(user, index()))}
+                  {...scope().getOptionProps(user, index())}
                 >
                   {user.name}
                 </button>
