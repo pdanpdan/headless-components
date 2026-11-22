@@ -171,6 +171,29 @@ describe('core popover', () => {
     store.destroy();
   });
 
+  it('discovers a search input in a popup outside the container', async () => {
+    const { store } = makeStore();
+    const snapshot = store.getSnapshot();
+    const root = document.createElement('div');
+    const trigger = document.createElement('button');
+    trigger.setAttribute('role', 'combobox');
+    trigger.setAttribute('aria-controls', snapshot.listboxProps.id);
+    const popup = document.createElement('div');
+    const search = document.createElement('input');
+    search.setAttribute('role', 'searchbox');
+    const list = document.createElement('div');
+    list.id = snapshot.listboxProps.id;
+    list.setAttribute('role', 'listbox');
+    popup.append(search, list);
+    root.append(trigger);
+    document.body.append(root, popup);
+
+    snapshot.setContainerRef(root);
+    await snapshot.open();
+
+    expect(document.activeElement).toBe(search);
+  });
+
   it('finds rendered options without setOptionRef', async () => {
     const { store } = makeStore({ modelValue: users[ 0 ], alignSelected: true });
     const snapshot = store.getSnapshot();

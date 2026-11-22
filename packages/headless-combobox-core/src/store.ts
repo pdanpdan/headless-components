@@ -287,7 +287,8 @@ export function createCombobox<O, V, Q = string>(
     }
     const input = trigger instanceof HTMLInputElement
       ? trigger
-      : list?.querySelector<HTMLInputElement>('[role="searchbox"]')
+      : (list?.closest<HTMLElement>('[popover]') ?? list?.parentElement ?? list)
+        ?.querySelector<HTMLInputElement>('[role="searchbox"]')
         ?? root.querySelector<HTMLInputElement>('[role="searchbox"]');
     if (input && (refs.inputRef == null || !refs.inputRef.isConnected)) {
       setInputRef(input);
