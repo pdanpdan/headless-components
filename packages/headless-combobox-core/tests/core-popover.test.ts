@@ -78,6 +78,25 @@ describe('core popover', () => {
     expect(document.activeElement).toBe(trigger);
   });
 
+  it('leaves focus on an external control when closed or selected programmatically', async () => {
+    const { store, onChange } = fixture();
+    const external = document.createElement('button');
+    document.body.append(external);
+
+    await store.getSnapshot().open();
+    external.focus();
+    store.getSnapshot().close();
+    expect(document.activeElement).toBe(external);
+    expect(store.getSnapshot().isOpen).toBe(false);
+
+    await store.getSnapshot().open();
+    external.focus();
+    store.getSnapshot().select(users[ 1 ]!);
+    expect(document.activeElement).toBe(external);
+    expect(onChange).toHaveBeenCalledWith(users[ 1 ]);
+    expect(store.getSnapshot().isOpen).toBe(false);
+  });
+
   it('does not reopen when close returns focus to a typeahead trigger', async () => {
     vi.useFakeTimers();
     try {

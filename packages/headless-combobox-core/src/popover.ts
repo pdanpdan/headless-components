@@ -69,20 +69,15 @@ export function createPopover<O, V, Q>(
   // is the text input whose focus handler opens the popup, so refocusing would
   // immediately reopen it. Ignore focus-driven opens for one task after close.
   let suppressFocusOpen = false;
-  let suppressFocusTimer: number | null = null;
+  let suppressFocusGeneration = 0;
 
   function suppressNextFocusOpen() {
-    const win = ctx.runtime.getDocument()?.defaultView ?? null;
-    if (win == null) {
-      return;
-    }
     suppressFocusOpen = true;
-    if (suppressFocusTimer != null) {
-      win.clearTimeout(suppressFocusTimer);
-    }
-    suppressFocusTimer = win.setTimeout(() => {
-      suppressFocusOpen = false;
-      suppressFocusTimer = null;
+    const generation = ++suppressFocusGeneration;
+    setTimeout(() => {
+      if (generation === suppressFocusGeneration) {
+        suppressFocusOpen = false;
+      }
     }, 0);
   }
 
@@ -144,7 +139,10 @@ export function createPopover<O, V, Q>(
       ctx.state.searchQuery = undefined;
       ctx.bump();
     });
-    if (returnFocus) {
+    // Return focus only when it is already inside the widget. A programmatic
+    // `close()` or `select()` from an external control must leave that control
+    // focused instead of yanking focus into the combobox.
+    if (returnFocus && isInsideWidget(ctx.runtime.getDocument()?.activeElement ?? null)) {
       suppressNextFocusOpen();
       refs.triggerRef?.focus();
     }
@@ -178,7 +176,12 @@ export function createPopover<O, V, Q>(
     if (target == null) {
       return false;
     }
-    return [ refs.containerRef, refs.triggerRef, refs.dropdownRef ].some((r) => r != null && r.contains(target));
+    return [
+      refs.containerRef,
+      refs.triggerRef,
+      refs.inputRef,
+      refs.dropdownRef,
+    ].some((r) => r != null && r.contains(target));
   }
 
   function maybeRefocusInput() {

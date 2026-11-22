@@ -230,7 +230,7 @@ ARIA prop bags (spread with `v-bind`). Each bag also carries its interaction han
 
 Each ARIA interface is exported for precise typing. The `disabled`/`readonly` flags and all `aria-*` attributes are included.
 
-Actions: `toggle`, `open`, `close(returnFocus?)`, `select(option)`, `createSelection()`, `clear()`, `setSearchQuery(value: Q | undefined)`, `setHighlightedIndex(index)`, `focusInput()`, `handleKeydown(event)`, `handleTypeaheadKeydown(event)`.
+Actions: `toggle`, `open`, `close(returnFocus?)`, `select(option)`, `createSelection()`, `clear()`, `setSearchQuery(value: Q | undefined)`, `setHighlightedIndex(index)`, `focusInput()`, `handleKeydown(event)`, `handleTypeaheadKeydown(event)`. Closing or selecting returns focus to the trigger only when focus is already inside the widget; external controls keep focus.
 
 Ref setters (assign with `:ref`): `setContainerRef`, `setTriggerRef`, `setDropdownRef`, `setInputRef`, `setListRef`, `setOptionRef(option, el)`.
 

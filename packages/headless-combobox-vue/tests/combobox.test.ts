@@ -1329,6 +1329,23 @@ describe('headless combobox (click outside)', () => {
     wired.wrapper.unmount();
   });
 
+  it('keeps focus on an external control when closed programmatically', async () => {
+    const users = createUsers();
+    const wired = mountWired(users);
+    const external = document.createElement('button');
+    document.body.append(external);
+
+    wired.scope.open();
+    await nextTick();
+    external.focus();
+    wired.scope.close();
+    await nextTick();
+
+    expect(document.activeElement).toBe(external);
+    expect(wired.scope.isOpen).toBe(false);
+    wired.wrapper.unmount();
+  });
+
   it('keeps the popup open when clicking inside the widget', async () => {
     const users = createUsers();
     const wired = mountWired(users);

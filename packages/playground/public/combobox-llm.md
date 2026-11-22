@@ -1016,7 +1016,7 @@ const { open, close, select, clear } = useHeadlessCombobox<User>(
 </template>
 ```
 
-`clickOutsideFilter` keeps the popup open when the click lands in the control panel. Refs and prop bags are still required for behavior that depends on the DOM: focus return, click-outside, and scroll-into-view.
+`clickOutsideFilter` keeps the popup open when the click lands in the control panel. Refs and prop bags are still required for behavior that depends on the DOM: focus return, click-outside, and scroll-into-view. Closing or selecting from an external control leaves focus on that control; focus returns to the trigger only when focus is already inside the widget.
 
 ## Props
 
@@ -1106,7 +1106,7 @@ Each bag already includes its interaction handlers. Spreading the bag is the onl
 |---|---|---|
 | `toggle` | `() => void` | Toggle the popup. |
 | `open` | `() => Promise<void>` | Open the popup. |
-| `close` | `(returnFocus?: boolean) => void` | Close the popup. Focus returns to the trigger by default. |
+| `close` | `(returnFocus?: boolean) => void` | Close the popup. Focus returns to the trigger only when focus is already inside the widget, so an external control stays focused. |
 | `select` | `(option: O) => void` | Select in single mode, toggle in multiple mode. |
 | `createSelection` | `() => void` | Commit the typed query. No-op unless `canCreate`. |
 | `clear` | `() => void` | Clear the selection. |
