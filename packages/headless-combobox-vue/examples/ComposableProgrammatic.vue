@@ -1,7 +1,7 @@
 <script lang="ts">
 /* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
 export const title = 'Composable · programmatic control';
-export const description = 'The composable escapes the slot: open, close, select, and clear are plain functions, callable from anywhere, here from buttons outside the widget. clickOutsideFilter keeps the popup open while the control panel is used.';
+export const description = 'open, close, select, and clear are plain functions, so the buttons outside the widget can call them. clickOutsideFilter keeps the popup open while the panel is used.';
 </script>
 
 <script setup lang="ts">

@@ -8,6 +8,7 @@ export default antfu(
     isInEditor: false,
     ignores: [
       'docs/**',
+      'packages/playground/pages/combobox/snippets/**',
     ],
     stylistic: {
       indent: 2,

@@ -8,7 +8,7 @@ All packages in this repository share this changelog and release version.
 
 * extract the framework-independent `@pdanpdan/headless-combobox-core`
 * add adapters for React, Svelte, Solid 2, and Angular
-* playground: synced, remembered adapter code tabs on every example
+* playground: per-framework docs pages and one example source per adapter
 
 ### BREAKING CHANGES
 

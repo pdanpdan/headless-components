@@ -1,7 +1,7 @@
 <script lang="ts">
 /* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
 export const title = 'Text options · single · internal state';
-export const description = 'An initial modelValue seeds the internal selection; with no update listener the component keeps it internally.';
+export const description = 'An initial value seeds the internal selection; without a change handler the component keeps it internally.';
 </script>
 
 <script setup lang="ts">

@@ -32,10 +32,16 @@ function adapterExamplesPlugin(): Plugin {
       if (id !== `\0${ ADAPTER_EXAMPLES_ID }`) {
         return null;
       }
-      const examples: Record<string, Record<string, { raw: string; html: string; }>> = {};
+      const examples: Record<string, {
+        title: string;
+        description: string;
+        sources: Record<string, { raw: string; html: string; }>;
+      }> = {};
       for (const name of Object.keys(EXAMPLE_META)) {
         const vuePath = resolve(currentDir, '../headless-combobox-vue/examples', `${ name }.vue`);
         const vueRaw = readFileSync(vuePath, 'utf8');
+        const title = /export const title = '([^']*)'/.exec(vueRaw)?.[ 1 ] ?? name;
+        const description = /export const description = '([^']*)'/.exec(vueRaw)?.[ 1 ] ?? '';
         const sources: Record<string, { raw: string; html: string; }> = {
           vue: { raw: vueRaw, html: await highlight(vueRaw, 'vue') },
         };
@@ -47,7 +53,7 @@ function adapterExamplesPlugin(): Plugin {
               : 'tsx';
           sources[ adapter ] = { raw, html: await highlight(raw, lang) };
         }
-        examples[ name ] = sources;
+        examples[ name ] = { title, description, sources };
       }
       return `export default ${ JSON.stringify(examples) };`;
     },

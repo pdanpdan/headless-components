@@ -14,7 +14,7 @@ pnpm add @pdanpdan/headless-combobox-svelte
 
 ```svelte
 <script lang="ts">
-  import Combobox from '@pdanpdan/headless-combobox-svelte/HeadlessCombobox.svelte';
+  import HeadlessCombobox from '@pdanpdan/headless-combobox-svelte/HeadlessCombobox.svelte';
   import { toSvelteProps } from '@pdanpdan/headless-combobox-svelte';
 
   const users = [
@@ -24,7 +24,7 @@ pnpm add @pdanpdan/headless-combobox-svelte
   let value = $state<typeof users[number] | null>(null);
 </script>
 
-<Combobox
+<HeadlessCombobox
   options={users}
   optionLabel={(user) => user.name}
   modelValue={value}
@@ -69,7 +69,7 @@ pnpm add @pdanpdan/headless-combobox-svelte
       </ul>
     </div>
   {/snippet}
-</Combobox>
+</HeadlessCombobox>
 ```
 
 ### Store API

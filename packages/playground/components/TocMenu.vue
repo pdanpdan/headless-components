@@ -12,32 +12,42 @@ const emit = defineEmits<{
   (e: 'current', id?: string): void;
 }>();
 
-// The browser matches the active link with :target-current but does not (yet)
-// expose it to assistive tech; mirror it as aria-current (see Sara Soueidan's
-// article on the WCAG 1.3.1 implication). The same match also reports the
-// current heading id to the layout, which renders it as breadcrumbs in the
-// collapsed dropdown. Only the displayed menu reports (dropdown and rail are
-// never visible together), keeping a single source for the id. A collapsed
-// <details> keeps its layout, so the dropdown keeps matching while closed.
+// JS scrollspy: the browser `:target-current` pseudo-class can report the old
+// and new targets at the same time right after an anchor click, leaving two
+// items highlighted until the next scroll. Computing the active heading from
+// positions keeps exactly one link active and also fixes the breadcrumb id.
+// The same match drives aria-current, which the CSS pseudo-class does not
+// expose to assistive tech.
 const listRef = ref<HTMLUListElement>();
 let raf = 0;
 let lastCurrentId: string | undefined;
-let targetCurrentSupported: boolean | undefined;
+const ACTIVE_OFFSET = 120;
 
-function matchesTargetCurrent(link: HTMLAnchorElement): boolean {
-  if (targetCurrentSupported == null) {
-    try {
-      document.createDocumentFragment().querySelector(':target-current');
-      targetCurrentSupported = true;
-    } catch {
-      // Older browsers do not know the pseudo-class yet; skip the mirror.
-      targetCurrentSupported = false;
-    }
-  }
-  return targetCurrentSupported && link.matches(':target-current');
+function headingElements(): HTMLElement[] {
+  return props.items
+    .map((item) => document.getElementById(item.id))
+    .filter((element): element is HTMLElement => element !== null);
 }
 
-function syncAriaCurrent() {
+function computeActiveId(): string | undefined {
+  const headings = headingElements();
+  if (headings.length === 0) {
+    return undefined;
+  }
+  if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+    return headings.at(-1)?.id;
+  }
+  let active = headings[ 0 ]?.id;
+  for (const heading of headings) {
+    if (heading.getBoundingClientRect().top > ACTIVE_OFFSET) {
+      break;
+    }
+    active = heading.id;
+  }
+  return active;
+}
+
+function applyActive(id: string | undefined) {
   const list = listRef.value;
   if (!list) {
     return;
@@ -46,53 +56,58 @@ function syncAriaCurrent() {
   const links = [
     ...list.querySelectorAll('a'),
   ];
-  const active = visible
-    ? links.find(matchesTargetCurrent)
-    : undefined;
-  const currentId = active?.getAttribute('href')?.slice(1);
   for (const link of links) {
-    if (link === active) {
+    if (link.getAttribute('href')?.slice(1) === id) {
+      link.classList.add('toc-active');
       link.setAttribute('aria-current', 'true');
     } else {
+      link.classList.remove('toc-active');
       link.removeAttribute('aria-current');
     }
   }
-  if (visible && currentId !== lastCurrentId) {
-    lastCurrentId = currentId;
-    emit('current', currentId);
+  if (visible && id !== lastCurrentId) {
+    lastCurrentId = id;
+    emit('current', id);
   }
+}
+
+function syncActive() {
+  applyActive(computeActiveId());
 }
 
 function onScroll() {
   cancelAnimationFrame(raf);
-  raf = requestAnimationFrame(syncAriaCurrent);
+  raf = requestAnimationFrame(syncActive);
 }
 
-// Chrome finalizes the scroll-target currentness after momentum/anchor
-// scrolling settles (scrollend), so re-sync once movement stops.
 function onScrollEnd() {
   cancelAnimationFrame(raf);
-  syncAriaCurrent();
+  syncActive();
+}
+
+function select(id: string) {
+  applyActive(id);
+  emit('select');
 }
 
 onMounted(() => {
-  syncAriaCurrent();
+  syncActive();
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('scrollend', onScrollEnd, { passive: true });
-  window.addEventListener('resize', syncAriaCurrent);
+  window.addEventListener('resize', syncActive);
 });
 
 onUnmounted(() => {
   window.removeEventListener('scroll', onScroll);
   window.removeEventListener('scrollend', onScrollEnd);
-  window.removeEventListener('resize', syncAriaCurrent);
+  window.removeEventListener('resize', syncActive);
   cancelAnimationFrame(raf);
 });
 
 watch(
   () => props.items,
   () => {
-    syncAriaCurrent();
+    syncActive();
   },
   { flush: 'post' },
 );
@@ -114,7 +129,7 @@ watch(
           'ps-7': item.level === 3,
           'ps-10': item.level === 4,
         }"
-        @click="emit('select')"
+        @click="select(item.id)"
       >
         {{ item.text }}
       </a>
@@ -123,14 +138,7 @@ watch(
 </template>
 
 <style scoped>
-/* CSS-only scrollspy (Sara Soueidan, "CSS-only scrollspy effect using
-   scroll-target-group and :target-current"): promoting the anchors to scroll
-   markers makes the browser match the link whose target section is in view
-   with `:target-current`. Chrome 140+; the links keep working everywhere. */
-.toc-list {
-  scroll-target-group: auto;
-}
-.toc-list a:target-current {
+.toc-list a.toc-active {
   background-color: color-mix(in oklab, var(--color-primary) 10%, transparent);
   color: var(--color-primary);
 }

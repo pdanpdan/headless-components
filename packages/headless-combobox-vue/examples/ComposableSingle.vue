@@ -1,7 +1,7 @@
 <script lang="ts">
 /* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
 export const title = 'Composable · single · typeahead';
-export const description = 'Same headless behavior without the component: useHeadlessCombobox exposes state, ARIA bags, and actions directly. Wire your own markup with plain refs.';
+export const description = 'The same behavior without the component. useHeadlessCombobox exposes the state, ARIA bags, and actions; wire the markup with plain refs.';
 </script>
 
 <script setup lang="ts">

@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-import type { AdapterId } from '#/lib/adapter-examples';
-
 import CodeBlock from '#/components/CodeBlock.vue';
-import { ADAPTER_LABELS } from '#/lib/adapter-examples';
-import { useAdapterPreference } from '#/lib/adapter-preference';
 
 interface Source {
   raw: string;
@@ -15,26 +11,13 @@ interface Source {
 const props = defineProps<{
   title: string;
   description?: string;
-  sources: Record<AdapterId, Source>;
+  source: Source;
+  lang?: string;
+  preview?: boolean;
 }>();
 
-const tab = ref<'preview' | 'code'>('preview');
-const { selectedAdapter, selectAdapter } = useAdapterPreference();
-
-const currentSource = computed(() => props.sources[ selectedAdapter.value ] ?? props.sources.vue);
-
-const language = computed(() => {
-  switch (selectedAdapter.value) {
-    case 'svelte':
-      return 'svelte';
-    case 'angular':
-      return 'ts';
-    case 'vue':
-      return 'vue';
-    default:
-      return 'tsx';
-  }
-});
+const tab = ref<'preview' | 'code'>(props.preview ? 'preview' : 'code');
+const codeLang = computed(() => props.lang ?? 'vue');
 </script>
 
 <template>
@@ -48,6 +31,7 @@ const language = computed(() => {
       </header>
 
       <div
+        v-if="preview"
         role="tablist"
         class="
           tabs-box tabs w-fit
@@ -75,6 +59,7 @@ const language = computed(() => {
       </div>
 
       <div
+        v-if="preview"
         v-show="tab === 'preview'"
         class="
           flex min-h-40 items-start justify-center rounded-box border
@@ -85,36 +70,10 @@ const language = computed(() => {
       </div>
 
       <div v-show="tab === 'code'" class="flex flex-col gap-3">
-        <div
-          role="tablist"
-          aria-label="Adapter"
-          class="
-            tabs-border tabs w-fit
-            max-xl:tabs-sm
-          "
-        >
-          <button
-            v-for="adapter in ADAPTER_LABELS"
-            :key="adapter.id"
-            type="button"
-            role="tab"
-            class="tab"
-            :aria-selected="selectedAdapter === adapter.id"
-            @click="selectAdapter(adapter.id)"
-          >
-            {{ adapter.label }}
-          </button>
-        </div>
-
-        <p class="text-xs text-base-content/60">
-          The live preview always runs the Vue adapter. The code shows the same
-          example wired for {{ ADAPTER_LABELS.find((adapter) => adapter.id === selectedAdapter)?.label }}.
-        </p>
-
         <CodeBlock
-          :code="currentSource.html"
-          :raw="currentSource.raw"
-          :lang="language"
+          :code="source.html"
+          :raw="source.raw"
+          :lang="codeLang"
         />
       </div>
     </div>

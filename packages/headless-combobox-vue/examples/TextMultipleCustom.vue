@@ -1,7 +1,7 @@
 <script lang="ts">
 /* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
 export const title = 'Text options · multiple · custom options';
-export const description = 'Options are fully customizable: the focused option gets a thick left border, and each option shows a checkbox (checked / unchecked) for its selection state.';
+export const description = 'Each option renders its own checkbox for the selection state; the trigger shows the selected items as chips.';
 </script>
 
 <script setup lang="ts">

@@ -1,7 +1,7 @@
 <script lang="ts">
 /* eslint-disable import/first -- the exports below precede the setup imports in the compiled module */
 export const title = 'Object options · single · with filter';
-export const description = 'Object options with a custom layout and a searchable input.';
+export const description = 'Object options with a searchable input.';
 </script>
 
 <script setup lang="ts">

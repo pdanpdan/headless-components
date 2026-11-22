@@ -8,7 +8,7 @@ export default {
   trailingSlash: true,
 
   title: 'Headless Components',
-  description: 'Headless (unstyled) Vue 3 components, styled with daisyUI 5 / Tailwind 4.',
+  description: 'Framework-independent headless components with adapters for Vue, React, Svelte, Solid, and Angular.',
 
   extends: [ vikeVue ],
 } as Config;

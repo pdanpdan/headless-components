@@ -14,6 +14,15 @@ declare module '*?highlight' {
 declare module 'virtual:adapter-examples' {
   import type { AdapterId } from './lib/adapter-examples';
 
-  const examples: Record<string, Record<AdapterId, { raw: string; html: string; }>>;
+  interface ExampleSource {
+    raw: string;
+    html: string;
+  }
+
+  const examples: Record<string, {
+    title: string;
+    description: string;
+    sources: Record<AdapterId, ExampleSource>;
+  }>;
   export default examples;
 }
