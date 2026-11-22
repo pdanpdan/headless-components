@@ -1,7 +1,7 @@
 {
   "name": "@pdanpdan/headless-combobox-vue",
   "type": "module",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "Accessible renderless combobox for Vue 3, built on the framework-independent core",
   "author": "",
   "license": "MIT",

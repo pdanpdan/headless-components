@@ -1,7 +1,7 @@
 {
   "name": "@pdanpdan/headless-combobox-react",
   "type": "module",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "Accessible renderless combobox for React, built on the framework-independent core",
   "author": "Dan Popescu",
   "license": "MIT",

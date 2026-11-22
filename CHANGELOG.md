@@ -1,5 +1,19 @@
 # Changelog
 
+# [3.1.0](https://github.com/pdanpdan/headless-components/compare/v3.0.1...v3.1.0) (2026-11-22)
+
+### Bug Fixes
+
+* **combobox:** close popup on trigger Enter with a filter ([905374b](https://github.com/pdanpdan/headless-components/commit/905374bab9218190c8f35a9b7dc91025b0aa273f))
+* **combobox:** disable native autocomplete on input bags ([9dd1333](https://github.com/pdanpdan/headless-components/commit/9dd133352b876f89ccf37b2071bb9bf204b22347))
+* **combobox:** keep external focus on programmatic close ([23cb0f1](https://github.com/pdanpdan/headless-components/commit/23cb0f129b5868f5ddba494a2258b8337daa5691))
+
+### Features
+
+* **combobox:** add a creatable typeahead example ([6820b65](https://github.com/pdanpdan/headless-components/commit/6820b656262fc190a760b422489c16e091bd5dd6))
+* **combobox:** add creatable values and accessible result status ([71b948d](https://github.com/pdanpdan/headless-components/commit/71b948d2eaa45bc24c63bd02a11a61ad9cedd4c6))
+* **combobox:** simplify adapter bags and ref wiring ([093e70a](https://github.com/pdanpdan/headless-components/commit/093e70adab2e37104918239ca47d4ccc8c5f12d9))
+
 All packages in this repository share this changelog and release version.
 
 # [3.0.1](https://github.com/pdanpdan/headless-components/compare/v3.0.0...v3.0.1) (2026-11-22)
