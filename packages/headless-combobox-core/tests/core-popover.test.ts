@@ -107,6 +107,10 @@ describe('core popover', () => {
       scope().comboboxInputProps.onFocus();
       expect(scope().isOpen).toBe(false);
 
+      // Closing again before the timer fires replaces the pending suppression.
+      await scope().open();
+      scope().close();
+
       // A later focus is a real user action again.
       vi.advanceTimersByTime(1);
       scope().comboboxInputProps.onFocus();
@@ -145,6 +149,9 @@ describe('core popover', () => {
     store.getSnapshot().select(users[ 0 ]!);
     await Promise.resolve();
     expect(document.activeElement).toBe(input);
+
+    store.getSnapshot().close();
+    expect(store.getSnapshot().isOpen).toBe(false);
   });
 
   it('ignores open while open or locked', async () => {

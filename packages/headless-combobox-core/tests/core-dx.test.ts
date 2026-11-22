@@ -197,12 +197,95 @@ describe('combobox developer experience', () => {
     await store.getSnapshot().open();
     store.getSnapshot().setSearchQuery('First');
     store.getSnapshot().createSelection();
+    await Promise.resolve();
     expect(onChange).toHaveBeenLastCalledWith([
       { id: 99, name: 'First' },
     ]);
     expect(store.getSnapshot().searchQuery).toBeUndefined();
     expect(store.getSnapshot().canCreate).toBe(false);
     expect(store.getSnapshot().isOpen).toBe(true);
+  });
+
+  it('does not create from a blank query or when createOption returns null', async () => {
+    const onChange = vi.fn();
+    const { store } = typeaheadFixture({
+      creatable: true,
+      createOption: (query: string): User | null => (query === 'New Person'
+        ? null
+        : { id: 99, name: query }),
+    }, onChange);
+
+    await store.getSnapshot().open();
+    store.getSnapshot().setSearchQuery('   ');
+    expect(store.getSnapshot().canCreate).toBe(false);
+    store.getSnapshot().createSelection();
+    expect(onChange).not.toHaveBeenCalled();
+
+    store.getSnapshot().setSearchQuery('New Person');
+    expect(store.getSnapshot().canCreate).toBe(true);
+    store.getSnapshot().createSelection();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(store.getSnapshot().searchQuery).toBe('New Person');
+  });
+
+  it('uses String labels when optionLabel is omitted', () => {
+    const store = createCombobox<string, string>({
+      props: {
+        modelValue: null,
+        options: [ 'Vue', 'React' ],
+        creatable: true,
+        createOption: (query) => query,
+      },
+      onChange: vi.fn(),
+    });
+
+    store.getSnapshot().setSearchQuery('Vue');
+    expect(store.getSnapshot().canCreate).toBe(false);
+    store.getSnapshot().setSearchQuery('Svelte');
+    expect(store.getSnapshot().canCreate).toBe(true);
+  });
+
+  it('does not append a created value that is already selected', async () => {
+    const onChange = vi.fn();
+    const store = createCombobox<string, string>({
+      props: {
+        modelValue: [ 'Custom' ],
+        options: [ 'Vue', 'React' ],
+        multiple: true,
+        creatable: true,
+        createOption: (query) => query,
+        closeOnSelect: false,
+      },
+      onChange,
+    });
+
+    await store.getSnapshot().open();
+    store.getSnapshot().setSearchQuery('Custom');
+    expect(store.getSnapshot().canCreate).toBe(true);
+    store.getSnapshot().createSelection();
+    await Promise.resolve();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('creates without refocusing when the popup is closed', async () => {
+    const onChange = vi.fn();
+    const store = createCombobox<string, string>({
+      props: {
+        modelValue: [],
+        options: [ 'Vue' ],
+        multiple: true,
+        creatable: true,
+        createOption: (query) => query,
+        closeOnSelect: false,
+      },
+      onChange,
+    });
+
+    store.getSnapshot().setSearchQuery('Svelte');
+    store.getSnapshot().createSelection();
+    await Promise.resolve();
+    expect(onChange).toHaveBeenCalledWith([ 'Svelte' ]);
+    expect(store.getSnapshot().isOpen).toBe(false);
   });
 
   it('ignores creation while locked or disabled', () => {

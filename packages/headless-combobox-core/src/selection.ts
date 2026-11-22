@@ -119,11 +119,12 @@ export function createSelection<O, V, Q>(
   // Commit the current query as a new value. The consumer supplies the value
   // through `createOption`; it is stored exactly like a selected option value.
   function createSelection() {
-    const query = ctx.state.searchQuery;
-    const createOption = ctx.props.createOption;
-    if (!getCanCreate() || query == null || createOption == null) {
+    if (!getCanCreate()) {
       return;
     }
+    // `getCanCreate` only passes when the query and `createOption` are present.
+    const query = ctx.state.searchQuery as Q;
+    const createOption = ctx.props.createOption as (query: Q) => V | null | undefined;
     const created = createOption(query);
     if (created == null) {
       return;

@@ -1080,9 +1080,19 @@ describe('headlessCombobox (comboboxInputProps)', () => {
     const cb = mountComboBox(users);
 
     expect(cb.scope.comboboxInputProps.role).toBe('combobox');
+    expect(cb.scope.comboboxInputProps.autocomplete).toBe('off');
     expect(cb.scope.comboboxInputProps[ 'aria-autocomplete' ]).toBe('list');
     expect(cb.scope.comboboxInputProps[ 'aria-haspopup' ]).toBe('listbox');
     expect(cb.scope.comboboxInputProps[ 'aria-controls' ]).toBeDefined();
+  });
+
+  it('exposes the typeahead keydown action', async () => {
+    const users = createUsers();
+    const cb = mountComboBox(users);
+
+    cb.scope.handleTypeaheadKeydown(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+    await nextTick();
+    expect(cb.scope.isOpen).toBe(true);
   });
 });
 
