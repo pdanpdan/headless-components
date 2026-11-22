@@ -47,11 +47,6 @@ const {
   listboxProps,
   getOptionProps,
   setContainerRef,
-  setTriggerRef,
-  setInputRef,
-  setDropdownRef,
-  setListRef,
-  setOptionRef,
 } = useHeadlessCombobox<string>(
   {
     modelValue: selected,
@@ -77,7 +72,6 @@ const {
         @click.self="open"
       >
         <input
-          :ref="(el) => { setTriggerRef(el); setInputRef(el); }"
           v-bind="comboboxInputProps"
           :aria-labelledby="labelId"
           :value="searchQuery ?? (selected ?? '')"
@@ -116,7 +110,6 @@ const {
       </div>
 
       <ul
-        :ref="(el) => { setDropdownRef(el); setListRef(el); }"
         v-bind="listboxProps"
         popover="manual"
         class="
@@ -133,7 +126,6 @@ const {
           :key="language"
         >
           <button
-            :ref="(el) => setOptionRef(language, el)"
             type="button"
             v-bind="getOptionProps(language, index)"
             class="justify-between shadow-none"

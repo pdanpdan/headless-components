@@ -43,10 +43,6 @@ const {
   select,
   clear,
   setContainerRef,
-  setTriggerRef,
-  setDropdownRef,
-  setListRef,
-  setOptionRef,
 } = useHeadlessCombobox<User>(
   {
     modelValue: selected,
@@ -106,7 +102,6 @@ const {
       >
         <legend :id="labelId" class="fieldset-legend">Member (composable, programmatic)</legend>
         <button
-          :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
@@ -130,7 +125,6 @@ const {
         </button>
 
         <ul
-          :ref="(el) => { setDropdownRef(el); setListRef(el); }"
           v-bind="listboxProps"
           popover="manual"
           class="
@@ -144,7 +138,6 @@ const {
             :key="user.id"
           >
             <button
-              :ref="(el) => setOptionRef(user, el)"
               type="button"
               v-bind="getOptionProps(user, index)"
               class="justify-between shadow-none"

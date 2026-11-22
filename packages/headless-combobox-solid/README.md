@@ -33,10 +33,10 @@ export function Example() {
     >
       {(scope) => (
         <div ref={scope().setContainerRef}>
-          <button ref={scope().setTriggerRef} type="button" {...scope().triggerProps}>
+          <button type="button" {...scope().triggerProps}>
             {value()?.name ?? 'Select…'}
           </button>
-          <ul ref={scope().setDropdownRef} {...scope().listboxProps}>
+          <ul {...scope().listboxProps}>
             <For each={scope().filteredOptions}>
               {(user, index) => (
                 <li {...scope().getOptionProps(user, index())}>

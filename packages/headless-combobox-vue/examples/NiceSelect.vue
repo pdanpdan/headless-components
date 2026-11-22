@@ -35,7 +35,7 @@ const labelId = useId();
       v-slot="{
         filteredOptions, highlightedIndex, isSelected,
         cssAnchorName, popupStyle, triggerProps, listboxProps,
-        getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setListRef, setOptionRef,
+        getOptionProps, setContainerRef,
       }"
       v-model="selected"
       :options="users"
@@ -48,7 +48,6 @@ const labelId = useId();
       >
         <legend :id="labelId" class="fieldset-legend">Assign user</legend>
         <button
-          :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
@@ -73,7 +72,6 @@ const labelId = useId();
       </fieldset>
 
       <ul
-        :ref="(el) => { setDropdownRef(el); setListRef(el); }"
         v-bind="listboxProps"
         popover="manual"
         class="
@@ -93,7 +91,6 @@ const labelId = useId();
           :key="user.id"
         >
           <button
-            :ref="(el) => setOptionRef(user, el)"
             type="button"
             v-bind="getOptionProps(user, index)"
             class="flex min-h-10 items-center justify-between shadow-none"

@@ -19,16 +19,16 @@ The component renders nothing on its own. You build the markup and bind the slot
 ```text
 HeadlessCombobox (default slot scope)
 └─ div :ref="setContainerRef"                       widget boundary (optional)
-   ├─ button :ref="setTriggerRef"                   the trigger
+   ├─ button                                         the trigger
    │  │        v-bind="triggerProps"
    │  └─ selected label
-   ├─ ul :ref="setDropdownRef"                      the popup
+   ├─ ul                                             the popup
    │  │      v-bind="listboxProps" :style="popupStyle"
    │  │      popover="manual"                       optional: native Popover API
    │  └─ li v-for="(option, i) in filteredOptions"
-   │     └─ button :ref="setOptionRef(option, el)"  one option
+   │     └─ button                                  one option
    │             v-bind="getOptionProps(option, i)"
-   └─ input :ref="setInputRef"                      search input (optional)
+   └─ input                                           search input (optional)
            v-bind="inputProps"
 ```
 
@@ -37,13 +37,13 @@ HeadlessCombobox (default slot scope)
 ```text
 HeadlessCombobox (default slot scope)
 └─ div :ref="setContainerRef"                       widget boundary (optional)
-   ├─ input :ref="(el) => { setTriggerRef(el); setInputRef(el) }"
+   ├─ input
    │  │       v-bind="comboboxInputProps"           the combobox input
-   └─ ul :ref="setDropdownRef"                      the popup
+   └─ ul                                             the popup
       │      v-bind="listboxProps" :style="popupStyle"
       │      popover="manual"                       optional: native Popover API
       └─ li v-for="(option, i) in filteredOptions"
-         └─ button :ref="setOptionRef(option, el)"  one option
+         └─ button                                  one option
                  v-bind="getOptionProps(option, i)"
 ```
 
@@ -52,14 +52,14 @@ This is where each slot prop is designed to be used:
 | Markup | Slot props to bind | What they do |
 |---|---|---|
 | wrapper element | `setContainerRef` | Widget boundary for click-outside and focus. Optional, recommended. |
-| trigger button | `triggerProps`, `setTriggerRef` | `role="combobox"`. Toggles the popup and handles keyboard navigation. |
-| typeahead input | `comboboxInputProps`, `setTriggerRef`, `setInputRef` | The input *is* the combobox: typing reopens and filters. |
-| search input in the popup | `inputProps`, `setInputRef` | `role="searchbox"`. Filters while the popup stays open. |
-| popup element | `popupStyle`, `setDropdownRef` | Positioning; add `popover="manual"` to use the native Popover API. |
-| list element | `listboxProps`, `setListRef` | `role="listbox"`. The options container. |
-| each option element | `getOptionProps(option, index?)`, `setOptionRef(option, el)` | Option semantics + select/highlight handlers. `index` defaults to the option's position in `filteredOptions`; pass it only as that flat position. |
+| trigger button | `triggerProps` | `role="combobox"`. Toggles the popup and handles keyboard navigation. |
+| typeahead input | `comboboxInputProps` | The input *is* the combobox: typing reopens and filters. |
+| search input in the popup | `inputProps` | `role="searchbox"`. Filters while the popup stays open. |
+| popup element | `popupStyle` | Positioning; add `popover="manual"` to use the native Popover API. |
+| list element | `listboxProps` | `role="listbox"`. The options container. |
+| each option element | `getOptionProps(option, index?)` | Option semantics + select/highlight handlers. `index` defaults to the option's position in `filteredOptions`; pass it only as that flat position. |
 
-Ref setters are wired with `:ref="..."` and are optional. Bind only the elements your markup uses. `setOptionRef` enables `alignSelected` and scroll-into-view; `setContainerRef` extends the click-outside boundary (e.g. to external chips).
+`setContainerRef` is the only ref needed for standard markup: it discovers the trigger, typeahead/search input, listbox, and dropdown. Explicit refs override discovery; `setOptionRef` is only needed for virtualized windows.
 
 ```vue
 <script setup lang="ts">
@@ -77,16 +77,16 @@ const selected = ref<User | null>(null);
 
 <template>
   <HeadlessCombobox
-    v-slot="{ isOpen, filteredOptions, triggerProps, listboxProps, setContainerRef, setTriggerRef, setDropdownRef, getOptionProps }"
+    v-slot="{ isOpen, filteredOptions, triggerProps, listboxProps, setContainerRef, getOptionProps }"
     v-model="selected"
     :options="users"
     :option-label="(u) => u.name"
   >
     <div :ref="setContainerRef">
-      <button :ref="setTriggerRef" v-bind="triggerProps" type="button">
+      <button v-bind="triggerProps" type="button">
         {{ selected?.name ?? 'Select…' }}
       </button>
-      <ul v-if="isOpen" :ref="setDropdownRef" v-bind="listboxProps">
+      <ul v-if="isOpen" v-bind="listboxProps">
         <li v-for="(u, i) in filteredOptions" :key="u.id">
           <button type="button" v-bind="getOptionProps(u, i)">
             {{ u.name }}
@@ -130,11 +130,6 @@ const {
   listboxProps,
   getOptionProps,
   setContainerRef,
-  setTriggerRef,
-  setInputRef,
-  setDropdownRef,
-  setListRef,
-  setOptionRef,
 } = useHeadlessCombobox<User>(
   {
     modelValue: selected,
@@ -151,19 +146,16 @@ const {
   <fieldset :ref="setContainerRef">
     <legend :id="labelId">Pick a user</legend>
     <input
-      :ref="(el) => { setTriggerRef(el); setInputRef(el); }"
       v-bind="comboboxInputProps"
       :aria-labelledby="labelId"
       type="text"
     />
     <ul
       v-if="isOpen"
-      :ref="(el) => { setDropdownRef(el); setListRef(el); }"
       v-bind="listboxProps"
     >
       <li v-for="(user, index) in filteredOptions" :key="user.id">
         <button
-          :ref="(el) => setOptionRef(user, el)"
           type="button"
           v-bind="getOptionProps(user, index)"
         >

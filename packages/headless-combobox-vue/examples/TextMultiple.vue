@@ -32,7 +32,6 @@ const MAX = 3;
         filteredOptions, highlightedIndex, searchQuery,
         clear, isSelected, canSelectMore, selectedCount,
         cssAnchorName, popupStyle, triggerProps, inputProps, listboxProps, getOptionProps, setContainerRef,
-        setTriggerRef, setDropdownRef, setInputRef, setListRef, setOptionRef,
       }"
       v-model="selected"
       :options="frameworks"
@@ -45,7 +44,6 @@ const MAX = 3;
       >
         <legend :id="labelId" class="fieldset-legend">Frameworks (multiple, max {{ MAX }})</legend>
         <button
-          :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
@@ -68,7 +66,6 @@ const MAX = 3;
       </fieldset>
 
       <div
-        :ref="setDropdownRef"
         popover="manual"
         class="
           cbx-popup rounded-box border border-base-content/5 bg-base-200
@@ -81,7 +78,6 @@ const MAX = 3;
       >
         <div class="flex items-center gap-2 border-b border-base-content/10 p-2">
           <input
-            :ref="setInputRef"
             v-bind="inputProps"
             :value="searchQuery"
             type="text"
@@ -99,7 +95,6 @@ const MAX = 3;
         </div>
 
         <ul
-          :ref="setListRef"
           v-bind="listboxProps"
           class="menu max-h-60 w-full flex-nowrap gap-0.5 overflow-y-auto"
         >
@@ -108,7 +103,6 @@ const MAX = 3;
             :key="framework"
           >
             <button
-              :ref="(el) => setOptionRef(framework, el)"
               type="button"
               v-bind="getOptionProps(framework, index)"
               class="justify-between shadow-none"

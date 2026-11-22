@@ -37,7 +37,7 @@ const selectedLabel = computed(
       v-slot="{
         filteredOptions, highlightedIndex, isSelected,
         cssAnchorName, popupStyle, triggerProps, listboxProps,
-        getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setListRef, setOptionRef,
+        getOptionProps, setContainerRef,
       }"
       v-model="selected"
       :options="frameworks"
@@ -50,7 +50,6 @@ const selectedLabel = computed(
       >
         <legend :id="labelId" class="fieldset-legend">Framework id (single, separate value)</legend>
         <button
-          :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
@@ -75,7 +74,6 @@ const selectedLabel = computed(
       </fieldset>
 
       <ul
-        :ref="(el) => { setDropdownRef(el); setListRef(el); }"
         v-bind="listboxProps"
         popover="manual"
         class="
@@ -92,7 +90,6 @@ const selectedLabel = computed(
           :key="framework.value"
         >
           <button
-            :ref="(el) => setOptionRef(framework, el)"
             type="button"
             v-bind="getOptionProps(framework, index)"
             class="justify-between shadow-none"

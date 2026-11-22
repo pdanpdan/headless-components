@@ -60,8 +60,7 @@ watch(selected, () => {
       v-slot="{
         isOpen, filteredOptions, highlightedIndex, searchQuery, open,
         select, isSelected, canSelectMore, cssAnchorName, popupStyle,
-        comboboxInputProps, listboxProps, getOptionProps, setContainerRef, setTriggerRef,
-        setInputRef, setDropdownRef, setListRef, setOptionRef,
+        comboboxInputProps, listboxProps, getOptionProps, setContainerRef,
       }"
       v-model="selected"
       :options="languages"
@@ -122,7 +121,6 @@ watch(selected, () => {
             </span>
           </div>
           <input
-            :ref="(el) => { setTriggerRef(el); setInputRef(el); }"
             v-bind="comboboxInputProps"
             :aria-labelledby="labelId"
             :value="isOpen ? searchQuery : ''"
@@ -134,7 +132,6 @@ watch(selected, () => {
       </fieldset>
 
       <ul
-        :ref="(el) => { setDropdownRef(el); setListRef(el); }"
         v-bind="listboxProps"
         popover="manual"
         class="
@@ -151,7 +148,6 @@ watch(selected, () => {
           :key="language"
         >
           <button
-            :ref="(el) => setOptionRef(language, el)"
             type="button"
             v-bind="getOptionProps(language, index)"
             class="justify-between shadow-none"

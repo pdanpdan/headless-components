@@ -8,7 +8,6 @@
       <button
         type="button"
         {...scope.triggerProps}
-        {@attach scope.setTriggerRef}
       >
         {value ?? 'Select…'}
       </button>

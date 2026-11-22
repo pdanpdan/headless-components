@@ -32,7 +32,6 @@ const labelId = useId();
         filteredOptions, highlightedIndex, searchQuery, open,
         isSelected, canCreate, statusMessage, createSelection, cssAnchorName, popupStyle,
         comboboxInputProps, listboxProps, statusProps, getOptionProps, setContainerRef,
-        setTriggerRef, setInputRef, setDropdownRef, setListRef, setOptionRef,
       }"
       v-model="selected"
       :options="languages"
@@ -51,7 +50,6 @@ const labelId = useId();
           @click.self="open"
         >
           <input
-            :ref="(el) => { setTriggerRef(el); setInputRef(el); }"
             v-bind="comboboxInputProps"
             :aria-labelledby="labelId"
             :value="searchQuery ?? (selected ?? '')"
@@ -81,7 +79,6 @@ const labelId = useId();
       <p v-bind="statusProps" class="sr-only">{{ statusMessage }}</p>
 
       <div
-        :ref="setDropdownRef"
         popover="manual"
         class="
           cbx-popup rounded-box border border-base-content/5 bg-base-200
@@ -93,7 +90,6 @@ const labelId = useId();
         }]"
       >
         <ul
-          :ref="setListRef"
           v-bind="listboxProps"
           class="menu max-h-60 w-full flex-nowrap gap-0.5 overflow-y-auto"
         >
@@ -102,7 +98,6 @@ const labelId = useId();
             :key="language"
           >
             <button
-              :ref="(el) => setOptionRef(language, el)"
               type="button"
               v-bind="getOptionProps(language, index)"
               class="justify-between shadow-none"

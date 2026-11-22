@@ -39,28 +39,16 @@ pnpm add @pdanpdan/headless-combobox-svelte
       <button
         type="button"
         {...scope.triggerProps}
-        {@attach (el) => {
-          scope.setTriggerRef(el);
-          return () => scope.setTriggerRef(null);
-        }}
       >
         {value?.name ?? 'Select…'}
       </button>
 
       <ul
         {...scope.listboxProps}
-        {@attach (el) => {
-          scope.setDropdownRef(el);
-          return () => scope.setDropdownRef(null);
-        }}
       >
         {#each scope.filteredOptions as user, index (user.id)}
           <li
             {...scope.getOptionProps(user, index)}
-            {@attach (el) => {
-              scope.setOptionRef(user, el);
-              return () => scope.setOptionRef(user, null);
-            }}
           >
             {user.name}
           </li>

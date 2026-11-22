@@ -53,8 +53,7 @@ function groupedOptions(visible: string[]) {
       v-slot="{
         filteredOptions, highlightedIndex, searchQuery, isSelected, clear,
         cssAnchorName, popupStyle, triggerProps, inputProps, listboxProps,
-        getOptionProps, setContainerRef, setTriggerRef, setInputRef,
-        setDropdownRef, setListRef, setOptionRef,
+        getOptionProps, setContainerRef,
       }"
       v-model="selected"
       :options="options"
@@ -65,7 +64,6 @@ function groupedOptions(visible: string[]) {
       >
         <legend :id="labelId" class="fieldset-legend">Technology (grouped)</legend>
         <button
-          :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
@@ -90,7 +88,6 @@ function groupedOptions(visible: string[]) {
       </fieldset>
 
       <div
-        :ref="setDropdownRef"
         popover="manual"
         class="
           cbx-popup rounded-box border border-base-content/5 bg-base-200
@@ -103,7 +100,6 @@ function groupedOptions(visible: string[]) {
       >
         <div class="flex items-center gap-2 border-b border-base-content/10 p-2">
           <input
-            :ref="setInputRef"
             v-bind="inputProps"
             :value="searchQuery"
             type="text"
@@ -121,7 +117,6 @@ function groupedOptions(visible: string[]) {
         </div>
 
         <ul
-          :ref="setListRef"
           v-bind="listboxProps"
           class="menu max-h-60 w-full flex-nowrap gap-0.5 overflow-y-auto"
         >
@@ -135,7 +130,6 @@ function groupedOptions(visible: string[]) {
             <button
               v-for="option in group.items"
               :key="option"
-              :ref="(el) => setOptionRef(option, el)"
               type="button"
               v-bind="getOptionProps(option)"
               class="justify-between shadow-none"

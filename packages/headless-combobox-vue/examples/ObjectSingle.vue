@@ -35,8 +35,7 @@ const labelId = useId();
       v-slot="{
         filteredOptions, highlightedIndex, searchQuery,
         clear, isSelected, cssAnchorName, popupStyle, triggerProps, inputProps,
-        listboxProps, getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setInputRef,
-        setListRef, setOptionRef,
+        listboxProps, getOptionProps, setContainerRef,
       }"
       v-model="selected"
       :options="users"
@@ -48,7 +47,6 @@ const labelId = useId();
       >
         <legend :id="labelId" class="fieldset-legend">Assign user (single, with filter)</legend>
         <button
-          :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
@@ -74,7 +72,6 @@ const labelId = useId();
       </fieldset>
 
       <div
-        :ref="setDropdownRef"
         popover="manual"
         class="
           cbx-popup rounded-box border border-base-content/5 bg-base-200
@@ -87,7 +84,6 @@ const labelId = useId();
       >
         <div class="flex items-center gap-2 border-b border-base-content/10 p-2">
           <input
-            :ref="setInputRef"
             v-bind="inputProps"
             :value="searchQuery"
             type="text"
@@ -105,7 +101,6 @@ const labelId = useId();
         </div>
 
         <ul
-          :ref="setListRef"
           v-bind="listboxProps"
           class="menu max-h-60 w-full flex-nowrap gap-0.5 overflow-y-auto"
         >
@@ -114,7 +109,6 @@ const labelId = useId();
             :key="user.id"
           >
             <button
-              :ref="(el) => setOptionRef(user, el)"
               type="button"
               v-bind="getOptionProps(user, index)"
               class="justify-between shadow-none"

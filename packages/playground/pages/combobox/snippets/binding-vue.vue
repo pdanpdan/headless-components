@@ -4,7 +4,7 @@
   :options="options"
 >
   <div :ref="scope.setContainerRef">
-    <button :ref="scope.setTriggerRef" v-bind="scope.triggerProps">
+    <button v-bind="scope.triggerProps">
       {{ value ?? 'Select…' }}
     </button>
     <ul v-if="scope.isOpen" v-bind="scope.listboxProps">

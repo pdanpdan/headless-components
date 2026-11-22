@@ -23,10 +23,6 @@ export function Example() {
   return (
     <div ref={scope.setContainerRef}>
       <input
-        ref={(el) => {
-          scope.setTriggerRef(el);
-          scope.setInputRef(el);
-        }}
         {...scope.comboboxInputProps}
         aria-label="Search users"
       />
@@ -36,7 +32,6 @@ export function Example() {
             <li key={user.id}>
               <button
                 type="button"
-                ref={(el) => scope.setOptionRef(user, el)}
                 {...scope.getOptionProps(user, index)}
               >
                 {user.name}

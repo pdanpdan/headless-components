@@ -344,10 +344,6 @@ function reactField(meta: ExampleMeta): string {
       ? "scope.searchQuery ?? ''"
       : "scope.searchQuery ?? value ?? ''";
     const input = `<input
-  ref={(el) => {
-    scope.setTriggerRef(el);
-    scope.setInputRef(el);
-  }}
   {...scope.comboboxInputProps}
   value={${ valueExpr }}
   placeholder="Search…"
@@ -364,7 +360,6 @@ ${ indented(input, 2) }
     ? `${ reactChips(meta, true) }\n`
     : '';
   return `${ chips }<button
-  ref={scope.setTriggerRef}
   type="button"
   {...scope.triggerProps}
 >
@@ -376,7 +371,6 @@ function reactList(meta: ExampleMeta): string {
   const filter = meta.filterInput
     ? `<div>
   <input
-    ref={scope.setInputRef}
     {...scope.inputProps}
     value={scope.searchQuery ?? ''}
     placeholder="Search…"
@@ -394,7 +388,6 @@ function reactList(meta: ExampleMeta): string {
         <button
           key={option}
           type="button"
-          ref={(el) => scope.setOptionRef(option, el)}
           {...scope.getOptionProps(option)}
         >
           {scope.isSelected(option) ? '✓ ' : ''}
@@ -405,9 +398,6 @@ function reactList(meta: ExampleMeta): string {
   ))}
 </ul>`;
   }
-  const optionRef = meta.alignSelected
-    ? ` ref={(el) => scope.setOptionRef(option, el)}`
-    : '';
   const indicator = meta.customOptions
     ? `<span aria-hidden="true">{scope.isSelected(option) ? '✓' : '☐'}</span>{' '}`
     : '';
@@ -422,7 +412,7 @@ function reactList(meta: ExampleMeta): string {
   return `${ filter }<ul {...scope.listboxProps}>
   {scope.filteredOptions.map((option, index) => (
     <li
-      key={${ optionKey(meta) }}${ optionRef }
+      key={${ optionKey(meta) }}
       {...scope.getOptionProps(option, index)}
     >
       ${ indicator }${ braces(optionText(meta)) }${ meta.optionValue ? ' <span>{option.id}</span>' : '' }
@@ -571,10 +561,6 @@ function svelteField(meta: ExampleMeta): string {
       : "scope.searchQuery ?? value ?? ''";
     const input = `<input
   {...scope.comboboxInputProps}
-  {@attach (el) => {
-    scope.setTriggerRef(el);
-    scope.setInputRef(el);
-  }}
   value={${ valueExpr }}
   placeholder="Search…"
 />`;
@@ -592,7 +578,6 @@ ${ indented(input, 2) }
   return `${ chips }<button
   type="button"
   {...scope.triggerProps}
-  {@attach scope.setTriggerRef}
 >
 ${ indented(svelteTriggerContent(meta), 2) }
 </button>`;
@@ -603,7 +588,6 @@ function svelteList(meta: ExampleMeta): string {
     ? `<div>
   <input
     {...scope.inputProps}
-    {@attach scope.setInputRef}
     value={scope.searchQuery ?? ''}
     placeholder="Search…"
   />
@@ -620,7 +604,6 @@ function svelteList(meta: ExampleMeta): string {
         <button
           type="button"
           {...scope.getOptionProps(option)}
-          {@attach (el) => scope.setOptionRef(option, el)}
         >
           {scope.isSelected(option) ? '✓ ' : ''}{option}
         </button>
@@ -629,9 +612,6 @@ function svelteList(meta: ExampleMeta): string {
   {/each}
 </ul>`;
   }
-  const optionRef = meta.alignSelected
-    ? ` {@attach (el) => scope.setOptionRef(option, el)}`
-    : '';
   const indicator = meta.customOptions
     ? `<span aria-hidden="true">{scope.isSelected(option) ? '✓' : '☐'}</span>{' '}`
     : '';
@@ -643,7 +623,7 @@ function svelteList(meta: ExampleMeta): string {
     : '';
   return `${ filter }<ul {...scope.listboxProps}>
   {#each scope.filteredOptions as option, index (${ optionKey(meta) })}
-    <li${ optionRef } {...scope.getOptionProps(option, index)}>
+    <li {...scope.getOptionProps(option, index)}>
       ${ indicator }${ braces(optionText(meta)) }${ meta.optionValue ? ' <span>{option.id}</span>' : '' }
     </li>
   {/each}
@@ -788,10 +768,6 @@ function solidField(meta: ExampleMeta): string {
       ? "scope().searchQuery ?? ''"
       : "scope().searchQuery ?? value() ?? ''";
     const input = `<input
-  ref={(el) => {
-    scope().setTriggerRef(el);
-    scope().setInputRef(el);
-  }}
   {...scope().comboboxInputProps}
   value={${ valueExpr }}
   placeholder="Search…"
@@ -808,7 +784,6 @@ ${ indented(input, 2) }
     ? `${ solidChips(meta, true) }\n`
     : '';
   return `${ chips }<button
-  ref={scope().setTriggerRef}
   type="button"
   {...scope().triggerProps}
 >
@@ -820,7 +795,6 @@ function solidList(meta: ExampleMeta): string {
   const filter = meta.filterInput
     ? `<div>
   <input
-    ref={scope().setInputRef}
     {...scope().inputProps}
     value={scope().searchQuery ?? ''}
     placeholder="Search…"
@@ -839,7 +813,6 @@ function solidList(meta: ExampleMeta): string {
           {(option) => (
             <button
               type="button"
-              ref={(el) => scope().setOptionRef(option, el)}
               {...scope().getOptionProps(option)}
             >
               {scope().isSelected(option) ? '✓ ' : ''}{option}
@@ -851,9 +824,6 @@ function solidList(meta: ExampleMeta): string {
   </For>
 </ul>`;
   }
-  const optionRef = meta.alignSelected
-    ? ` ref={(el) => scope().setOptionRef(option, el)}`
-    : '';
   const indicator = meta.customOptions
     ? `<span aria-hidden="true">{scope().isSelected(option) ? '✓' : '☐'}</span>{' '}`
     : '';
@@ -868,7 +838,7 @@ function solidList(meta: ExampleMeta): string {
   return `${ filter }<ul {...scope().listboxProps}>
   <For each={scope().filteredOptions}>
     {(option, index) => (
-      <li${ optionRef } {...scope().getOptionProps(option, index())}>
+      <li {...scope().getOptionProps(option, index())}>
         ${ indicator }${ braces(optionText(meta)) }${ meta.optionValue ? ' <span>{option.id}</span>' : '' }
       </li>
     )}
@@ -1027,7 +997,6 @@ function angularField(meta: ExampleMeta): string {
       ? "s.searchQuery ?? ''"
       : "s.searchQuery ?? value() ?? ''";
     const input = `<input
-  #input
   role="combobox"
   aria-label="Search"
   [attr.autocomplete]="s.comboboxInputProps.autocomplete"
@@ -1058,7 +1027,6 @@ ${ indented(input, 2) }
     ? `${ angularChips(meta, true) }\n`
     : '';
   return `${ chips }<button
-  #trigger
   type="button"
   role="combobox"
   [attr.aria-controls]="s.triggerProps['aria-controls']"
@@ -1079,7 +1047,6 @@ function angularList(meta: ExampleMeta): string {
   const filter = meta.filterInput
     ? `<div>
   <input
-    #input
     role="searchbox"
     aria-label="Search"
     [attr.autocomplete]="s.inputProps.autocomplete"
@@ -1215,25 +1182,16 @@ export function angularExample(meta: ExampleMeta): string {
   const computedImport = meta.optionValue
     ? ', computed'
     : '';
-  const refs = !meta.internal || meta.typeahead
-    ? `
+  const refs = `
   readonly container = viewChild<ElementRef<HTMLElement>>('container');
-  readonly trigger = viewChild<ElementRef<HTMLElement>>('trigger');
-  readonly input = viewChild<ElementRef<HTMLElement>>('input');
-`
-    : '';
-  const refsEffect = refs
-    ? `
+`;
+  const refsEffect = `
   constructor() {
     effect(() => {
-      const snapshot = this.combobox.snapshot();
-      snapshot.setContainerRef(this.container()?.nativeElement ?? null);
-      snapshot.setTriggerRef(this.trigger()?.nativeElement ?? this.input()?.nativeElement ?? null);
-      snapshot.setInputRef(this.input()?.nativeElement ?? null);
+      this.combobox.snapshot().setContainerRef(this.container()?.nativeElement ?? null);
     });
   }
-`
-    : '';
+`;
   return `import { Component${ computedImport }, effect, ElementRef, signal, viewChild } from '@angular/core';
 import { injectCombobox } from '@pdanpdan/headless-combobox-angular';
 

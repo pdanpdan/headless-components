@@ -33,14 +33,13 @@ export function Example() {
     >
       {(scope) => (
         <div ref={scope.setContainerRef}>
-          <button ref={scope.setTriggerRef} type="button" {...scope.triggerProps}>
+          <button type="button" {...scope.triggerProps}>
             {value?.name ?? 'Select…'}
           </button>
-          <ul ref={scope.setDropdownRef} {...scope.listboxProps}>
+          <ul {...scope.listboxProps}>
             {scope.filteredOptions.map((user, index) => (
               <li
                 key={user.id}
-                ref={(el) => scope.setOptionRef(user, el)}
                 {...scope.getOptionProps(user, index)}
               >
                 {user.name}

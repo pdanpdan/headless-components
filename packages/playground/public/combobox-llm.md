@@ -81,7 +81,6 @@ const selected = ref<User | null>(null);
   >
     <div :ref="scope.setContainerRef">
       <button
-        :ref="scope.setTriggerRef"
         v-bind="scope.triggerProps"
         type="button"
       >
@@ -90,13 +89,11 @@ const selected = ref<User | null>(null);
 
       <ul
         v-if="scope.isOpen"
-        :ref="scope.setDropdownRef"
         v-bind="scope.listboxProps"
       >
         <li
           v-for="(user, index) in scope.filteredOptions"
           :key="user.id"
-          :ref="(el) => scope.setOptionRef(user, el)"
           v-bind="scope.getOptionProps(user, index)"
         >
           {{ user.name }}
@@ -119,7 +116,7 @@ const selected = ref<User | null>(null);
 
 const {
   isOpen, filteredOptions, triggerProps, listboxProps, getOptionProps,
-  select, setContainerRef, setTriggerRef, setOptionRef,
+  select, setContainerRef,
 } = useHeadlessCombobox<User>(
   {
     modelValue: selected,
@@ -167,7 +164,6 @@ export function UserPicker() {
       {(scope) => (
         <div ref={scope.setContainerRef}>
           <button
-            ref={scope.setTriggerRef}
             type="button"
             {...scope.triggerProps}
           >
@@ -179,7 +175,6 @@ export function UserPicker() {
               {scope.filteredOptions.map((user, index) => (
                 <li
                   key={user.id}
-                  ref={(el) => scope.setOptionRef(user, el)}
                   {...scope.getOptionProps(user, index)}
                 >
                   {user.name}
@@ -235,10 +230,6 @@ pnpm add @pdanpdan/headless-combobox-svelte
       <button
         type="button"
         {...scope.triggerProps}
-        {@attach (el) => {
-          scope.setTriggerRef(el);
-          return () => scope.setTriggerRef(null);
-        }}
       >
         {value?.name ?? 'Select…'}
       </button>
@@ -249,10 +240,6 @@ pnpm add @pdanpdan/headless-combobox-svelte
             {@const user = option as User}
             <li
               {...scope.getOptionProps(user, index)}
-              {@attach (el) => {
-                scope.setOptionRef(user, el);
-                return () => scope.setOptionRef(user, null);
-              }}
             >
               {user.name}
             </li>
@@ -305,7 +292,7 @@ export function UserPicker() {
     >
       {(scope) => (
         <div ref={scope().setContainerRef}>
-          <button ref={scope().setTriggerRef} {...scope().triggerProps}>
+          <button {...scope().triggerProps}>
             {value()?.name ?? 'Select…'}
           </button>
 
@@ -314,7 +301,6 @@ export function UserPicker() {
               <For each={scope().filteredOptions}>
                 {(user, index) => (
                   <li
-                    ref={(el) => scope().setOptionRef(user, el)}
                     {...scope().getOptionProps(user, index())}
                   >
                     {user.name}
@@ -364,7 +350,6 @@ const users: User[] = [
 
     <div #container>
       <button
-        #trigger
         type="button"
         role="combobox"
         [attr.aria-controls]="s.triggerProps['aria-controls']"
@@ -382,7 +367,6 @@ const users: User[] = [
 
       @if (s.isOpen) {
         <ul
-          #list
           role="listbox"
           [attr.id]="s.listboxProps.id"
           [attr.aria-multiselectable]="s.listboxProps['aria-multiselectable'] || null"
@@ -415,8 +399,6 @@ export class UserPickerComponent {
   readonly value = signal<User | null>(null);
 
   readonly container = viewChild<ElementRef<HTMLElement>>('container');
-  readonly trigger = viewChild<ElementRef<HTMLElement>>('trigger');
-  readonly list = viewChild<ElementRef<HTMLElement>>('list');
 
   readonly combobox = injectCombobox<User, User>({
     props: () => ({
@@ -429,11 +411,7 @@ export class UserPickerComponent {
 
   constructor() {
     effect(() => {
-      const snapshot = this.combobox.snapshot();
-      snapshot.setContainerRef(this.container()?.nativeElement ?? null);
-      snapshot.setTriggerRef(this.trigger()?.nativeElement ?? null);
-      snapshot.setDropdownRef(this.list()?.nativeElement ?? null);
-      snapshot.setListRef(this.list()?.nativeElement ?? null);
+      this.combobox.snapshot().setContainerRef(this.container()?.nativeElement ?? null);
     });
   }
 }
@@ -478,24 +456,22 @@ To port a guide to another adapter, keep the same props, scope fields, and prop 
 
 ### Typeahead (editable combobox)
 
-In the typeahead pattern the text input itself is the combobox. It receives `comboboxInputProps` plus `setTriggerRef` and `setInputRef`. The input stays mounted; the popup opens below it.
+In the typeahead pattern the text input itself is the combobox. It receives `comboboxInputProps`; the container ref discovers it as both the trigger and the input. The input stays mounted; the popup opens below it.
 
 ```vue
 <HeadlessCombobox v-slot="scope" v-model="selected" :options="languages">
   <div :ref="scope.setContainerRef">
     <input
-      :ref="(el) => { scope.setTriggerRef(el); scope.setInputRef(el); }"
       v-bind="scope.comboboxInputProps"
       :value="scope.searchQuery ?? selected ?? ''"
       type="text"
       placeholder="Search…"
     />
 
-    <ul v-if="scope.isOpen" :ref="scope.setDropdownRef" v-bind="scope.listboxProps">
+    <ul v-if="scope.isOpen" v-bind="scope.listboxProps">
       <li
         v-for="(language, index) in scope.filteredOptions"
         :key="language"
-        :ref="(el) => scope.setOptionRef(language, el)"
         v-bind="scope.getOptionProps(language, index)"
       >
         {{ language }}
@@ -505,7 +481,7 @@ In the typeahead pattern the text input itself is the combobox. It receives `com
 </HeadlessCombobox>
 ```
 
-The input also needs `setTriggerRef` and `setInputRef` (shown above for Vue). Keyboard navigation comes from `comboboxInputProps`; no extra handler is needed. Angular cannot spread a bag, so it binds the same behavior directly:
+Keyboard navigation comes from `comboboxInputProps`; no extra handler is needed. Angular cannot spread a bag, so it binds the same behavior directly:
 
 ```html
 <input
@@ -1123,12 +1099,12 @@ Each bag already includes its interaction handlers. Spreading the bag is the onl
 
 | Setter | Element |
 |---|---|
-| `setContainerRef(el)` | Root widget boundary. Extends click-outside detection. |
-| `setTriggerRef(el)` | Trigger button, or the typeahead input. |
-| `setDropdownRef(el)` | Popup element. Required to drive the Popover API. |
-| `setInputRef(el)` | Search or typeahead input. |
-| `setListRef(el)` | Options list. |
-| `setOptionRef(option, el)` | Each option element. Required by `alignSelected` and scroll-into-view. |
+| `setContainerRef(el)` | Root widget boundary. Discovers the trigger, input, listbox, and dropdown. |
+| `setTriggerRef(el)` | Optional explicit trigger override. |
+| `setDropdownRef(el)` | Optional explicit popup override. |
+| `setInputRef(el)` | Optional explicit search/typeahead input override. |
+| `setListRef(el)` | Optional explicit options list override. |
+| `setOptionRef(option, el)` | Optional per-option ref. Needed for virtualized windows; standard rendered lists use `aria-posinset`. |
 
 Releasing a ref is optional in templates that own the element for the widget lifetime. Svelte `{@attach}` callbacks can return a cleanup that passes `null`.
 

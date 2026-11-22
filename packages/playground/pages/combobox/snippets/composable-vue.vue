@@ -21,11 +21,6 @@ const {
   listboxProps,
   getOptionProps,
   setContainerRef,
-  setTriggerRef,
-  setInputRef,
-  setDropdownRef,
-  setListRef,
-  setOptionRef,
 } = useHeadlessCombobox<User>(
   {
     modelValue: selected,
@@ -41,14 +36,12 @@ const {
 <template>
   <div :ref="setContainerRef">
     <input
-      :ref="(el) => { setTriggerRef(el); setInputRef(el); }"
       v-bind="comboboxInputProps"
       aria-label="Search users"
       type="text"
     />
     <ul
       v-if="isOpen"
-      :ref="(el) => { setDropdownRef(el); setListRef(el); }"
       v-bind="listboxProps"
     >
       <li
@@ -56,7 +49,6 @@ const {
         :key="user.id"
       >
         <button
-          :ref="(el) => setOptionRef(user, el)"
           type="button"
           v-bind="getOptionProps(user, index)"
         >

@@ -31,10 +31,6 @@
 <div {@attach $combobox.setContainerRef}>
   <input
     {...$combobox.comboboxInputProps}
-    {@attach (el) => {
-      $combobox.setTriggerRef(el);
-      $combobox.setInputRef(el);
-    }}
     aria-label="Search users"
   />
   {#if $combobox.isOpen}
@@ -44,7 +40,6 @@
           <button
             type="button"
             {...$combobox.getOptionProps(user, index)}
-            {@attach (el) => $combobox.setOptionRef(user, el)}
           >
             {user.name}
           </button>

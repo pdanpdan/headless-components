@@ -5,7 +5,7 @@
 >
   {(scope) => (
     <div ref={scope().setContainerRef}>
-      <button ref={scope().setTriggerRef} {...scope().triggerProps}>
+      <button {...scope().triggerProps}>
         {value() ?? 'Select…'}
       </button>
       {scope().isOpen && (

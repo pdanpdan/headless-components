@@ -30,7 +30,7 @@ const labelId = useId();
       v-slot="{
         filteredOptions, highlightedIndex, isSelected,
         cssAnchorName, popupStyle, triggerProps, listboxProps,
-        getOptionProps, setContainerRef, setTriggerRef, setDropdownRef, setListRef, setOptionRef,
+        getOptionProps, setContainerRef,
       }"
       v-model="selected"
       :options="frameworks"
@@ -42,7 +42,6 @@ const labelId = useId();
       >
         <legend :id="labelId" class="fieldset-legend">Framework (single, select on tab)</legend>
         <button
-          :ref="setTriggerRef"
           v-bind="triggerProps"
           :aria-labelledby="labelId"
           type="button"
@@ -67,7 +66,6 @@ const labelId = useId();
       </fieldset>
 
       <ul
-        :ref="(el) => { setDropdownRef(el); setListRef(el); }"
         v-bind="listboxProps"
         popover="manual"
         class="
@@ -84,7 +82,6 @@ const labelId = useId();
           :key="framework"
         >
           <button
-            :ref="(el) => setOptionRef(framework, el)"
             type="button"
             v-bind="getOptionProps(framework, index)"
             class="justify-between shadow-none"
