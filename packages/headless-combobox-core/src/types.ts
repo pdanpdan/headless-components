@@ -17,6 +17,7 @@ export interface HeadlessComboboxTriggerProps {
 export interface HeadlessComboboxInputProps {
   id: string;
   role: 'searchbox';
+  autocomplete: 'off';
   'aria-autocomplete': 'list';
   'aria-controls': string;
   'aria-activedescendant': string | undefined;
@@ -27,6 +28,7 @@ export interface HeadlessComboboxInputProps {
 export interface HeadlessComboboxComboboxInputProps {
   id: string;
   role: 'combobox';
+  autocomplete: 'off';
   'aria-autocomplete': 'list';
   'aria-controls': string;
   'aria-expanded': boolean;

@@ -1030,6 +1030,7 @@ function angularField(meta: ExampleMeta): string {
   #input
   role="combobox"
   aria-label="Search"
+  [attr.autocomplete]="s.comboboxInputProps.autocomplete"
   [attr.aria-controls]="s.comboboxInputProps['aria-controls']"
   [attr.aria-expanded]="s.comboboxInputProps['aria-expanded']"
   [attr.aria-haspopup]="s.comboboxInputProps['aria-haspopup']"
@@ -1081,6 +1082,7 @@ function angularList(meta: ExampleMeta): string {
     #input
     role="searchbox"
     aria-label="Search"
+    [attr.autocomplete]="s.inputProps.autocomplete"
     [attr.id]="s.inputProps.id"
     [attr.aria-controls]="s.inputProps['aria-controls']"
     [attr.aria-activedescendant]="s.inputProps['aria-activedescendant']"

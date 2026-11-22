@@ -66,6 +66,7 @@ export function createAccessibility<O, V, Q>(
   const getInputProps = createMemo<HeadlessComboboxInputProps>(ctx)(() => ({
     id: inputId,
     role: 'searchbox',
+    autocomplete: 'off',
     'aria-autocomplete': 'list',
     'aria-controls': listboxId,
     'aria-activedescendant': getActiveDescendant(),
@@ -77,6 +78,7 @@ export function createAccessibility<O, V, Q>(
   const getComboboxInputProps = createMemo<HeadlessComboboxComboboxInputProps>(ctx)(() => ({
     id: inputId,
     role: 'combobox',
+    autocomplete: 'off',
     'aria-autocomplete': 'list',
     'aria-controls': listboxId,
     'aria-expanded': ctx.state.isOpen,

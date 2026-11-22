@@ -360,8 +360,8 @@ export const REF_ROWS: PropRow[] = [
 
 export const ARIA_ROWS: PropRow[] = [
   { name: 'triggerProps', type: 'HeadlessComboboxTriggerProps', description: 'role=combobox, aria-expanded, aria-activedescendant, toggle and keydown handlers.' },
-  { name: 'inputProps', type: 'HeadlessComboboxInputProps', description: 'Search input attributes, aria-activedescendant, and keydown handling.' },
-  { name: 'comboboxInputProps', type: 'HeadlessComboboxComboboxInputProps', description: 'Typeahead input attributes, open, focus, input, and Space-safe keydown handlers.' },
+  { name: 'inputProps', type: 'HeadlessComboboxInputProps', description: 'Search input attributes, native autocomplete off, aria-activedescendant, and keydown handling.' },
+  { name: 'comboboxInputProps', type: 'HeadlessComboboxComboboxInputProps', description: 'Typeahead input attributes, native autocomplete off, open, focus, input, and Space-safe keydown handlers.' },
   { name: 'listboxProps', type: 'HeadlessComboboxListboxProps', description: 'role=listbox and aria-multiselectable.' },
   { name: 'statusProps', type: 'HeadlessComboboxStatusProps', description: 'role=status, aria-live=polite, aria-atomic; spread on the status message element.' },
   { name: 'getOptionProps', type: '(option, index?) => HeadlessComboboxOptionProps', description: 'role=option, aria-selected, aria-disabled, aria-posinset, aria-setsize, and select and highlight handlers. The index is derived from filteredOptions when omitted.' },

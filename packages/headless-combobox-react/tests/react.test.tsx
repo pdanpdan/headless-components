@@ -158,6 +158,7 @@ describe('react adapter', () => {
     });
 
     const input = container.querySelector('input')!;
+    expect(input.getAttribute('autocomplete')).toBe('off');
     await act(async () => {
       input.focus();
     });

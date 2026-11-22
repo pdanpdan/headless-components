@@ -123,14 +123,15 @@ export function useHeadlessCombobox<O, V = O, Q = string>(
   return snapshot;
 }
 
-const REACT_EVENT_NAMES: Record<string, string> = {
+const REACT_PROP_NAMES: Record<string, string> = {
+  autocomplete: 'autoComplete',
   onKeydown: 'onKeyDown',
   onMousedown: 'onMouseDown',
   onMousemove: 'onMouseMove',
 };
 
 /**
- * Adapt a core ARIA prop bag to React's event prop names:
+ * Adapt a core ARIA prop bag to React's prop names (`autocomplete` → `autoComplete`, event camelCase):
  *
  * ```tsx
  * <button {...toReactProps(scope.triggerProps)} />
@@ -139,7 +140,7 @@ const REACT_EVENT_NAMES: Record<string, string> = {
 export function toReactProps<T extends object>(props: T): Record<string, unknown> {
   const adapted: Record<string, unknown> = {};
   for (const [ key, value ] of Object.entries(props)) {
-    adapted[ REACT_EVENT_NAMES[ key ] ?? key ] = value;
+    adapted[ REACT_PROP_NAMES[ key ] ?? key ] = value;
   }
   return adapted;
 }

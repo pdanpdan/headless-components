@@ -103,8 +103,8 @@ const examples = computed(() => EXAMPLE_ORDER.map((name) => {
 const structureRows = [
   { name: 'wrapper element', type: 'setContainerRef', description: 'Widget boundary for click-outside and focus. Optional, recommended.' },
   { name: 'trigger button', type: 'triggerProps, setTriggerRef', description: 'role="combobox". Toggles the popup and handles keyboard navigation.' },
-  { name: 'typeahead input', type: 'comboboxInputProps, setTriggerRef, setInputRef', description: 'The input is the combobox: typing reopens and filters.' },
-  { name: 'search input', type: 'inputProps, setInputRef', description: 'role="searchbox". Filters while the popup stays open.' },
+  { name: 'typeahead input', type: 'comboboxInputProps, setTriggerRef, setInputRef', description: 'The input is the combobox: typing reopens and filters. Native autocomplete is off.' },
+  { name: 'search input', type: 'inputProps, setInputRef', description: 'role="searchbox". Filters while the popup stays open. Native autocomplete is off.' },
   { name: 'popup element', type: 'popupStyle, setDropdownRef', description: 'Positioning; add popover="manual" to use the native Popover API.' },
   { name: 'list element', type: 'listboxProps, setListRef', description: 'role="listbox". The options container.' },
   { name: 'each option element', type: 'getOptionProps(option, index?), setOptionRef(option, el)', description: 'Option semantics and select/highlight handlers. The index is the position in filteredOptions; omit it to derive that position in grouped or virtualized lists.' },

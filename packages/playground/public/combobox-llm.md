@@ -191,7 +191,7 @@ export function UserPicker() {
 }
 ```
 
-`useHeadlessCombobox(options)` returns the same scope object without the render prop. Controlled usage means passing `value`; omit `value` and pass `defaultValue` for uncontrolled usage. `toReactProps` maps `onKeydown`, `onMousedown`, and `onMousemove` to React event names. Use it on any bag that contains handlers: `triggerProps`, `inputProps`, `comboboxInputProps`, and `getOptionProps(...)`.
+`useHeadlessCombobox(options)` returns the same scope object without the render prop. Controlled usage means passing `value`; omit `value` and pass `defaultValue` for uncontrolled usage. `toReactProps` maps `autocomplete` to `autoComplete` and `onKeydown`, `onMousedown`, and `onMousemove` to React event names. Use it on any bag that contains handlers: `triggerProps`, `inputProps`, `comboboxInputProps`, and `getOptionProps(...)`.
 
 ## Svelte 5
 
@@ -1092,8 +1092,8 @@ Use `isSelected(option)` instead of comparing `modelValue` to the option. Vue re
 | Bag | Element | Contents |
 |---|---|---|
 | `triggerProps` | button trigger | `role="combobox"`, `aria-expanded`, `aria-controls`, `aria-haspopup`, `aria-activedescendant`, `aria-disabled`, `aria-readonly`, `disabled`, click toggles, keydown handles |
-| `inputProps` | search input inside the popup | `role="searchbox"`, `aria-autocomplete`, `aria-controls`, `aria-activedescendant`, input and keydown handlers |
-| `comboboxInputProps` | typeahead input | `role="combobox"`, `aria-expanded`, `aria-controls`, `aria-haspopup`, `aria-activedescendant`, disabled and readonly attributes, open, focus, input, and Space-safe keydown handlers |
+| `inputProps` | search input inside the popup | `role="searchbox"`, native autocomplete off, `aria-autocomplete`, `aria-controls`, `aria-activedescendant`, input and keydown handlers |
+| `comboboxInputProps` | typeahead input | `role="combobox"`, native autocomplete off, `aria-expanded`, `aria-controls`, `aria-haspopup`, `aria-activedescendant`, disabled and readonly attributes, open, focus, input, and Space-safe keydown handlers |
 | `listboxProps` | popup list | `role="listbox"`, `aria-multiselectable` |
 | `statusProps` | status message element | `role="status"`, `aria-live="polite"`, `aria-atomic` |
 | `getOptionProps(option, index?)` | each option | `role="option"`, `aria-selected`, `aria-disabled`, `aria-posinset`, `aria-setsize`, `data-highlighted`, select and highlight handlers |

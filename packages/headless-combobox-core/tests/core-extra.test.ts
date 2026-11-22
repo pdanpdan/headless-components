@@ -111,6 +111,12 @@ describe('core details', () => {
     vi.unstubAllGlobals();
   });
 
+  it('turns off native autocomplete on both input bags', () => {
+    const snapshot = makeStore().getSnapshot();
+    expect(snapshot.inputProps.autocomplete).toBe('off');
+    expect(snapshot.comboboxInputProps.autocomplete).toBe('off');
+  });
+
   it('builds disabled and readonly ARIA bags', () => {
     const disabled = makeStore({ disabled: true }).getSnapshot();
     expect(disabled.triggerProps.disabled).toBe(true);

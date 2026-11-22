@@ -222,8 +222,8 @@ State: `isOpen`, `multiple`, `disabled`, `readonly`, `searchQuery` (`Q | undefin
 
 ARIA prop bags (spread with `v-bind`). Each bag also carries its interaction handlers, so options, triggers, and inputs need no hand-written event wiring:
 - `triggerProps`: `HeadlessComboboxTriggerProps` (trigger as `role="combobox"`, plus `onClick` → toggle and `onKeydown` → `handleKeydown`)
-- `inputProps`: `HeadlessComboboxInputProps` (in-popup filter input as `role="searchbox"`, plus `onInput` → `setSearchQuery` and `onKeydown` → `handleKeydown`)
-- `comboboxInputProps`: `HeadlessComboboxComboboxInputProps` (typeahead input as `role="combobox"`, plus `onClick`/`onFocus` → open, `onInput` → open and set the query, and a Space-safe `onKeydown`)
+- `inputProps`: `HeadlessComboboxInputProps` (in-popup filter input as `role="searchbox"` with native autocomplete off, plus `onInput` → `setSearchQuery` and `onKeydown` → `handleKeydown`)
+- `comboboxInputProps`: `HeadlessComboboxComboboxInputProps` (typeahead input as `role="combobox"` with native autocomplete off, plus `onClick`/`onFocus` → open, `onInput` → open and set the query, and a Space-safe `onKeydown`)
 - `listboxProps`: `HeadlessComboboxListboxProps`
 - `statusProps`: `HeadlessComboboxStatusProps` (`role="status"`, `aria-live="polite"`, `aria-atomic`; bind to `statusMessage`)
 - `getOptionProps(option, index?)` → `HeadlessComboboxOptionProps` (option semantics, `aria-posinset`/`aria-setsize`, plus `onClick` → select, `onMousedown` → `preventDefault` to keep the filter focused, and `onMousemove`/`onFocus` → `setHighlightedIndex`; blocked options are skipped). The index is derived from `filteredOptions` when omitted.
