@@ -98,7 +98,7 @@ const selected = ref<User | null>(null);
 </template>
 ```
 
-See the [`examples/`](./examples) folder for full daisyUI-styled demos: `TextTypeahead.vue` (editable combobox), `GroupedOptions.vue` (labelled option groups), `NiceSelect.vue` (selected-option alignment), and `ComposableSingle.vue` / `ComposableProgrammatic.vue` (composable API).
+See the [`examples/`](./examples) folder for full daisyUI-styled demos: `TextTypeahead.vue` (editable combobox), `TextTypeaheadCreatable.vue` (custom values), `GroupedOptions.vue` (labelled option groups), `NiceSelect.vue` (selected-option alignment), and `ComposableSingle.vue` / `ComposableProgrammatic.vue` (composable API).
 
 Prefer to skip the slot indirection? The same state machine is available as the [`useHeadlessCombobox`](#composable) composable.
 

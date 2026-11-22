@@ -200,6 +200,7 @@ describe('combobox developer experience', () => {
     expect(onChange).toHaveBeenLastCalledWith([
       { id: 99, name: 'First' },
     ]);
+    expect(store.getSnapshot().searchQuery).toBeUndefined();
     expect(store.getSnapshot().canCreate).toBe(false);
     expect(store.getSnapshot().isOpen).toBe(true);
   });

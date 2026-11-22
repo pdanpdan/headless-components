@@ -139,6 +139,10 @@ export function createSelection<O, V, Q>(
         ctx.emitModel(created);
       }
 
+      // The query became a committed value; clear it so the next keystroke
+      // starts a new search and the same value is not offered again.
+      ctx.state.searchQuery = undefined;
+
       const shouldClose = ctx.props.closeOnSelect ?? !ctx.props.multiple;
       if (shouldClose) {
         hooks.close(true);

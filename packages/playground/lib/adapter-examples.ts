@@ -13,6 +13,7 @@ export interface ExampleMeta {
   object?: boolean;
   multiple?: boolean;
   typeahead?: boolean;
+  creatable?: boolean;
   filterInput?: boolean;
   chips?: 'trigger' | 'removable' | 'field';
   validation?: boolean;
@@ -64,6 +65,7 @@ export const EXAMPLE_META: Record<string, ExampleMeta> = {
   TextSelectOnTab: { selectOnTab: true },
   TextSingle: {},
   TextTypeahead: { typeahead: true, status: true },
+  TextTypeaheadCreatable: { typeahead: true, creatable: true, status: true },
   TextTypeaheadChips: {
     typeahead: true,
     multiple: true,
@@ -170,6 +172,9 @@ function initialValue(meta: ExampleMeta): string {
   if (meta.grouped) {
     return "'Vue'";
   }
+  if (meta.creatable) {
+    return 'null';
+  }
   return meta.typeahead
     ? "'TypeScript'"
     : "'Vue'";
@@ -205,6 +210,9 @@ function extraProps(meta: ExampleMeta): string[] {
   if (meta.programmatic) {
     props.push("clickOutsideFilter={(target: EventTarget | null) => !(target instanceof HTMLElement && target.closest('.controls'))}");
   }
+  if (meta.creatable) {
+    props.push('creatable', 'createOption={(query) => query.trim()}');
+  }
   return props;
 }
 
@@ -233,6 +241,9 @@ function extraOptions(meta: ExampleMeta): string[] {
   }
   if (meta.programmatic) {
     options.push("clickOutsideFilter: (target: EventTarget | null) => !(target instanceof HTMLElement && target.closest('.controls')),");
+  }
+  if (meta.creatable) {
+    options.push('creatable: true,', 'createOption: (query: string) => query.trim(),');
   }
   return options;
 }
@@ -400,6 +411,14 @@ function reactList(meta: ExampleMeta): string {
   const indicator = meta.customOptions
     ? `<span aria-hidden="true">{scope.isSelected(option) ? '✓' : '☐'}</span>{' '}`
     : '';
+  const create = meta.creatable
+    ? `
+{scope.canCreate && (
+  <button type="button" onClick={() => scope.createSelection()}>
+    Create "{scope.searchQuery?.trim()}"
+  </button>
+)}`
+    : '';
   return `${ filter }<ul {...toReactProps(scope.listboxProps)}>
   {scope.filteredOptions.map((option, index) => (
     <li
@@ -409,7 +428,7 @@ function reactList(meta: ExampleMeta): string {
       ${ indicator }${ braces(optionText(meta)) }${ meta.optionValue ? ' <span>{option.id}</span>' : '' }
     </li>
   ))}
-</ul>`;
+</ul>${ create }`;
 }
 
 function reactBody(meta: ExampleMeta): string {
@@ -616,13 +635,19 @@ function svelteList(meta: ExampleMeta): string {
   const indicator = meta.customOptions
     ? `<span aria-hidden="true">{scope.isSelected(option) ? '✓' : '☐'}</span>{' '}`
     : '';
+  const create = meta.creatable
+    ? `
+{#if scope.canCreate}
+  <button type="button" onclick={() => scope.createSelection()}>Create "{scope.searchQuery?.trim()}"</button>
+{/if}`
+    : '';
   return `${ filter }<ul {...toSvelteProps(scope.listboxProps)}>
   {#each scope.filteredOptions as option, index (${ optionKey(meta) })}
     <li${ optionRef } {...toSvelteProps(scope.getOptionProps(option, index))}>
       ${ indicator }${ braces(optionText(meta)) }${ meta.optionValue ? ' <span>{option.id}</span>' : '' }
     </li>
   {/each}
-</ul>`;
+</ul>${ create }`;
 }
 
 function svelteBody(meta: ExampleMeta): string {
@@ -832,6 +857,14 @@ function solidList(meta: ExampleMeta): string {
   const indicator = meta.customOptions
     ? `<span aria-hidden="true">{scope().isSelected(option) ? '✓' : '☐'}</span>{' '}`
     : '';
+  const create = meta.creatable
+    ? `
+{scope().canCreate && (
+  <button type="button" onClick={() => scope().createSelection()}>
+    Create "{scope().searchQuery?.trim()}"
+  </button>
+)}`
+    : '';
   return `${ filter }<ul {...toSolidProps(scope().listboxProps)}>
   <For each={scope().filteredOptions}>
     {(option, index) => (
@@ -840,7 +873,7 @@ function solidList(meta: ExampleMeta): string {
       </li>
     )}
   </For>
-</ul>`;
+</ul>${ create }`;
 }
 
 function solidBody(meta: ExampleMeta): string {
@@ -1091,6 +1124,12 @@ function angularList(meta: ExampleMeta): string {
   const valueText = meta.optionValue
     ? ` ${ interpolation('option.id') }`
     : '';
+  const create = meta.creatable
+    ? `
+@if (s.canCreate) {
+  <button type="button" (click)="s.createSelection()">Create "${ interpolation('s.searchQuery?.trim()') }"</button>
+}`
+    : '';
   return `${ filter }<ul role="listbox" [attr.id]="s.listboxProps.id" [attr.aria-multiselectable]="s.listboxProps['aria-multiselectable'] || null">
   @for (option of s.filteredOptions; track ${ optionKey(meta) }; let index = $index) {
     @let o = s.getOptionProps(option, index);
@@ -1111,7 +1150,7 @@ function angularList(meta: ExampleMeta): string {
       ${ indicator }${ interpolation(optionText(meta)) }${ valueText }
     </li>
   }
-</ul>`;
+</ul>${ create }`;
 }
 
 function angularBody(meta: ExampleMeta): string {
@@ -1152,6 +1191,7 @@ export function angularExample(meta: ExampleMeta): string {
       : '',
     meta.object ? '      optionLabel: (user: User) => user.name,\n' : '',
     meta.optionValue ? '      optionValue: (user: User) => user.id,\n' : '',
+    meta.creatable ? '      creatable: true,\n      createOption: (query: string) => query.trim(),\n' : '',
   ].join('');
   const valueState = meta.internal
     ? ''

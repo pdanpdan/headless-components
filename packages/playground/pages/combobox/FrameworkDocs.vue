@@ -50,6 +50,7 @@ const EXAMPLE_ORDER = [
   'ObjectMultipleValidated',
   'NiceSelect',
   'TextTypeahead',
+  'TextTypeaheadCreatable',
   'TextTypeaheadChips',
   'ComposableSingle',
   'ComposableProgrammatic',

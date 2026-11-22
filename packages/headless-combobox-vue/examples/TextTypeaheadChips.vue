@@ -30,6 +30,18 @@ const languages = [
 const selected = ref<string[]>([ 'TypeScript' ]);
 const labelId = useId();
 const chipsRef = ref<HTMLElement | null>(null);
+const chipsFocusable = ref(false);
+
+function onFocusIn() {
+  chipsFocusable.value = true;
+}
+
+// Chips are in the tab order only while the field itself has focus, so Tab
+// from the page lands on the input rather than on a remove button.
+function onFocusOut(event: FocusEvent) {
+  const container = event.currentTarget as HTMLElement;
+  chipsFocusable.value = container.contains(event.relatedTarget as Node | null);
+}
 
 // Keep the newest chip in view when the chip row overflows.
 watch(selected, () => {
@@ -59,6 +71,8 @@ watch(selected, () => {
       <fieldset
         :ref="setContainerRef"
         class="fieldset"
+        @focusin="onFocusIn"
+        @focusout="onFocusOut"
       >
         <legend :id="labelId" class="fieldset-legend">Topics (typeahead, removable chips in the field)</legend>
         <!-- eslint-disable-next-line vue-a11y/click-events-have-key-events, vue-a11y/no-static-element-interactions -- the inner input is the keyboard-operable control; this only widens the pointer target -->
@@ -73,7 +87,7 @@ watch(selected, () => {
             ref="chipsRef"
             class="
               flex min-h-10 min-w-0 scrollbar-thin items-center gap-1
-              overflow-x-auto
+              overflow-x-auto px-1
             "
           >
             <span
@@ -86,6 +100,7 @@ watch(selected, () => {
                 type="button"
                 class="btn btn-circle btn-ghost btn-xs"
                 :aria-label="`Remove ${ item }`"
+                :tabindex="chipsFocusable ? 0 : -1"
                 @mousedown.prevent
                 @click.stop="select(item)"
               >
@@ -112,8 +127,8 @@ watch(selected, () => {
             :aria-labelledby="labelId"
             :value="isOpen ? searchQuery : ''"
             type="text"
-            class="min-w-24 flex-1"
-            placeholder="Add a topic…"
+            class="min-w-18 flex-1"
+            placeholder="Add topic…"
           />
         </div>
       </fieldset>

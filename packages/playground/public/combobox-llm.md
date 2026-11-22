@@ -921,6 +921,7 @@ Set `creatable` and supply `createOption`, which turns the typed query into the 
 - Enter creates when no option is highlighted and `canCreate` is true.
 - `canCreate` is false for an empty query, an exact existing label, a locked control, and a reached `maxLength`.
 - `createOption` returns the stored value (`V`, not the option). The created value is not added to `options` automatically; add it in your change handler if it should appear in the list or resolve a label for a chip.
+- The query clears after a successful create, so the next keystroke starts a new search.
 
 ### Async remote search
 
