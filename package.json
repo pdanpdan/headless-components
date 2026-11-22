@@ -1,7 +1,7 @@
 {
   "name": "headless-components-workspace",
   "type": "module",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "packageManager": "pnpm@12.21.0",
   "description": "Monorepo for headless Vue 3 components",
@@ -23,7 +23,9 @@
     "test:all": "pnpm -r run test:all",
     "typecheck": "pnpm -r run typecheck",
     "release": "release-it",
-    "release:npm": "pnpm -r run release:npm"
+    "release:npm": "pnpm -r --filter './packages/headless-*' publish --access public",
+    "install:packages": "pnpm install",
+    "update:packages": "pnpm update --interactive --latest --recursive --include-workspace-root"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:",

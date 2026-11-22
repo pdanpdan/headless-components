@@ -10,3 +10,19 @@ declare module '*?highlight' {
   };
   export default content;
 }
+
+declare module 'virtual:adapter-examples' {
+  import type { AdapterId } from './lib/adapter-examples';
+
+  interface ExampleSource {
+    raw: string;
+    html: string;
+  }
+
+  const examples: Record<string, {
+    title: string;
+    description: string;
+    sources: Record<AdapterId, ExampleSource>;
+  }>;
+  export default examples;
+}

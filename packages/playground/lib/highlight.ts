@@ -5,7 +5,11 @@ import path from 'node:path';
 
 import { createHighlighter } from 'shiki';
 
-const SUFFIX = '.highlight.js';
+const QUERY = '?highlight';
+// Virtual ids keep Vite's dependency scanner from trying to read the
+// highlighted module from disk (it does not run plugin `load` hooks).
+const VIRTUAL_PREFIX = '\0highlight:';
+const VIRTUAL_SUFFIX = '.highlight.js';
 
 let highlighterPromise: ReturnType<typeof createHighlighter> | null = null;
 
@@ -13,7 +17,16 @@ export async function highlight(code: string, lang: string) {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
       themes: [ 'github-dark' ],
-      langs: [ 'vue', 'bash', 'ts', 'js', 'css' ],
+      langs: [
+        'vue',
+        'bash',
+        'ts',
+        'tsx',
+        'js',
+        'css',
+        'svelte',
+        'html',
+      ],
     });
   }
 
@@ -29,7 +42,7 @@ export async function highlight(code: string, lang: string) {
  * shiki-highlighted HTML string:
  *
  * ```ts
- * import { raw, html } from '@pdanpdan/headless-combobox/examples/BasicComboBox.vue?highlight';
+ * import { raw, html } from '@pdanpdan/headless-combobox-vue/examples/BasicComboBox.vue?highlight';
  * ```
  *
  * Resolves both relative imports and bare package specifiers (so example files
@@ -41,30 +54,33 @@ export function highlightPlugin(): Plugin {
     enforce: 'pre',
 
     async resolveId(id, importer) {
-      if (!id.includes('?highlight')) {
+      if (!id.includes(QUERY)) {
         return null;
       }
 
-      const [ base ] = id.split('?highlight');
+      const [ base ] = id.split(QUERY);
 
       const resolved = await this.resolve(base, importer, { skipSelf: true });
-      if (resolved) {
-        return resolved.id + SUFFIX;
+      if (resolved && !resolved.external) {
+        return VIRTUAL_PREFIX + resolved.id + VIRTUAL_SUFFIX;
       }
 
       if (importer) {
-        return path.resolve(path.dirname(importer), base) + SUFFIX;
+        const cleanImporter = importer
+          .replace(/^virtual-module:/, '')
+          .replace(/\?.*$/, '');
+        return VIRTUAL_PREFIX + path.resolve(path.dirname(cleanImporter), base) + VIRTUAL_SUFFIX;
       }
 
       return null;
     },
 
     async load(id) {
-      if (!id.endsWith(SUFFIX)) {
+      if (!id.startsWith(VIRTUAL_PREFIX)) {
         return null;
       }
 
-      const filePath = id.slice(0, -SUFFIX.length);
+      const filePath = id.slice(VIRTUAL_PREFIX.length, -VIRTUAL_SUFFIX.length);
       const code = fs.readFileSync(filePath, 'utf-8');
       const lang = filePath.split('.').pop() || 'vue';
       const html = await highlight(code, lang);

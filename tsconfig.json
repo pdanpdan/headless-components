@@ -10,7 +10,8 @@
     "skipLibCheck": true
   },
   "references": [
-    { "path": "packages/headless-combobox" },
+    { "path": "packages/headless-combobox-vue" },
+    { "path": "packages/headless-combobox-core" },
     { "path": "packages/playground" }
   ],
   "include": [

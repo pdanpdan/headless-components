@@ -1,0 +1,78 @@
+{
+  "name": "@pdanpdan/headless-combobox-svelte",
+  "type": "module",
+  "version": "3.0.0",
+  "description": "Accessible renderless combobox for Svelte, built on the framework-independent core",
+  "author": "Dan Popescu",
+  "license": "MIT",
+  "homepage": "https://pdanpdan.github.io/headless-components",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pdanpdan/headless-components.git",
+    "directory": "packages/headless-combobox-svelte"
+  },
+  "bugs": {
+    "url": "https://github.com/pdanpdan/headless-components/issues"
+  },
+  "keywords": [
+    "svelte",
+    "combobox",
+    "headless",
+    "renderless",
+    "select",
+    "autocomplete",
+    "accessibility",
+    "typescript"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./HeadlessCombobox.svelte": "./src/HeadlessCombobox.svelte",
+    "./source": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "prepublishOnly": "pnpm test && pnpm build",
+    "lint": "pnpm --dir ../.. lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.vitest.json --noEmit",
+    "test:all": "pnpm lint && pnpm typecheck && pnpm test",
+    "release:npm": "pnpm publish"
+  },
+  "peerDependencies": {
+    "svelte": ">=5.0.0"
+  },
+  "dependencies": {
+    "@pdanpdan/headless-combobox-core": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "jsdom": "catalog:",
+    "svelte": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-dts": "catalog:",
+    "vitest": "catalog:"
+  }
+}

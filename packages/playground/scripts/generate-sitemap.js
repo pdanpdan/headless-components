@@ -9,24 +9,24 @@ const PAGES_DIR = path.resolve(__dirname, '../pages');
 const OUTPUT_FILE = path.resolve(__dirname, '../public/sitemap.xml');
 const BASE_URL = 'https://pdanpdan.github.io/headless-components';
 
-function getPages(dir) {
+function getPages(dir, parent = '') {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   const pages = [];
 
   for (const entry of entries) {
-    if (entry.isDirectory()) {
-      const fullPath = path.join(dir, entry.name);
-      const hasPage = fs.existsSync(path.join(fullPath, '+Page.vue'));
-
-      if (hasPage) {
-        const route = entry.name === 'index'
-          ? ''
-          : entry.name;
-        pages.push(route
-          ? `${ route }/`
-          : '');
-      }
+    if (!entry.isDirectory()) {
+      continue;
     }
+    const fullPath = path.join(dir, entry.name);
+    const route = entry.name === 'index'
+      ? parent
+      : [ parent, entry.name ].filter(Boolean).join('/');
+    if (fs.existsSync(path.join(fullPath, '+Page.vue'))) {
+      pages.push(route
+        ? `${ route }/`
+        : '');
+    }
+    pages.push(...getPages(fullPath, route));
   }
 
   return pages;

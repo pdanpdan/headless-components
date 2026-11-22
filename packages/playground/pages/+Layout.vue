@@ -16,7 +16,14 @@ import '#/assets/style.css';
 const repoUrl = 'https://github.com/pdanpdan/headless-components';
 
 const components = [
-  { href: '/combobox', label: 'HeadlessCombobox' },
+  { href: '/combobox', label: 'Overview' },
+  { href: '/combobox/styling', label: 'Styling' },
+  { href: '/combobox/core', label: 'Core' },
+  { href: '/combobox/vue', label: 'Vue' },
+  { href: '/combobox/react', label: 'React' },
+  { href: '/combobox/svelte', label: 'Svelte' },
+  { href: '/combobox/solid', label: 'Solid' },
+  { href: '/combobox/angular', label: 'Angular' },
 ];
 
 const mainRef = ref<HTMLElement>();
@@ -113,7 +120,7 @@ onUnmounted(() => {
                 class="docs-menu-focusable py-2 tracking-wider"
                 :class="{ 'docs-menu-active': active }"
               >
-                Overview
+                Home
               </a>
             </AppLink>
           </li>
@@ -125,7 +132,7 @@ onUnmounted(() => {
                 [font-variant:small-caps]
               "
             >
-              Components
+              Combobox
             </p>
           </li>
 
@@ -133,7 +140,7 @@ onUnmounted(() => {
             <AppLink v-slot="{ active, href }" :href="item.href">
               <a
                 :href
-                class="docs-menu-focusable py-2 tracking-wider"
+                class="docs-menu-focusable py-2 ps-5 tracking-wider"
                 :class="{ 'docs-menu-active': active }"
               >
                 {{ item.label }}
@@ -154,7 +161,7 @@ onUnmounted(() => {
 
           <li>
             <a
-              class="docs-menu-focusable py-2 tracking-wider"
+              class="docs-menu-focusable py-2 ps-5 tracking-wider"
               :href="repoUrl"
               target="_blank"
               rel="noopener noreferrer"
@@ -268,7 +275,7 @@ onUnmounted(() => {
 <style scoped>
 /* Square the dropdown's top corners while it is pinned to the scrollport top.
    The sticky wrapper is the scroll-state container; the query styles its
-   child (Chrome 133+ — rounded elsewhere). */
+   child (Chrome 133+, rounded elsewhere). */
 .toc-dropdown {
   container-type: scroll-state;
 

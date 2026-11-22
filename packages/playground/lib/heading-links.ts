@@ -16,7 +16,7 @@ function slugify(text: string): string {
 
 /**
  * Adds an id and an anchor link wrapping the whole heading text to every
- * `h1`–`h6` inside `root` (GitHub-style: the title itself links to the hash;
+ * `h1` to `h6` inside `root` (GitHub-style: the title itself links to the hash;
  * a `#` span is revealed on hover / focus-visible). Idempotent: headings
  * already processed are skipped. Returns the headings for the table of
  * contents.
@@ -59,7 +59,7 @@ export function injectHeadingLinks(root: HTMLElement): HeadingLink[] {
   return collectHeadings(root);
 }
 
-/** Collects `h2`–`h3` headings for the table of contents. */
+/** Collects `h2` and `h3` headings for the table of contents. */
 export function collectHeadings(root: HTMLElement): HeadingLink[] {
   return [
     ...root.querySelectorAll<HTMLHeadingElement>('h2, h3'),

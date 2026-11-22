@@ -17,7 +17,7 @@ async function copy() {
       copied.value = false;
     }, 1500);
   } catch {
-    // Clipboard API unavailable (e.g. insecure context) — ignore.
+    // Clipboard API unavailable (e.g. insecure context); ignore.
   }
 }
 </script>

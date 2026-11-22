@@ -1,0 +1,83 @@
+{
+  "name": "@pdanpdan/headless-combobox-vue",
+  "type": "module",
+  "version": "3.0.0",
+  "description": "Accessible renderless combobox for Vue 3, built on the framework-independent core",
+  "author": "",
+  "license": "MIT",
+  "homepage": "https://pdanpdan.github.io/headless-components",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pdanpdan/headless-components.git",
+    "directory": "packages/headless-combobox-vue"
+  },
+  "bugs": {
+    "url": "https://github.com/pdanpdan/headless-components/issues"
+  },
+  "keywords": [
+    "vue",
+    "vue3",
+    "combobox",
+    "headless",
+    "renderless",
+    "select",
+    "autocomplete",
+    "accessibility",
+    "typescript"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./source": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./HeadlessCombobox.vue": "./src/HeadlessCombobox.vue",
+    "./examples/*": "./examples/*"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "examples",
+    "src"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "prepublishOnly": "pnpm test:all && pnpm build",
+    "lint": "pnpm --dir ../.. lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "vue-tsc -p tsconfig.app.json --noEmit && vue-tsc -p tsconfig.vitest.json --noEmit",
+    "test:all": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:coverage",
+    "release:npm": "pnpm publish"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@pdanpdan/headless-combobox-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "@vue/test-utils": "catalog:",
+    "jsdom": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-dts": "catalog:",
+    "vitest": "catalog:",
+    "vue": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

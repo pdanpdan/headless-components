@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import CodeBlock from '#/components/CodeBlock.vue';
 
@@ -8,14 +8,16 @@ interface Source {
   html: string;
 }
 
-defineProps<{
+const props = defineProps<{
   title: string;
   description?: string;
   source: Source;
   lang?: string;
+  preview?: boolean;
 }>();
 
-const tab = ref<'preview' | 'code'>('preview');
+const tab = ref<'preview' | 'code'>(props.preview ? 'preview' : 'code');
+const codeLang = computed(() => props.lang ?? 'vue');
 </script>
 
 <template>
@@ -29,6 +31,7 @@ const tab = ref<'preview' | 'code'>('preview');
       </header>
 
       <div
+        v-if="preview"
         role="tablist"
         class="
           tabs-box tabs w-fit
@@ -56,6 +59,7 @@ const tab = ref<'preview' | 'code'>('preview');
       </div>
 
       <div
+        v-if="preview"
         v-show="tab === 'preview'"
         class="
           flex min-h-40 items-start justify-center rounded-box border
@@ -65,7 +69,13 @@ const tab = ref<'preview' | 'code'>('preview');
         <slot />
       </div>
 
-      <CodeBlock v-show="tab === 'code'" :code="source.html" :raw="source.raw" :lang="lang" />
+      <div v-show="tab === 'code'" class="flex flex-col gap-3">
+        <CodeBlock
+          :code="source.html"
+          :raw="source.raw"
+          :lang="codeLang"
+        />
+      </div>
     </div>
   </section>
 </template>
